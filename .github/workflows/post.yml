@@ -1,0 +1,57 @@
+name: post
+
+on:
+  schedule:
+    - cron: "0 * * * *" # WORKFLOW_CRON, plan.md §2.6 -- hourly; each account's job
+    # no-ops if the current UTC hour isn't in its postingHoursLocal (account-local time).
+  workflow_dispatch: {}
+
+permissions:
+  contents: write # commit-batch.ts pushes data/app.db + data/posts/ changes
+
+jobs:
+  load-accounts:
+    runs-on: ubuntu-latest
+    outputs:
+      accounts: ${{ steps.read.outputs.accounts }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: read
+        run: echo "accounts=$(jq -c '[.[] | select(.active) | .id]' data/accounts.json)" >> "$GITHUB_OUTPUT"
+
+  post:
+    needs: load-accounts
+    if: needs.load-accounts.outputs.accounts != '[]'
+    strategy:
+      matrix:
+        account_id: ${{ fromJson(needs.load-accounts.outputs.accounts) }}
+      fail-fast: false
+    concurrency:
+      group: post-${{ matrix.account_id }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Full history, not the default shallow clone -- commit-batch.ts's
+          # `git pull --rebase` (plan.md §7.21) needs real history to rebase
+          # against when two accounts' matrix jobs race to push.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter core exec tsx scripts/run-post-batch.ts --account ${{ matrix.account_id }}
+        env:
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
+          GOOGLE_CLOUD_VISION_API_KEY: ${{ secrets.GOOGLE_CLOUD_VISION_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          API_NINJAS_KEY: ${{ secrets.API_NINJAS_KEY }}
+          THEY_SAID_SO_KEY: ${{ secrets.THEY_SAID_SO_KEY }}

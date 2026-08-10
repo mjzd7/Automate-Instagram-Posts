@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens from Elias-Thorne-Interface-Architect-DESIGN.md (extracted
+ * from neuform.ai/template/elias-thorne-interface-architect).
+ *
+ * Spacing note: the file's scale (1, 2, 8, 20, 24, 32, 40, 48px) maps
+ * exactly onto Tailwind v4's default 4px-increment spacing scale (px, 0.5,
+ * 2, 5, 6, 8, 10, 12) -- no custom spacing tokens needed, use the defaults
+ * directly (e.g. p-6 = 24px section padding, gap-2 = 8px).
+ *
+ * Surface color note: the file's raw frontmatter lists `surface: #E5E5E5`,
+ * but its own "Elevation & Depth" section describes a dark elevated-card
+ * recipe (rgba(255,255,255,0.15) inset top highlight over rgba(0,0,0,0.6)
+ * inset bottom shadow) that only reads correctly on a DARK fill -- a light
+ * #E5E5E5 card would invert that recipe's contrast. Interpreting #E5E5E5 as
+ * the neutral/text-primary token (consistent with "Text Primary: #E5E5E5"
+ * in the same section) and deriving a dark surface fill from the page
+ * background gradient's dark end instead.
+ */
+@theme {
+  --color-primary: #6366f1;
+  --color-secondary: #a855f7;
+  --color-tertiary: #c968f7;
+  --color-text-primary: #e5e5e5;
+  --color-text-secondary: #a3a3a3;
+  --color-surface: #18181b;
+  --color-bg-start: #2a2a2e;
+  --color-bg-end: #09090b;
+
+  --font-display: var(--font-newsreader);
+  --font-sans: var(--font-inter);
+
+  --radius-control: 9999px;
+  --radius-sharp: 0px;
+
+  --shadow-elevated:
+    0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 1px -0.5px rgba(0, 0, 0, 0.06), 0 3px 3px -1.5px rgba(0, 0, 0, 0.06),
+    0 6px 6px -3px rgba(0, 0, 0, 0.06), 0 12px 12px -6px rgba(0, 0, 0, 0.06), 0 24px 24px -12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.6);
+
+  --ease-brand: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  color: var(--color-text-primary);
+  background: linear-gradient(to bottom, var(--color-bg-start), var(--color-bg-end));
+  min-height: 100vh;
+}

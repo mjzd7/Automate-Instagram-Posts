@@ -1,0 +1,12 @@
+[
+  {
+    "id": "main",
+    "igUserId": "17841400000000000",
+    "fbPageId": "102900000000000",
+    "threadsUserId": null,
+    "categoryFocus": ["motivational", "stoic"],
+    "timezone": "America/New_York",
+    "postingHoursLocal": [10, 13, 17, 20],
+    "active": true
+  }
+]

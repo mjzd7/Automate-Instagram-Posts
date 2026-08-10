@@ -1,0 +1,145 @@
+[
+  {
+    "id": "bg-stoic-mountain-01",
+    "source": "unsplash",
+    "externalId": "photo-1464822759023-fed622ff2c3b",
+    "sourceUrl": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1080&h=1350&fit=crop&q=80",
+    "description": "Majestic rocky mountain peaks touching clouds at dawn, quiet strength and endurance",
+    "attribution": "Photo by Kalen Emsley on Unsplash",
+    "categoryId": "stoic",
+    "darkness": "dark",
+    "active": true
+  },
+  {
+    "id": "bg-stoic-light-marble-02",
+    "source": "unsplash",
+    "externalId": "photo-1518640467707-6811f4a6ab73",
+    "sourceUrl": "https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?w=1080&h=1350&fit=crop&q=80",
+    "description": "Bright clean white marble texture with subtle gray veins, minimal stoic stone",
+    "attribution": "Photo by Samuel Zeller on Unsplash",
+    "categoryId": "stoic",
+    "darkness": "light",
+    "active": true
+  },
+  {
+    "id": "bg-stoic-misty-forest-03",
+    "source": "unsplash",
+    "externalId": "photo-1448375240586-882707db888b",
+    "sourceUrl": "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1080&h=1350&fit=crop&q=80",
+    "description": "Dense foggy pine forest trees shrouded in morning mist, stillness and contemplation",
+    "attribution": "Photo by Sebastian Unrau on Unsplash",
+    "categoryId": "stoic",
+    "darkness": "dark",
+    "active": true
+  },
+  {
+    "id": "bg-motivational-sunrise-01",
+    "source": "unsplash",
+    "externalId": "photo-1470252649378-9c29740c9fa8",
+    "sourceUrl": "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=1080&h=1350&fit=crop&q=80",
+    "description": "Golden sunrise over misty rolling hills, new beginnings and hope",
+    "attribution": "Photo by Dawid Zawiła on Unsplash",
+    "categoryId": "motivational",
+    "darkness": "dark",
+    "active": true
+  },
+  {
+    "id": "bg-motivational-light-clouds-02",
+    "source": "unsplash",
+    "externalId": "photo-1534088568595-a066f410bcda",
+    "sourceUrl": "https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1080&h=1350&fit=crop&q=80",
+    "description": "Bright sunlit white cloudscape against soft pastel blue sky, morning warmth and soaring clarity",
+    "attribution": "Photo by Zbynek Burival on Unsplash",
+    "categoryId": "motivational",
+    "darkness": "light",
+    "active": true
+  },
+  {
+    "id": "bg-mindfulness-ocean-01",
+    "source": "unsplash",
+    "externalId": "photo-1507525428034-b723cf961d3e",
+    "sourceUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1080&h=1350&fit=crop&q=80",
+    "description": "Calm turquoise ocean water gently lapping on white sandy beach under soft bright sky",
+    "attribution": "Photo by Sean Oulashin on Unsplash",
+    "categoryId": "mindfulness",
+    "darkness": "light",
+    "active": true
+  },
+  {
+    "id": "bg-mindfulness-misty-lake-02",
+    "source": "unsplash",
+    "externalId": "photo-1501785888041-af3ef285b470",
+    "sourceUrl": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1080&h=1350&fit=crop&q=80",
+    "description": "Serene alpine lake surrounded by dramatic mountain reflections",
+    "attribution": "Photo by Pietro De Grandi on Unsplash",
+    "categoryId": "mindfulness",
+    "darkness": "dark",
+    "active": true
+  },
+  {
+    "id": "bg-business-architecture-01",
+    "source": "unsplash",
+    "externalId": "photo-1486406146926-c627a92ad1ab",
+    "sourceUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1080&h=1350&fit=crop&q=80",
+    "description": "Modern glass skyscraper looking up at blue sky, ambition and structure",
+    "attribution": "Photo by Sean Pollock on Unsplash",
+    "categoryId": "business",
+    "darkness": "dark",
+    "active": true
+  },
+  {
+    "id": "bg-business-light-architecture-02",
+    "source": "unsplash",
+    "externalId": "photo-1513694203232-719a280e022f",
+    "sourceUrl": "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1080&h=1350&fit=crop&q=80",
+    "description": "Minimalist sunlit white interior building space with clean geometry and soft shadow shadows",
+    "attribution": "Photo by Samantha Adaptation on Unsplash",
+    "categoryId": "business",
+    "darkness": "light",
+    "active": true
+  },
+  {
+    "id": "bg-wisdom-tree-01",
+    "source": "unsplash",
+    "externalId": "photo-1441974231531-c6227db76b6e",
+    "sourceUrl": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1080&h=1350&fit=crop&q=80",
+    "description": "Sunbeams streaming through ancient forest trees canopy",
+    "attribution": "Photo by Luca Bravo on Unsplash",
+    "categoryId": "wisdom",
+    "darkness": "dark",
+    "active": true
+  },
+  {
+    "id": "bg-wisdom-light-book-02",
+    "source": "unsplash",
+    "externalId": "photo-1544716278-ca5e3f4abd8c",
+    "sourceUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1080&h=1350&fit=crop&q=80",
+    "description": "Bright open book page lying on crisp white desk with soft warm daylight",
+    "attribution": "Photo by Jaredd Craig on Unsplash",
+    "categoryId": "wisdom",
+    "darkness": "light",
+    "active": true
+  },
+  {
+    "id": "bg-resilience-desert-01",
+    "source": "unsplash",
+    "externalId": "photo-1509316975850-ff9c5deb0cd9",
+    "sourceUrl": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=1080&h=1350&fit=crop&q=80",
+    "description": "Solitary tree standing resiliently against vast desert dunes at sunset",
+    "attribution": "Photo by Wolfgang Hasselmann on Unsplash",
+    "categoryId": "resilience",
+    "darkness": "dark",
+    "active": true
+  },
+  {
+    "id": "bg-resilience-light-saltflats-02",
+    "source": "unsplash",
+    "externalId": "photo-1469854523086-cc02fe5d8800",
+    "sourceUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1080&h=1350&fit=crop&q=80",
+    "description": "Vast bright white horizon open desert landscape under clear sunlit sky",
+    "attribution": "Photo by Dino Reichmuth on Unsplash",
+    "categoryId": "resilience",
+    "darkness": "light",
+    "active": true
+  }
+]

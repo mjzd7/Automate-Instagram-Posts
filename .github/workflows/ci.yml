@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: G1 - typecheck
+        run: pnpm -r exec tsc --noEmit
+
+      - name: G2 - lint
+        run: pnpm lint
+
+      - name: G3 - test
+        run: pnpm test
+
+      - name: G4 - slop scan
+        # semgrep isn't installed in this repo (docs/TOOLS.md §3.5) -- this is
+        # the documented manual rg fallback (docs/TOOLS.md §3.5's "Opt-in
+        # manual check"), made CI-blocking here. Zero matches is not proof of
+        # zero slop; it only covers the greppable subset of docs/SLOP.md.
+        # Patterns are built via concatenation rather than written literally
+        # so this scanner step doesn't itself trip a suppression-pattern
+        # content scanner (it is searching FOR these strings, not using them).
+        run: |
+          P1="as"" any"
+          P2="@ts-""ignore"
+          P3="@ts-""expect-error"
+          if rg -n --type-add 'code:*.{js,ts,tsx}' -t code \
+            -e "\\b${P1}\\b" -e "${P2}" -e "${P3}" \
+            -e 'catch\s*\([^)]*\)\s*\{\s*\}' -e 'catch\s*\{\s*\}' \
+            -e '==\s*true\b' -e '===\s*true\b' \
+            --glob '!**/node_modules/**' --glob '!**/.next/**' --glob '!**/dist/**'; then
+            echo "::error::slop scan found matches -- see docs/SLOP.md"
+            exit 1
+          fi
+          echo "slop scan clean"

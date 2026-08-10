@@ -1,0 +1,19 @@
+{
+  "name": "core",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.4",
+    "drizzle-orm": "^0.45.2",
+    "libsodium-wrappers": "^0.8.4",
+    "sharp": "^0.35.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10"
+  }
+}

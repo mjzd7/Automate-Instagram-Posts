@@ -1,0 +1,22 @@
+{
+  "totalAnalyzed": 0,
+  "filteredOut2026": 0,
+  "colorDistribution": {
+    "darkCount": 0,
+    "lightCount": 0,
+    "darkPercentage": 70
+  },
+  "captionStats": {
+    "avgLength": 120,
+    "avgHashtags": 15,
+    "commonHashtags": [],
+    "hasAuthorAttribution": true,
+    "quoteFormattingPattern": "Clean multi-line quote with double line breaks before author attribution"
+  },
+  "deducedDesignRules": {
+    "preferredMode": "dark",
+    "suggestedScrimOpacity": 0.45,
+    "suggestedHashtagCount": 8,
+    "suggestedQuoteAlignment": "center"
+  }
+}

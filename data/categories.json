@@ -1,0 +1,11 @@
+[
+  { "id": "motivational", "name": "Motivational", "description": "General encouragement and drive", "active": true },
+  { "id": "stoic", "name": "Stoic", "description": "Stoic philosophy quotes", "active": true },
+  { "id": "humor", "name": "Humor", "description": "Light, witty quotes", "active": true },
+  { "id": "business", "name": "Business", "description": "Entrepreneurship and leadership", "active": true },
+  { "id": "love", "name": "Love", "description": "Love and relationships", "active": true },
+  { "id": "wisdom", "name": "Wisdom", "description": "Timeless wisdom and insight", "active": true },
+  { "id": "mindfulness", "name": "Mindfulness", "description": "Presence and inner calm", "active": true },
+  { "id": "resilience", "name": "Resilience", "description": "Perseverance through adversity", "active": true },
+  { "id": "general", "name": "General", "description": "Fallback pool spanning all themes", "active": true }
+]

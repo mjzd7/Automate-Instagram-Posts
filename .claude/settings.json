@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-destructive-git.sh",
+            "timeout": 10,
+            "statusMessage": "Checking for destructive git commands (AGENTS.md 11.11)"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-type-suppression.sh",
+            "timeout": 10,
+            "statusMessage": "Checking for type suppression (AGENTS.md 11.1)"
+          }
+        ]
+      }
+    ]
+  }
+}

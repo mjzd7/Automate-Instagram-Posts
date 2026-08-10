@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "active_work_id": "eliminate-quote-truncation-6f542106",
+  "works": {
+    "eliminate-quote-truncation-6f542106": {
+      "work_id": "eliminate-quote-truncation-6f542106",
+      "active_plan": "/Users/mm/orca/projects/Automate-Instagram-Posts/.omo/plans/eliminate-quote-truncation.md",
+      "plan_name": "eliminate-quote-truncation",
+      "status": "completed",
+      "started_at": "2026-08-10T10:37:30.774Z",
+      "ended_at": "2026-08-10T16:50:00.000Z",
+      "updated_at": "2026-08-10T16:50:00.000Z",
+      "session_ids": [
+        "opencode:ses_014c7a776ffe7bW7EqAHilUrYX"
+      ],
+      "session_origins": {
+        "opencode:ses_014c7a776ffe7bW7EqAHilUrYX": "direct"
+      },
+      "agent": "atlas",
+      "task_sessions": {},
+      "elapsed_ms": 22350222
+    }
+  },
+  "active_plan": "/Users/mm/orca/projects/Automate-Instagram-Posts/.omo/plans/eliminate-quote-truncation.md",
+  "started_at": "2026-08-10T10:37:30.774Z",
+  "status": "completed",
+  "ended_at": "2026-08-10T16:50:00.000Z",
+  "updated_at": "2026-08-10T16:50:00.000Z",
+  "session_ids": [
+    "opencode:ses_014c7a776ffe7bW7EqAHilUrYX"
+  ],
+  "session_origins": {
+    "opencode:ses_014c7a776ffe7bW7EqAHilUrYX": "direct"
+  },
+  "plan_name": "eliminate-quote-truncation",
+  "task_sessions": {},
+  "agent": "atlas"
+}

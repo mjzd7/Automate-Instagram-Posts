@@ -1,0 +1,39 @@
+name: refresh-token
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # TOKEN_REFRESH_CRON, plan.md §2.10 -- weekly, Sunday 03:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write # commit-batch.ts pushes the refreshed ig_token rows
+
+jobs:
+  refresh-token:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # No per-account matrix -- refresh-token.ts loops every account inside
+      # a single job (plan.md §9.2: token refresh is infrequent and cheap,
+      # doesn't need per-account parallelism or isolation).
+      - run: pnpm --filter core exec tsx scripts/run-token-refresh.ts
+        env:
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
+          GOOGLE_CLOUD_VISION_API_KEY: ${{ secrets.GOOGLE_CLOUD_VISION_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          API_NINJAS_KEY: ${{ secrets.API_NINJAS_KEY }}
+          THEY_SAID_SO_KEY: ${{ secrets.THEY_SAID_SO_KEY }}
+          GH_PAT_FOR_SECRETS: ${{ secrets.GH_PAT_FOR_SECRETS }}
