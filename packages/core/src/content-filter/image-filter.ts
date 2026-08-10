@@ -84,22 +84,31 @@ interface LabelAnnotation {
   score: number;
 }
 
+interface TextAnnotation {
+  description: string;
+}
+
 export interface ImageFilterResult {
   passes: boolean;
   annotation: SafeSearchAnnotation;
   /** Labels that caused rejection, if any (empty if rejected by SafeSearch). */
   rejectedLabels?: string[];
+  /** Detected text from OCR that caused rejection, if any. */
+  detectedText?: string;
+  /** Human-readable rejection reason if rejected. */
+  rejectionReason?: string;
 }
 
 /**
  * Per plan.md §7.5 / §2.7: multi-feature Google Cloud Vision check.
  *
- * Makes a single API call requesting both SAFE_SEARCH_DETECTION and
- * LABEL_DETECTION features — no extra round-trip cost.
+ * Makes a single API call requesting SAFE_SEARCH_DETECTION, LABEL_DETECTION,
+ * and TEXT_DETECTION (OCR) features — zero extra round-trips.
  *
  * Rejects if:
  *  - adult / violence / racy is LIKELY or VERY_LIKELY (SafeSearch), OR
- *  - any high-confidence label (≥ 0.6) matches the religious/text blocklists
+ *  - any high-confidence label (≥ 0.6) matches the religious/text blocklists, OR
+ *  - any readable text is detected via Vision OCR (TEXT_DETECTION)
  */
 export async function imagePassesFilter(
   imageUrl: string,
@@ -118,6 +127,7 @@ export async function imagePassesFilter(
             features: [
               { type: "SAFE_SEARCH_DETECTION" },
               { type: "LABEL_DETECTION", maxResults: 20 },
+              { type: "TEXT_DETECTION", maxResults: 5 },
             ],
           },
         ],
@@ -133,12 +143,13 @@ export async function imagePassesFilter(
     responses?: Array<{
       safeSearchAnnotation?: SafeSearchAnnotation;
       labelAnnotations?: LabelAnnotation[];
+      textAnnotations?: TextAnnotation[];
     }>;
   };
 
   const response = body.responses?.[0];
   if (!response) {
-    throw new Error("Google Vision SafeSearch response missing responses[0].safeSearchAnnotation");
+    throw new Error("Google Vision SafeSearch response missing responses[0]");
   }
 
   const annotation = response.safeSearchAnnotation ?? {};
@@ -148,7 +159,11 @@ export async function imagePassesFilter(
     (level) => level !== undefined && REJECT_LEVELS.has(level),
   );
   if (safesearchFlagged) {
-    return { passes: false, annotation };
+    return {
+      passes: false,
+      annotation,
+      rejectionReason: "Failed SafeSearch moderation (adult/violence/racy)",
+    };
   }
 
   // Stage 2: Label blocklist — religious + text-heavy
@@ -165,7 +180,26 @@ export async function imagePassesFilter(
   }
 
   if (rejectedLabels.length > 0) {
-    return { passes: false, annotation, rejectedLabels };
+    return {
+      passes: false,
+      annotation,
+      rejectedLabels,
+      rejectionReason: `Matched blocked visual labels: ${rejectedLabels.join(", ")}`,
+    };
+  }
+
+  // Stage 3: OCR Text Detection — zero embedded text in background images
+  if (response.textAnnotations && response.textAnnotations.length > 0) {
+    const detectedText = response.textAnnotations[0]?.description?.trim();
+    if (detectedText && detectedText.length > 0) {
+      return {
+        passes: false,
+        annotation,
+        rejectedLabels: [],
+        detectedText,
+        rejectionReason: `Background image contains detected text: "${detectedText.slice(0, 80)}"`,
+      };
+    }
   }
 
   return { passes: true, annotation, rejectedLabels: [] };

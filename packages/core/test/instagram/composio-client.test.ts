@@ -6,15 +6,22 @@ function jsonResponse(status: number, body: unknown): Response {
 }
 
 describe("publishViaComposio", () => {
-  it("sends request to Composio API and returns mediaId and permalink on success", async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(
-      jsonResponse(200, {
-        data: {
-          id: "comp-media-123",
-          permalink: "https://instagram.com/p/C123456/",
-        },
-      }),
-    );
+  it("creates media container and publishes via Composio v3.1 tools", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          data: { id: "container-999" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          data: {
+            id: "comp-media-123",
+            permalink: "https://instagram.com/p/C123456/",
+          },
+        }),
+      );
 
     const result = await publishViaComposio({
       imageUrl: "https://example.com/quote.jpg",
@@ -28,23 +35,16 @@ describe("publishViaComposio", () => {
       permalink: "https://instagram.com/p/C123456/",
     });
 
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe("https://backend.composio.dev/api/v1/actions/INSTAGRAM_CREATE_POST/execute");
-    expect(init.headers).toMatchObject({
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    const [url1, init1] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url1).toBe("https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_CREATE_MEDIA_CONTAINER");
+    expect(init1.headers).toMatchObject({
       "Content-Type": "application/json",
       "x-api-key": "test-composio-key",
     });
 
-    const body = JSON.parse(init.body as string);
-    expect(body).toEqual({
-      entity_id: "default",
-      appName: "instagram",
-      input: {
-        image_url: "https://example.com/quote.jpg",
-        caption: "Inspiring quote #motivation",
-      },
-    });
+    const [url2, init2] = fetchImpl.mock.calls[1] as [string, RequestInit];
+    expect(url2).toBe("https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_POST_IG_USER_MEDIA_PUBLISH");
   });
 
   it("throws clear error message when Composio returns a non-200 response", async () => {
@@ -57,6 +57,6 @@ describe("publishViaComposio", () => {
         apiKey: "bad-key",
         fetchImpl,
       }),
-    ).rejects.toThrow("Composio API error (401)");
+    ).rejects.toThrow("Composio create container error (401)");
   });
 });

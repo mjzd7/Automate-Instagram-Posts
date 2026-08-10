@@ -35,6 +35,7 @@ import { publishToStories } from "../instagram/stories-client.js";
 import type { ThreadsCredentials } from "../threads/client.js";
 import { publishToThreads } from "../threads/client.js";
 import { sendDiscordNotification } from "../notify/discord.js";
+import { commitBatch } from "../git/commit-batch.js";
 import { CAPTION_TEMPLATES, findCaptionTemplate } from "./caption-templates.js";
 
 // plan.md §2.6/§2.9.
@@ -315,6 +316,14 @@ export async function generateAndPublishBatch(
         items.push({ status: "composed", postId, composedImagePath: relativePath });
         consecutiveFailures = 0;
         continue;
+      }
+
+      console.log(`[Batch] Committing and pushing image to GitHub...`);
+      try {
+        await commitBatch({ cwd: options.repoRoot, message: `post: publish image ${postId}` });
+        console.log(`[Batch] Image pushed to GitHub raw URL.`);
+      } catch (err) {
+        console.warn(`[Batch] Git push warning:`, err);
       }
 
       const caption = captionTemplate.build(quote.text, quote.author, hashtags);

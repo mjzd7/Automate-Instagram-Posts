@@ -180,8 +180,39 @@ describe("imagePassesFilter", () => {
     expect(result.passes).toBe(true);
   });
 
+  // ─── Stage 3: OCR Text Detection ─────────────────────────────────────────
+  it("rejects an image with detected OCR text (e.g. signage, street signs, quotes)", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(200, {
+        responses: [
+          {
+            safeSearchAnnotation: { adult: "UNLIKELY", violence: "UNLIKELY", racy: "UNLIKELY" },
+            labelAnnotations: [{ description: "Street", score: 0.9 }],
+            textAnnotations: [{ description: "NEW YORK TIMES SQUARE" }],
+          },
+        ],
+      }),
+    );
+    const result = await imagePassesFilter("https://example.com/sign.jpg", "key", fetchImpl);
+    expect(result.passes).toBe(false);
+    expect(result.detectedText).toBe("NEW YORK TIMES SQUARE");
+    expect(result.rejectionReason).toContain("Background image contains detected text");
+  });
+
+  it("requests SAFE_SEARCH_DETECTION, LABEL_DETECTION, and TEXT_DETECTION", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(visionResponse({ adult: "UNLIKELY" }));
+    await imagePassesFilter("https://example.com/img.jpg", "key", fetchImpl);
+
+    const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    const featureTypes: string[] = body.requests[0].features.map((f: { type: string }) => f.type);
+    expect(featureTypes).toContain("SAFE_SEARCH_DETECTION");
+    expect(featureTypes).toContain("LABEL_DETECTION");
+    expect(featureTypes).toContain("TEXT_DETECTION");
+  });
+
   // ─── Non-blocking benign labels ──────────────────────────────────────────
-  it("passes a clean nature photo with no blocked labels", async () => {
+  it("passes a clean nature photo with no blocked labels and no text", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       visionResponse(
         { adult: "UNLIKELY", violence: "UNLIKELY", racy: "UNLIKELY" },
