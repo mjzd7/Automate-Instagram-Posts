@@ -31,7 +31,7 @@ import {
 import { getNextQuote } from "../quotes/provider.js";
 import type { IGCredentials } from "../instagram/client.js";
 import { publishToFeed } from "../instagram/client.js";
-import { publishViaComposio } from "../instagram/composio-client.js";
+import { publishViaComposio, publishViaComposioStories } from "../instagram/composio-client.js";
 import { publishToStories } from "../instagram/stories-client.js";
 import type { ThreadsCredentials } from "../threads/client.js";
 import { publishToThreads } from "../threads/client.js";
@@ -410,23 +410,39 @@ export async function generateAndPublishBatch(
         console.log(`[Batch] Using Meta Graph API...`);
         feedResult = await publishToFeed(verifiedImageUrl, caption, hashtagComment, igCreds!, fetchImpl, sleepImpl);
       }
-      console.log(`[Batch] Successfully published! Media ID: ${feedResult.mediaId}, Permalink: ${feedResult.permalink}`);
-
       // Best-effort surfaces -- failures here don't fail the item.
       let storiesMediaId: string | undefined;
       try {
-        const stories = await publishToStories(imageUrl, igCreds!, fetchImpl, sleepImpl);
-        storiesMediaId = stories.mediaId;
-      } catch {
-        // non-fatal, per plan.md §7.19 step 4k
+        if (env.COMPOSIO_API_KEY) {
+          console.log(`[Batch] Cross-posting to Instagram Stories via Composio...`);
+          const compStory = await publishViaComposioStories({
+            imageUrl: verifiedImageUrl,
+            caption: "",
+            apiKey: env.COMPOSIO_API_KEY,
+            entityId: account.id,
+            fetchImpl,
+          });
+          storiesMediaId = compStory.mediaId;
+          console.log(`[Batch] Successfully cross-posted Story! Media ID: ${storiesMediaId}`);
+        } else if (igCreds) {
+          console.log(`[Batch] Cross-posting to Instagram Stories via Meta Graph API...`);
+          const stories = await publishToStories(verifiedImageUrl, igCreds, fetchImpl, sleepImpl);
+          storiesMediaId = stories.mediaId;
+          console.log(`[Batch] Successfully cross-posted Story! Media ID: ${storiesMediaId}`);
+        }
+      } catch (err) {
+        console.warn(`[Batch] Story cross-post warning:`, err);
       }
+
       let threadsPostId: string | undefined;
       if (threadsCreds) {
         try {
-          const threads = await publishToThreads(imageUrl, caption, threadsCreds, fetchImpl, sleepImpl);
+          console.log(`[Batch] Cross-posting to Threads...`);
+          const threads = await publishToThreads(verifiedImageUrl, caption, threadsCreds, fetchImpl, sleepImpl);
           threadsPostId = threads.mediaId;
-        } catch {
-          // non-fatal, per plan.md §7.19 step 4l
+          console.log(`[Batch] Successfully cross-posted to Threads! Post ID: ${threadsPostId}`);
+        } catch (err) {
+          console.warn(`[Batch] Threads cross-post warning:`, err);
         }
       }
 

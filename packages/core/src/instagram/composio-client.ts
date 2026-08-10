@@ -188,3 +188,125 @@ export async function publishViaComposio(
     permalink: publishData.data?.permalink,
   };
 }
+
+/**
+ * Cross-posts an image to Instagram Stories via Composio's v3.1 tool execution
+ * using media_type: "STORIES".
+ */
+export async function publishViaComposioStories(
+  options: PublishViaComposioOptions,
+): Promise<ComposioPublishResult> {
+  const { imageUrl, apiKey, entityId = "default" } = options;
+  const fetchImpl = options.fetchImpl ?? fetch;
+
+  const createRes = await fetchImpl(
+    "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_CREATE_MEDIA_CONTAINER",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      signal: AbortSignal.timeout(30000),
+      body: JSON.stringify({
+        entity_id: entityId,
+        user_id: entityId,
+        arguments: {
+          image_url: imageUrl,
+          media_type: "STORIES",
+        },
+      }),
+    },
+  );
+
+  if (!createRes.ok) {
+    const errorText = await createRes.text();
+    throw new Error(`Composio create story container error (${createRes.status}): ${errorText}`);
+  }
+
+  const createData = (await createRes.json()) as {
+    data?: { id?: string; creation_id?: string };
+    error?: string | { message?: string };
+  };
+
+  if (createData.error) {
+    const errMsg = typeof createData.error === "object" ? createData.error.message : createData.error;
+    throw new Error(`Composio create story container failed: ${errMsg}`);
+  }
+
+  const creationId = createData.data?.id ?? createData.data?.creation_id;
+  if (!creationId) {
+    throw new Error("Composio response missing story container ID");
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  let targetIgUserId = options.igUserId;
+  if (!targetIgUserId) {
+    try {
+      const userRes = await fetchImpl(
+        "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_GET_USER_INFO",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+          },
+          signal: AbortSignal.timeout(10000),
+          body: JSON.stringify({
+            entity_id: entityId,
+            user_id: entityId,
+            arguments: {},
+          }),
+        },
+      );
+      if (userRes.ok) {
+        const userData = (await userRes.json()) as { data?: { id?: string } };
+        if (userData.data?.id) {
+          targetIgUserId = userData.data.id;
+        }
+      }
+    } catch {}
+  }
+
+  const publishRes = await fetchImpl(
+    "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_POST_IG_USER_MEDIA_PUBLISH",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      signal: AbortSignal.timeout(30000),
+      body: JSON.stringify({
+        entity_id: entityId,
+        user_id: entityId,
+        arguments: {
+          ig_user_id: targetIgUserId,
+          creation_id: creationId,
+        },
+      }),
+    },
+  );
+
+  if (!publishRes.ok) {
+    const errorText = await publishRes.text();
+    throw new Error(`Composio publish story error (${publishRes.status}): ${errorText}`);
+  }
+
+  const publishData = (await publishRes.json()) as {
+    data?: { id?: string; media_id?: string; permalink?: string };
+    error?: string | { message?: string };
+  };
+
+  if (publishData.error) {
+    const errMsg = typeof publishData.error === "object" ? publishData.error.message : publishData.error;
+    throw new Error(`Composio publish story failed: ${errMsg}`);
+  }
+
+  const mediaId = publishData.data?.id ?? publishData.data?.media_id ?? `story-${Date.now()}`;
+  return {
+    mediaId,
+    permalink: publishData.data?.permalink,
+  };
+}
