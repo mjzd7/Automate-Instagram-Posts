@@ -72,6 +72,8 @@ export interface GenerateAndPublishBatchOptions {
   ignorePostingHour?: boolean;
   /** Custom batch size (default: BATCH_SIZE = 5). Set to 1 for single-post tests. */
   batchSize?: number;
+  /** When true, disables inter-post jitter sleep delay. */
+  noDelay?: boolean;
   fetchImpl?: typeof fetch;
   sleepImpl?: (ms: number) => Promise<void>;
   randomImpl?: () => number;
@@ -394,7 +396,7 @@ export async function generateAndPublishBatch(
       }
     }
 
-    if (i < BATCH_SIZE - 1) {
+    if (i < totalPostsToGenerate - 1 && !options.noDelay) {
       const jitterMs = (POST_INTERVAL_BASE_SECONDS + (random() * 2 - 1) * POST_INTERVAL_JITTER_SECONDS) * 1000;
       await sleepImpl(jitterMs);
     }

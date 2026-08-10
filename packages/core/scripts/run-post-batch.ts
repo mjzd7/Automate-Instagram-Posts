@@ -21,12 +21,24 @@ function parseAccountArg(argv: string[]): string {
   return value;
 }
 
+function parseCountArg(argv: string[]): number | undefined {
+  const idx = argv.indexOf("--count") !== -1 ? argv.indexOf("--count") : argv.indexOf("--batch-size");
+  if (idx !== -1 && argv[idx + 1]) {
+    const val = parseInt(argv[idx + 1]!, 10);
+    if (!isNaN(val) && val > 0) return val;
+  }
+  return undefined;
+}
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const accountId = parseAccountArg(argv);
   const dryRun = argv.includes("--dry-run");
   const force = argv.includes("--force");
   const single = argv.includes("--single");
+  const fast = argv.includes("--fast") || argv.includes("--no-delay");
+  const countArg = parseCountArg(argv);
+  const batchSize = countArg ?? (single ? 1 : undefined);
 
   if (typeof process.loadEnvFile === "function") {
     try {
@@ -62,7 +74,8 @@ async function main(): Promise<void> {
       hashtagPools,
       dryRun,
       ignorePostingHour: force,
-      batchSize: single ? 1 : undefined,
+      batchSize,
+      noDelay: fast,
     });
 
     if (result.skippedReason) {

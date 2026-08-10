@@ -16,14 +16,14 @@
  * Keep in sync with images/templates.ts's TEMPLATES ids/names/categories.
  */
 export const TEMPLATE_METADATA: { id: string; name: string; categories: string[] }[] = [
-  { id: "bold-modern", name: "Bold / Modern", categories: ["motivational"] },
-  { id: "editorial-elegant", name: "Editorial / Elegant", categories: ["stoic"] },
+  { id: "bold-modern", name: "Bold / Modern", categories: ["motivational", "inspiration", "productivity"] },
+  { id: "editorial-elegant", name: "Editorial / Elegant", categories: ["stoic", "creativity"] },
   { id: "soft-curvy", name: "Soft / Curvy", categories: ["humor"] },
-  { id: "authentic-personal", name: "Authentic / Personal", categories: ["love"] },
-  { id: "corporate-clean", name: "Corporate / Clean", categories: ["business"] },
-  { id: "classic-wisdom", name: "Classic / Wisdom", categories: ["wisdom"] },
-  { id: "calm-mindful", name: "Calm / Mindful", categories: ["mindfulness"] },
-  { id: "bold-resilience", name: "Bold / Resilience", categories: ["resilience"] },
+  { id: "authentic-personal", name: "Authentic / Personal", categories: ["love", "self-improvement"] },
+  { id: "corporate-clean", name: "Corporate / Clean", categories: ["business", "entrepreneurship"] },
+  { id: "classic-wisdom", name: "Classic / Wisdom", categories: ["wisdom", "mindset"] },
+  { id: "calm-mindful", name: "Calm / Mindful", categories: ["mindfulness", "positive-thinking"] },
+  { id: "bold-resilience", name: "Bold / Resilience", categories: ["resilience", "discipline"] },
   { id: "general-poppins", name: "General / Poppins", categories: [] },
   { id: "general-cormorant", name: "General / Cormorant", categories: [] },
 ];
