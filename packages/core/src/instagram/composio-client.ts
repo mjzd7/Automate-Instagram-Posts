@@ -3,6 +3,7 @@ export interface PublishViaComposioOptions {
   caption: string;
   apiKey: string;
   entityId?: string;
+  igUserId?: string;
   fetchImpl?: typeof fetch;
 }
 
@@ -115,6 +116,35 @@ export async function publishViaComposio(
   // Small delay for Meta container ingest
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
+  // Fetch ig_user_id if not provided explicitly
+  let targetIgUserId = options.igUserId;
+  if (!targetIgUserId) {
+    try {
+      const userRes = await fetchImpl(
+        "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_GET_USER_INFO",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+          },
+          signal: AbortSignal.timeout(10000),
+          body: JSON.stringify({
+            entity_id: entityId,
+            user_id: entityId,
+            arguments: {},
+          }),
+        },
+      );
+      if (userRes.ok) {
+        const userData = (await userRes.json()) as { data?: { id?: string } };
+        if (userData.data?.id) {
+          targetIgUserId = userData.data.id;
+        }
+      }
+    } catch {}
+  }
+
   // Step 2: Publish Media Container
   const publishRes = await fetchImpl(
     "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_POST_IG_USER_MEDIA_PUBLISH",
@@ -129,6 +159,7 @@ export async function publishViaComposio(
         entity_id: entityId,
         user_id: entityId,
         arguments: {
+          ig_user_id: targetIgUserId,
           creation_id: creationId,
         },
       }),

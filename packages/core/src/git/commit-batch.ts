@@ -41,11 +41,19 @@ export async function commitBatch(options: CommitBatchOptions): Promise<CommitBa
   await run(["config", "user.email", "github-actions[bot]@users.noreply.github.com"], cwd);
   await run(["commit", "-m", message], cwd);
 
+  let branch = "main";
   try {
-    await run(["push", "origin", "main"], cwd);
+    const branchRes = await run(["rev-parse", "--abbrev-ref", "HEAD"], cwd);
+    if (branchRes.stdout.trim() && branchRes.stdout.trim() !== "HEAD") {
+      branch = branchRes.stdout.trim();
+    }
+  } catch {}
+
+  try {
+    await run(["push", "origin", branch], cwd);
   } catch {
-    await run(["pull", "--rebase", "origin", "main"], cwd);
-    await run(["push", "origin", "main"], cwd);
+    await run(["pull", "--rebase", "origin", branch], cwd);
+    await run(["push", "origin", branch], cwd);
   }
 
   return { committed: true };

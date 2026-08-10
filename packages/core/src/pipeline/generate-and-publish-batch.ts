@@ -1,4 +1,5 @@
 import { writeFile, mkdir, unlink } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
 import type { Account } from "../config/accounts.js";
 import type { Env } from "../config/env.js";
 import { decryptToken } from "../crypto/token-encryption.js";
@@ -126,6 +127,49 @@ async function pruneOldImages(db: Db, accountId: string, repoRoot: string, curre
   }
 }
 
+async function verifyPublicImageUrl(
+  primaryUrl: string,
+  githubRepoSlug: string,
+  relativePath: string,
+  fetchImpl: typeof fetch,
+  sleepImpl: (ms: number) => Promise<void>,
+): Promise<string> {
+  const candidateUrls = [
+    primaryUrl,
+    `https://raw.githubusercontent.com/${githubRepoSlug}/Alpha/${relativePath}`,
+    `https://raw.githubusercontent.com/${githubRepoSlug}/main/${relativePath}`,
+  ];
+
+  for (let attempt = 0; attempt < 6; attempt++) {
+    for (const url of candidateUrls) {
+      try {
+        const res = await fetchImpl(url, { method: "HEAD" });
+        const contentType = res.headers.get("content-type") ?? "";
+        if (res.ok && contentType.startsWith("image/")) {
+          console.log(`[Batch] Verified live public image URL: ${url}`);
+          return url;
+        }
+      } catch {}
+    }
+    if (attempt < 5) {
+      await sleepImpl(2500);
+    }
+  }
+
+  for (const url of candidateUrls) {
+    try {
+      const res = await fetchImpl(url, { method: "GET" });
+      const contentType = res.headers.get("content-type") ?? "";
+      if (res.ok && contentType.startsWith("image/")) {
+        console.log(`[Batch] Verified live public image URL via GET: ${url}`);
+        return url;
+      }
+    } catch {}
+  }
+
+  return primaryUrl;
+}
+
 export async function generateAndPublishBatch(
   options: GenerateAndPublishBatchOptions,
 ): Promise<GenerateAndPublishBatchResult> {
@@ -135,7 +179,17 @@ export async function generateAndPublishBatch(
   const random = options.randomImpl ?? Math.random;
   const idGenerator = options.idGenerator ?? defaultIdGenerator;
   const now = options.now ?? (() => new Date());
-  const githubBranch = options.githubBranch ?? "main";
+  let detectedBranch = options.githubBranch;
+  if (!detectedBranch) {
+    try {
+      const b = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: options.repoRoot, encoding: "utf-8" }).trim();
+      if (b && b !== "HEAD") detectedBranch = b;
+    } catch {}
+  }
+  if (!detectedBranch) {
+    detectedBranch = process.env.GITHUB_BRANCH;
+  }
+  const githubBranch = detectedBranch || "main";
   const dryRun = options.dryRun ?? false;
 
   const currentTime = now();
@@ -324,6 +378,7 @@ export async function generateAndPublishBatch(
       try {
         await commitBatch({ cwd: options.repoRoot, message: `post: publish image ${postId}` });
         console.log(`[Batch] Image pushed to GitHub raw URL.`);
+        await sleepImpl(5000);
       } catch (err) {
         console.warn(`[Batch] Git push warning:`, err);
       }
@@ -331,12 +386,20 @@ export async function generateAndPublishBatch(
       const caption = captionTemplate.build(quote.text, quote.author, hashtags);
       const hashtagComment = hashtags.join(" ");
 
-      console.log(`[Batch] Publishing to Instagram...`);
+      const verifiedImageUrl = await verifyPublicImageUrl(
+        imageUrl,
+        options.githubRepoSlug,
+        relativePath,
+        fetchImpl,
+        sleepImpl,
+      );
+
+      console.log(`[Batch] Publishing to Instagram with image URL ${verifiedImageUrl}...`);
       let feedResult: { mediaId: string; permalink?: string };
       if (env.COMPOSIO_API_KEY) {
         console.log(`[Batch] Using Composio API...`);
         const compRes = await publishViaComposio({
-          imageUrl,
+          imageUrl: verifiedImageUrl,
           caption: `${caption}\n\n${hashtagComment}`,
           apiKey: env.COMPOSIO_API_KEY,
           entityId: account.id,
@@ -345,7 +408,7 @@ export async function generateAndPublishBatch(
         feedResult = { mediaId: compRes.mediaId, permalink: compRes.permalink };
       } else {
         console.log(`[Batch] Using Meta Graph API...`);
-        feedResult = await publishToFeed(imageUrl, caption, hashtagComment, igCreds!, fetchImpl, sleepImpl);
+        feedResult = await publishToFeed(verifiedImageUrl, caption, hashtagComment, igCreds!, fetchImpl, sleepImpl);
       }
       console.log(`[Batch] Successfully published! Media ID: ${feedResult.mediaId}, Permalink: ${feedResult.permalink}`);
 
@@ -382,6 +445,7 @@ export async function generateAndPublishBatch(
       consecutiveFailures = 0;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      console.error(`[Batch] Item ${i + 1} failed:`, message);
       await markFailed(db, postId, message);
       items.push({ status: "failed", postId, errorMessage: message });
       consecutiveFailures++;

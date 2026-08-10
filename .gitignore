@@ -7,3 +7,4 @@ dist/
 *.tsbuildinfo
 .firecrawl/
 .DS_Store
+.vercel

@@ -27,6 +27,7 @@ describe("publishViaComposio", () => {
       imageUrl: "https://example.com/quote.jpg",
       caption: "Inspiring quote #motivation",
       apiKey: "test-composio-key",
+      igUserId: "ig-user-999",
       fetchImpl,
     });
 

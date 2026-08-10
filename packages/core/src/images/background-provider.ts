@@ -67,48 +67,58 @@ export async function getCandidateBackgrounds(
   }
 
   // 2. Extract LLM Visual Search Queries if quote text is provided
-  const visualQueries = config.quoteText
+  const baseQueries = config.quoteText
     ? await extractVisualConcepts(config.quoteText, categoryId, config.geminiApiKey, fetchImpl)
     : [categoryId];
 
+  const fallbackQueries = [categoryId, "minimalist nature", "landscape photography", "modern architecture", "dark abstract", "wallpaper"];
+  const visualQueries = [...new Set([...baseQueries, ...fallbackQueries])];
+
   let attempts = 0;
-  const maxAttempts = poolSize * 5;
+  const maxAttempts = poolSize * 10;
 
   // 3. Multi-Source Fetching Loop (Unsplash -> Pexels -> Pixabay)
   for (const baseQuery of visualQueries) {
     if (results.length >= poolSize || attempts >= maxAttempts) break;
 
-    const searchQuery = config.targetDarkness
-      ? config.targetDarkness === "light"
-        ? `${baseQuery} bright light white minimal`
-        : `${baseQuery} dark moody black night`
-      : baseQuery;
+    const queryVariations = config.targetDarkness
+      ? [
+          config.targetDarkness === "light"
+            ? `${baseQuery} bright light white minimal`
+            : `${baseQuery} dark moody black night`,
+          baseQuery,
+        ]
+      : [baseQuery];
 
-    // A. Unsplash Provider
-    if (config.unsplashAccessKey && results.length < poolSize) {
-      attempts++;
-      try {
-        const photo = await fetchUnsplashPhoto(searchQuery, config.unsplashAccessKey, fetchImpl);
-        await processAndAddPhoto(photo, "unsplash", searchQuery);
-      } catch {}
-    }
+    for (const searchQuery of queryVariations) {
+      if (results.length >= poolSize || attempts >= maxAttempts) break;
 
-    // B. Pexels Provider
-    if (config.pexelsApiKey && results.length < poolSize) {
-      attempts++;
-      try {
-        const photo = await fetchPexelsPhoto(searchQuery, config.pexelsApiKey, fetchImpl);
-        await processAndAddPhoto(photo, "pexels", searchQuery);
-      } catch {}
-    }
+      // A. Unsplash Provider
+      if (config.unsplashAccessKey && results.length < poolSize) {
+        attempts++;
+        try {
+          const photo = await fetchUnsplashPhoto(searchQuery, config.unsplashAccessKey, fetchImpl);
+          await processAndAddPhoto(photo, "unsplash", searchQuery);
+        } catch {}
+      }
 
-    // C. Pixabay Provider
-    if (config.pixabayApiKey && results.length < poolSize) {
-      attempts++;
-      try {
-        const photo = await fetchPixabayPhoto(searchQuery, config.pixabayApiKey, fetchImpl);
-        await processAndAddPhoto(photo, "pixabay", searchQuery);
-      } catch {}
+      // B. Pexels Provider
+      if (config.pexelsApiKey && results.length < poolSize) {
+        attempts++;
+        try {
+          const photo = await fetchPexelsPhoto(searchQuery, config.pexelsApiKey, fetchImpl);
+          await processAndAddPhoto(photo, "pexels", searchQuery);
+        } catch {}
+      }
+
+      // C. Pixabay Provider
+      if (config.pixabayApiKey && results.length < poolSize) {
+        attempts++;
+        try {
+          const photo = await fetchPixabayPhoto(searchQuery, config.pixabayApiKey, fetchImpl);
+          await processAndAddPhoto(photo, "pixabay", searchQuery);
+        } catch {}
+      }
     }
   }
 
