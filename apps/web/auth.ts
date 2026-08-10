@@ -33,6 +33,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // middleware.ts to actually redirect unauthenticated requests, rather
     // than just making the session available -- verified against
     // authjs.dev/reference/nextjs.
-    authorized: ({ auth: session }) => !!session,
+    authorized: ({ auth: session, request }) => {
+      if (request?.nextUrl?.pathname?.startsWith("/api/media")) return true;
+      return !!session;
+    },
   },
 });
