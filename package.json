@@ -10,6 +10,7 @@
     "typecheck": "pnpm -r exec tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "build": "pnpm --filter web build",
     "dev": "pnpm --filter web dev",
     "seed": "pnpm --filter core exec tsx scripts/seed-db.ts",
     "setup-account": "pnpm --filter core exec tsx scripts/setup-ig-account.ts",
