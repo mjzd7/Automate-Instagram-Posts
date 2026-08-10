@@ -23,6 +23,7 @@ import { matchBestBackground } from "../matching/image-quote-matcher.js";
 import { checkDuplicate } from "../matching/duplicate-detector.js";
 import { scoreSuitability } from "../images/suitability-scorer.js";
 import { findTemplate, selectTemplate } from "../images/templates.js";
+import { uploadOrGetPublicImageUrl } from "../images/public-hoster.js";
 import {
   recordCaptionTemplateOutcome,
   recordModeOutcome,
@@ -386,8 +387,18 @@ export async function generateAndPublishBatch(
       const caption = captionTemplate.build(quote.text, quote.author, hashtags);
       const hashtagComment = hashtags.join(" ");
 
+      const hostedImageUrl = await uploadOrGetPublicImageUrl({
+        imageBuffer,
+        relativePath,
+        githubRepoSlug: options.githubRepoSlug,
+        githubBranch,
+        imgbbApiKey: env.IMGBB_API_KEY,
+        webAppUrl: env.WEB_APP_URL,
+        fetchImpl,
+      });
+
       const verifiedImageUrl = await verifyPublicImageUrl(
-        imageUrl,
+        hostedImageUrl,
         options.githubRepoSlug,
         relativePath,
         fetchImpl,
