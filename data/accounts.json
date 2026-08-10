@@ -4,7 +4,19 @@
     "igUserId": "default",
     "fbPageId": "default",
     "threadsUserId": null,
-    "categoryFocus": ["motivational", "stoic", "wisdom"],
+    "categoryFocus": [
+      "success",
+      "business",
+      "entrepreneurship",
+      "stoic",
+      "discipline",
+      "leadership",
+      "wealth",
+      "mindset",
+      "resilience",
+      "wisdom",
+      "motivational"
+    ],
     "timezone": "America/New_York",
     "postingHoursLocal": [10, 13, 17, 20],
     "active": true

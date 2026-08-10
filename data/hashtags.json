@@ -1,63 +1,68 @@
 {
-  "motivational": [
-    "#motivation", "#motivationalquotes", "#dailymotivation", "#motivationdaily",
-    "#staymotivated", "#motivationnation", "#successmindset", "#hustle",
-    "#nevergiveup", "#goalgetter", "#growthmindset", "#riseandgrind",
-    "#dreambig", "#keepgoing", "#chaseyourdreams", "#believeinyourself",
-    "#positivevibes", "#selfimprovement", "#levelup", "#greatness"
+  "success": [
+    "#success", "#successmindset", "#successtips", "#successquotes", "#successful",
+    "#achievegreatness", "#winnersmindset", "#winning", "#goalgetter", "#highperformance",
+    "#ambition", "#hustlehard", "#reachyourgoals", "#successhabits", "#dreambig",
+    "#dailyquotes", "#successforsure", "#levelup", "#greatness", "#excellence"
+  ],
+  "business": [
+    "#business", "#businessmindset", "#businesstips", "#businessgrowth", "#businessowner",
+    "#entrepreneur", "#leadership", "#management", "#marketing", "#scaling",
+    "#startuplife", "#commerce", "#businessquotes", "#executive", "#innovation",
+    "#b2b", "#salesmindset", "#worksmart", "#buildyourempire", "#productivity"
+  ],
+  "entrepreneurship": [
+    "#entrepreneurship", "#entrepreneurlife", "#entrepreneurmindset", "#founder", "#solopreneur",
+    "#startupfounder", "#innovator", "#sidehustle", "#buildinpublic", "#riskandreward",
+    "#visionary", "#scaleup", "#venture", "#bootstrapped", "#creator",
+    "#empirebuilder", "#disruptor", "#hustleculture", "#businesscreator", "#dreameranddoer"
   ],
   "stoic": [
     "#stoicism", "#stoic", "#stoicquotes", "#marcusaurelius", "#seneca",
     "#epictetus", "#philosophy", "#innerpeace", "#virtue", "#wisdomquotes",
-    "#ancientwisdom", "#stoicwisdom", "#discipline", "#resilience", "#logic",
-    "#selfmastery", "#calmmind", "#reason", "#tranquility", "#character"
+    "#ancientwisdom", "#stoicwisdom", "#discipline", "#selfmastery", "#logic",
+    "#tranquility", "#reason", "#calmmind", "#amor_fati", "#mementomori"
   ],
-  "humor": [
-    "#funny", "#humor", "#comedy", "#funnyquotes", "#lol", "#relatable",
-    "#dailylaughs", "#witty", "#satire", "#lighthearted", "#goodvibes",
-    "#smile", "#funnymoments", "#sarcasm", "#jokes", "#funnyposts",
-    "#comicrelief", "#playful", "#chuckle", "#humorquotes"
+  "discipline": [
+    "#discipline", "#selfdiscipline", "#dailyhabits", "#consistency", "#focus",
+    "#routine", "#hardwork", "#dedication", "#relentless", "#ironwill",
+    "#habitsforsuccess", "#noexcuses", "#grindmode", "#dailygrind", "#focusonyourself",
+    "#mastery", "#unshakeable", "#disciplineequalsfreedom", "#stayfocused", "#commit"
   ],
-  "business": [
-    "#entrepreneur", "#businessquotes", "#success", "#leadership",
-    "#entrepreneurship", "#startup", "#businessmindset", "#hustleculture",
-    "#hardwork", "#ambition", "#businessgrowth", "#ceo", "#worksmart",
-    "#productivity", "#businesstips", "#winnersmindset", "#executive",
-    "#buildyourempire", "#milliondollarmindset", "#businessowner"
+  "leadership": [
+    "#leadership", "#leader", "#leadbyexample", "#leadershipquotes", "#servantleadership",
+    "#executiveleadership", "#management", "#inspireothers", "#visionaryleader", "#teambuilding",
+    "#integrity", "#leadwithpurpose", "#leadershipmindset", "#influence", "#highperformingteams",
+    "#culture", "#accountability", "#decisionmaking", "#leadingtheway", "#greatleaders"
   ],
-  "love": [
-    "#love", "#lovequotes", "#relationshipgoals", "#romance", "#soulmate",
-    "#lovequote", "#couplegoals", "#heartfelt", "#truelove", "#togetherforever",
-    "#unconditionallove", "#loveislove", "#lovenote", "#adoration",
-    "#lovewins", "#loveyourself", "#selflove", "#romanticquotes",
-    "#affection", "#deeplove"
+  "wealth": [
+    "#wealth", "#wealthbuilding", "#financialfreedom", "#investing", "#moneyhabits",
+    "#financialliteracy", "#prosperity", "#abundance", "#passiveincome", "#richmindset",
+    "#millionairemindset", "#smartinvesting", "#financialindependence", "#capital", "#cashflow",
+    "#generationalwealth", "#moneymindset", "#assets", "#wealthy", "#financialgrowth"
   ],
-  "wisdom": [
-    "#wisdom", "#wisdomquotes", "#lifelessons", "#lifequotes", "#deepthoughts",
-    "#lifewisdom", "#wordsofwisdom", "#truth", "#insight", "#reflection",
-    "#mindfulliving", "#lifelesson", "#clarity", "#perspective", "#knowledge",
-    "#enlightenment", "#understanding", "#introspection", "#thoughtful",
-    "#lifeperspective"
-  ],
-  "mindfulness": [
-    "#mindfulness", "#mindful", "#presence", "#innerpeace", "#meditation",
-    "#calm", "#peaceofmind", "#selfcare", "#slowliving", "#gratitude",
-    "#presentmoment", "#breathe", "#stillness", "#awareness", "#zen",
-    "#mentalhealth", "#balance", "#groundedness", "#mindfulnessquotes",
-    "#innercalm"
+  "mindset": [
+    "#mindset", "#growthmindset", "#mentaltoughness", "#positivemindset", "#mindsetshift",
+    "#selfbelief", "#confidence", "#psychology", "#perspective", "#unbreakablemindset",
+    "#mentalstrength", "#mindsetiskey", "#thinkandgrowrich", "#positivity", "#cognitive",
+    "#mindsetmatters", "#innerstrength", "#subconscious", "#powerfulmind", "#reframe"
   ],
   "resilience": [
-    "#resilience", "#strength", "#overcome", "#comeback", "#neverquit",
-    "#bounceback", "#innerstrength", "#toughtimes", "#perseverance",
-    "#endurance", "#fighter", "#resilient", "#staystrong", "#getbackup",
-    "#growththroughpain", "#unbreakable", "#survivor", "#warriormindset",
-    "#riseabove", "#throughthestorm"
+    "#resilience", "#perseverance", "#grit", "#overcomingadversity", "#nevergiveup",
+    "#bounceback", "#toughness", "#endurance", "#survivor", "#fighter",
+    "#unbroken", "#riseabove", "#strongerthanyesterday", "#comeback", "#staystrong",
+    "#conqueringfears", "#riseandgrind", "#unfazed", "#standtall", "#relentlessspirit"
   ],
-  "general": [
-    "#quoteoftheday", "#dailyquote", "#quotestoliveby", "#instaquote",
-    "#quotesdaily", "#wordsofwisdom", "#quotestagram", "#thoughtoftheday",
-    "#quotelife", "#quotesandsayings", "#inspirationalquotes", "#lifequote",
-    "#quotesforlife", "#dailyinspiration", "#wisewords", "#deepquotes",
-    "#quotesoftheday", "#realtalk", "#soulquotes", "#mindsetquotes"
+  "wisdom": [
+    "#wisdom", "#wisdomquotes", "#deepthoughts", "#lifelessons", "#philosophical",
+    "#timelesswisdom", "#wordsofwisdom", "#clarity", "#lifequotes", "#truth",
+    "#insight", "#perspective", "#knowledge", "#enlightenment", "#reflection",
+    "#principles", "#mindfulliving", "#deepwisdom", "#thoughtful", "#understanding"
+  ],
+  "motivational": [
+    "#motivation", "#motivationalquotes", "#dailymotivation", "#staymotivated", "#hungerforgreatness",
+    "#riseandshine", "#igniteyourfire", "#momentum", "#beastmode", "#unstoppable",
+    "#chaseyourdreams", "#inspiredaily", "#pushyourlimits", "#goforit", "#motivateyourself",
+    "#dreambigworkhard", "#conqueryourgoals", "#believe", "#forwardmomentum", "#energize"
   ]
 }
