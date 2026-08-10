@@ -95,6 +95,27 @@ export async function getNextQuote(
   const curated = await getCuratedQuote(db, accountId, categoryId);
   if (curated) return curated;
 
+  // Cascading fallback to other high-quality curated categories before external APIs
+  const curatedCategories = [
+    "success",
+    "business",
+    "entrepreneurship",
+    "stoic",
+    "discipline",
+    "leadership",
+    "wealth",
+    "mindset",
+    "resilience",
+    "wisdom",
+    "motivational",
+  ];
+
+  for (const cat of curatedCategories) {
+    if (cat === categoryId) continue;
+    const altCurated = await getCuratedQuote(db, accountId, cat);
+    if (altCurated) return altCurated;
+  }
+
   const fetched = await runFallbackChain(db, accountId, categoryId, config);
   const normalizedText = normalizeQuoteCapitalization(fetched.text);
   const id = (config.idGenerator ?? defaultIdGenerator)();
