@@ -43,6 +43,11 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Organic start time jitter
+        run: |
+          JITTER_SEC=$((RANDOM % 1200))
+          echo "Applying organic anti-bot timing delay of ${JITTER_SEC} seconds..."
+          sleep $JITTER_SEC
       - run: pnpm --filter core exec tsx scripts/run-post-batch.ts --account ${{ matrix.account_id }}
         env:
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}

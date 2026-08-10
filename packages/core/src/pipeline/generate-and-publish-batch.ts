@@ -477,8 +477,9 @@ export async function generateAndPublishBatch(
     }
 
     if (i < totalPostsToGenerate - 1 && !options.noDelay) {
-      const jitterMs = (POST_INTERVAL_BASE_SECONDS + (random() * 2 - 1) * POST_INTERVAL_JITTER_SECONDS) * 1000;
-      await sleepImpl(jitterMs);
+      const gapSeconds = Math.floor(360 + random() * 540);
+      console.log(`[Batch] Organic anti-bot gap: waiting ${Math.round(gapSeconds / 60)}m ${gapSeconds % 60}s before post ${i + 2}/${totalPostsToGenerate}...`);
+      await sleepImpl(gapSeconds * 1000);
     }
   }
 
