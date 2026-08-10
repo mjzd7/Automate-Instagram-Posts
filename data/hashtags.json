@@ -64,5 +64,10 @@
     "#riseandshine", "#igniteyourfire", "#momentum", "#beastmode", "#unstoppable",
     "#chaseyourdreams", "#inspiredaily", "#pushyourlimits", "#goforit", "#motivateyourself",
     "#dreambigworkhard", "#conqueryourgoals", "#believe", "#forwardmomentum", "#energize"
+  ],
+  "general": [
+    "#quotes", "#dailyquotes", "#inspiration", "#motivation", "#lifequotes",
+    "#mindset", "#positivity", "#wisdom", "#truth", "#wordsofwisdom",
+    "#success", "#growth", "#goodvibes", "#reflections", "#life"
   ]
 }
