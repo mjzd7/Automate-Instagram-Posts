@@ -75,3 +75,10 @@ export async function findAllQuotes(db: Db) {
   return db.select({ id: quotes.id, text: quotes.text }).from(quotes);
 }
 
+/** Deletes quote usage records older than daysCutoff to allow curated quotes to be recycled seamlessly. */
+export async function clearOldQuoteUsage(db: Db, daysCutoff = 38): Promise<number> {
+  const cutoffDate = new Date(Date.now() - daysCutoff * 24 * 60 * 60 * 1000).toISOString();
+  const res = await db.delete(quoteUsage).where(sql`${quoteUsage.usedAt} < ${cutoffDate}`);
+  return res.rowsAffected ?? 0;
+}
+

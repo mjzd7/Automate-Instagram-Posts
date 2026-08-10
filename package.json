@@ -16,7 +16,8 @@
     "setup-account": "pnpm --filter core exec tsx scripts/setup-ig-account.ts",
     "analyze-aesthetic": "pnpm --filter core exec tsx scripts/analyze-account-aesthetic.ts",
     "post-batch": "pnpm --filter core exec tsx scripts/run-post-batch.ts",
-    "refresh-tokens": "pnpm --filter core exec tsx scripts/run-token-refresh.ts"
+    "refresh-tokens": "pnpm --filter core exec tsx scripts/run-token-refresh.ts",
+    "refresh-quotes": "pnpm --filter core exec tsx scripts/refresh-quote-pool.ts"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
