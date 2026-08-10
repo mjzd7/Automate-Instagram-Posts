@@ -392,7 +392,6 @@ export async function generateAndPublishBatch(
         relativePath,
         githubRepoSlug: options.githubRepoSlug,
         githubBranch,
-        imgbbApiKey: env.IMGBB_API_KEY,
         webAppUrl: env.WEB_APP_URL,
         fetchImpl,
       });

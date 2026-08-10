@@ -216,6 +216,6 @@ export async function composeImage(input: ComposeInput): Promise<Buffer> {
 
   const composed = sharp(baseBuffer).composite(compositeLayers);
 
-  // Step 10: export as JPEG.
-  return composed.jpeg({ quality: 85 }).toBuffer();
+  // Step 10: export as crystal-clear 100% HD JPEG (4:4:4 chroma subsampling for razor-sharp typography).
+  return composed.jpeg({ quality: 100, chromaSubsampling: "4:4:4", mozjpeg: true }).toBuffer();
 }
