@@ -20,6 +20,20 @@ export async function uploadOrGetPublicImageUrl(options: PublicHostOptions): Pro
   const webAppUrl = options.webAppUrl ?? process.env.WEB_APP_URL ?? "https://automate-instagram-posts.vercel.app";
   const imgbbApiKey = options.imgbbApiKey ?? process.env.IMGBB_API_KEY;
 
+  const cleanPath = options.relativePath.replace(/^data\/posts\//, "");
+  const vercelMediaUrl = `${webAppUrl}/api/media/${cleanPath}`;
+
+  // 1. Primary: Try Vercel Web App Edge CDN media route
+  try {
+    const head = await fetchImpl(vercelMediaUrl, { method: "HEAD" });
+    const contentType = head.headers.get("content-type") ?? "";
+    if (head.ok && contentType.startsWith("image/")) {
+      console.log(`[PublicHost] Using primary Vercel Edge CDN Media URL: ${vercelMediaUrl}`);
+      return vercelMediaUrl;
+    }
+  } catch {}
+
+  // 2. Fallback: Upload to ImgBB if key is available
   if (imgbbApiKey) {
     try {
       const formData = new URLSearchParams();
@@ -30,10 +44,11 @@ export async function uploadOrGetPublicImageUrl(options: PublicHostOptions): Pro
         body: formData,
       });
       if (res.ok) {
-        const data = (await res.json()) as { data?: { url?: string } };
-        if (data.data?.url) {
-          console.log(`[PublicHost] Successfully uploaded to ImgBB: ${data.data.url}`);
-          return data.data.url;
+        const data = (await res.json()) as { data?: { url?: string; display_url?: string } };
+        const directUrl = data.data?.display_url ?? data.data?.url;
+        if (directUrl) {
+          console.log(`[PublicHost] Uploaded to ImgBB fallback: ${directUrl}`);
+          return directUrl;
         }
       }
     } catch (err) {
@@ -41,9 +56,6 @@ export async function uploadOrGetPublicImageUrl(options: PublicHostOptions): Pro
     }
   }
 
-  const cleanPath = options.relativePath.replace(/^data\/posts\//, "");
-  const vercelMediaUrl = `${webAppUrl}/api/media/${cleanPath}`;
-
-  // Always use Vercel Web App media URL or GitHub raw URL
-  return vercelMediaUrl;
+  // 3. Final Fallback: GitHub Raw URL
+  return `https://raw.githubusercontent.com/${options.githubRepoSlug}/${options.githubBranch}/${options.relativePath}`;
 }
