@@ -6,7 +6,7 @@ import googleTrends from "google-trends-api";
 vi.mock("google-trends-api", () => {
   return {
     default: {
-      dailyTrends: vi.fn(),
+      relatedQueries: vi.fn(),
     },
   };
 });
@@ -20,69 +20,41 @@ describe("sanitizeHashtag", () => {
 });
 
 describe("fetchTrendingHashtags", () => {
-  it("fetches, parses, and sanitizes the top 5 trending topics into hashtags", async () => {
-    // Simulated JSON response from google-trends-api
+  it("fetches, parses, and sanitizes rising related queries into niche hashtags", async () => {
+    // Simulated JSON response from google-trends-api for relatedQueries
     const mockResponse = JSON.stringify({
       default: {
-        trendingSearchesDays: [
-          {
-            date: "2026-08-12",
-            trendingSearches: [
-              { title: { query: "Stock Market Crash" } },
-              { title: { query: "Chandrayaan 4" } },
-              { title: { query: "Olympics 2026" } },
-              { title: { query: "Tech News" } },
-              { title: { query: "AI Developments" } },
-              { title: { query: "Should be ignored (6th item)" } },
-            ],
+        rankedList: [
+          { // Top queries
+            rankedKeyword: [
+              { query: "Top Query 1", value: 100 },
+            ]
           },
+          { // Rising queries
+            rankedKeyword: [
+              { query: "Rising Query 1", value: 100 },
+              { query: "Rising Query 2", value: 50 },
+            ]
+          }
         ],
       },
     });
 
-    vi.mocked(googleTrends.dailyTrends).mockResolvedValueOnce(mockResponse);
+    vi.mocked(googleTrends.relatedQueries).mockResolvedValue(mockResponse);
 
     const result = await fetchTrendingHashtags("IN");
 
-    // Assert that it called the API with the right region
-    expect(googleTrends.dailyTrends).toHaveBeenCalledWith({ geo: "IN" });
+    // It loops through ["motivation", "success", "business"] so it should have been called 3 times
+    expect(googleTrends.relatedQueries).toHaveBeenCalledTimes(3);
+    expect(googleTrends.relatedQueries).toHaveBeenCalledWith({ keyword: "motivation", geo: "IN" });
 
-    // Assert the output is exactly 5 sanitized hashtags
-    expect(result).toHaveLength(5);
+    // 3 keywords * 3 queries each = 9 queries total (actually due to de-duplication and our specific mock, 
+    // it will just output duplicates since the mock returns the same array for all 3 calls.
+    // The unique set will just be 3 strings.)
     expect(result).toEqual([
-      "#stockmarketcrash",
-      "#chandrayaan4",
-      "#olympics2026",
-      "#technews",
-      "#aidevelopments",
-    ]);
-  });
-
-  it("falls back to yesterday's trends if today's trends array is empty", async () => {
-    const mockResponse = JSON.stringify({
-      default: {
-        trendingSearchesDays: [
-          {
-            date: "2026-08-12",
-            trendingSearches: [], // Today is empty (e.g., early morning)
-          },
-          {
-            date: "2026-08-11",
-            trendingSearches: [
-              { title: { query: "Yesterday Trend 1" } },
-              { title: { query: "Yesterday Trend 2" } },
-            ],
-          },
-        ],
-      },
-    });
-
-    vi.mocked(googleTrends.dailyTrends).mockResolvedValueOnce(mockResponse);
-
-    const result = await fetchTrendingHashtags("IN");
-    expect(result).toEqual([
-      "#yesterdaytrend1",
-      "#yesterdaytrend2",
+      "#risingquery1",
+      "#risingquery2",
+      "#topquery1",
     ]);
   });
 });
