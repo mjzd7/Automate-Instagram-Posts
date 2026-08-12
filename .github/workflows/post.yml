@@ -4,7 +4,12 @@ on:
   schedule:
     - cron: "0 * * * *" # WORKFLOW_CRON, plan.md §2.6 -- hourly; each account's job
     # no-ops if the current UTC hour isn't in its postingHoursLocal (account-local time).
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force execution regardless of posting hour"
+        type: boolean
+        default: true
 
 permissions:
   contents: write # commit-batch.ts pushes data/app.db + data/posts/ changes
@@ -48,7 +53,7 @@ jobs:
           JITTER_SEC=$((RANDOM % 1200))
           echo "Applying organic anti-bot timing delay of ${JITTER_SEC} seconds..."
           sleep $JITTER_SEC
-      - run: pnpm --filter core exec tsx scripts/run-post-batch.ts --account ${{ matrix.account_id }}
+      - run: pnpm --filter core exec tsx scripts/run-post-batch.ts --account ${{ matrix.account_id }} ${{ inputs.force && '--force' || '' }}
         env:
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
           GOOGLE_CLOUD_VISION_API_KEY: ${{ secrets.GOOGLE_CLOUD_VISION_API_KEY }}
