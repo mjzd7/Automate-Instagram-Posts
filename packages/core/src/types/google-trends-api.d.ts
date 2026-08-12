@@ -28,5 +28,26 @@ declare module "google-trends-api" {
     timezone?: number;
   }
   
+  export interface RelatedQueriesObject {
+    default: {
+      rankedList: Array<{
+        rankedKeyword: Array<{
+          query: string;
+          value: number;
+        }>;
+      }>;
+    };
+  }
+
+  export interface RelatedQueriesOptions {
+    keyword: string | string[];
+    geo?: string;
+    hl?: string;
+    timezone?: number;
+    startTime?: Date;
+    endTime?: Date;
+  }
+
   export function dailyTrends(options: DailyTrendsOptions | string): Promise<string>;
+  export function relatedQueries(options: RelatedQueriesOptions): Promise<string>;
 }
