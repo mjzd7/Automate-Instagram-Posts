@@ -62,6 +62,12 @@ async function main(): Promise<void> {
     string,
     string[]
   >;
+  try {
+    const trending = JSON.parse(await readFile(`${repoRoot}/data/trending-hashtags.json`, "utf-8")) as string[];
+    hashtagPools.trending = trending;
+  } catch (error) {
+    console.warn("run-post-batch: No trending-hashtags.json found, skipping trending injection.");
+  }
 
   const dbHandle = await openDb(`file:${repoRoot}/data/app.db`);
   try {

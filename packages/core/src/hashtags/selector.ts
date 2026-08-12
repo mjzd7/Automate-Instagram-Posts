@@ -1,6 +1,6 @@
 import { isBannedHashtag } from "./banned-list.js";
 
-export const HASHTAG_SET_SIZE = 15;
+export const HASHTAG_SET_SIZE = 5;
 
 export interface HashtagPools {
   [category: string]: string[];
@@ -18,12 +18,13 @@ function shuffled<T>(items: T[]): T[] {
 }
 
 /**
- * Picks up to HASHTAG_SET_SIZE hashtags for a category, per plan.md §7.14:
- * shuffle the category pool, drop any banned tag, and top up from the
- * "general" pool if the category pool doesn't have enough clean tags.
- * Never returns a banned tag, even if that means returning fewer than
- * HASHTAG_SET_SIZE (both pools genuinely exhausted is an edge case, not an
- * error -- a shorter-than-usual hashtag set is a fine degradation).
+ * Picks exactly HASHTAG_SET_SIZE (5) hashtags per plan:
+ * 1. #successforsure
+ * 2. 3 trending hashtags (from pools.trending)
+ * 3. 1 category specific hashtag
+ * 
+ * Falls back to category/general pools if trending pool is missing or short.
+ * Never returns a banned tag.
  */
 export function selectHashtags(
   category: string,
@@ -34,19 +35,49 @@ export function selectHashtags(
   const selected: string[] = [];
   const seen = new Set<string>();
 
-  const addFrom = (tags: string[]) => {
-    for (const tag of shuffled(tags)) {
-      if (selected.length >= size) break;
-      const key = tag.toLowerCase();
-      if (seen.has(key) || isBanned(tag)) continue;
-      seen.add(key);
-      selected.push(tag);
-    }
+  const pushTag = (tag: string): boolean => {
+    if (selected.length >= size) return false;
+    const key = tag.toLowerCase();
+    if (seen.has(key) || isBanned(tag)) return false;
+    seen.add(key);
+    selected.push(tag);
+    return true;
   };
 
-  addFrom(pools[category] ?? []);
+  // 1. Fixed success tag
+  pushTag("#successforsure");
+
+  // 2. Up to 3 trending tags
+  let trendingCount = 0;
+  for (const tag of shuffled(pools.trending ?? [])) {
+    if (trendingCount >= 3) break;
+    if (pushTag(tag)) {
+      trendingCount++;
+    }
+  }
+
+  // 3. 1 Category-specific tag
+  const categoryTags = shuffled(pools[category] ?? []);
+  let categoryCount = 0;
+  for (const tag of categoryTags) {
+    if (categoryCount >= 1) break;
+    if (pushTag(tag)) {
+      categoryCount++;
+    }
+  }
+
+  // 4. Fallbacks if trending pool was short or empty
   if (selected.length < size) {
-    addFrom(pools.general ?? []);
+    for (const tag of categoryTags) {
+      if (selected.length >= size) break;
+      pushTag(tag);
+    }
+  }
+  if (selected.length < size) {
+    for (const tag of shuffled(pools.general ?? [])) {
+      if (selected.length >= size) break;
+      pushTag(tag);
+    }
   }
 
   return selected;
