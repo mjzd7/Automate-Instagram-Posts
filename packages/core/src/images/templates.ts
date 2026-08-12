@@ -122,10 +122,16 @@ export function findTemplate(id: string): Template {
  */
 export function selectTemplate(
   category: string,
-  previousTemplateId: string | undefined,
+  recentTemplateIds: string | string[] | undefined,
   generalRatio = 0.25,
   random: () => number = Math.random,
 ): Template {
+  const recentIds = Array.isArray(recentTemplateIds)
+    ? recentTemplateIds
+    : recentTemplateIds
+      ? [recentTemplateIds]
+      : [];
+
   const categoryMatches = TEMPLATES.filter((t) => t.categories.includes(category));
   const primaryPool = categoryMatches.length > 0 ? categoryMatches : TEMPLATES.filter((t) => GENERAL_TEMPLATE_IDS.includes(t.id));
 
@@ -134,8 +140,9 @@ export function selectTemplate(
     ? TEMPLATES.filter((t) => GENERAL_TEMPLATE_IDS.includes(t.id))
     : primaryPool;
 
-  const candidates = pool.length > 1 ? pool.filter((t) => t.id !== previousTemplateId) : pool;
-  const chosen = candidates[Math.floor(random() * candidates.length)];
+  const candidates = pool.length > 1 ? pool.filter((t) => !recentIds.includes(t.id)) : pool;
+  const finalCandidates = candidates.length > 0 ? candidates : pool;
+  const chosen = finalCandidates[Math.floor(random() * finalCandidates.length)];
   if (!chosen) {
     throw new Error(`selectTemplate: no candidate templates available for category "${category}"`);
   }
@@ -159,3 +166,85 @@ export function assertFontFilesExist(): void {
     }
   }
 }
+
+export type StoryTemplateId =
+  | "story-floating-card"
+  | "story-polaroid-teaser"
+  | "story-editorial-newspaper"
+  | "story-split-focus"
+  | "story-minimalist-quote-frame"
+  | "story-interactive-spotlight";
+
+export interface StoryTemplate {
+  id: StoryTemplateId;
+  name: string;
+  headerText: string;
+  ctaText: string;
+  linkStickerZone: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+export const STORY_TEMPLATES: readonly StoryTemplate[] = [
+  {
+    id: "story-floating-card",
+    name: "Modern Floating Glass Card",
+    headerText: "NEW POST ✦",
+    ctaText: "🔗 TAP STICKER TO VIEW POST",
+    linkStickerZone: { x: 180, y: 1340, width: 720, height: 130 },
+  },
+  {
+    id: "story-polaroid-teaser",
+    name: "Retro Polaroid Frame",
+    headerText: "DAILY WISDOM // VOL. 01",
+    ctaText: "Tap link below ⤵",
+    linkStickerZone: { x: 180, y: 1360, width: 720, height: 130 },
+  },
+  {
+    id: "story-editorial-newspaper",
+    name: "Editorial Newspaper",
+    headerText: "— FEATURED ESSAY —",
+    ctaText: "[ READ ARTICLE & SAVE POST 🔗 ]",
+    linkStickerZone: { x: 180, y: 1320, width: 720, height: 130 },
+  },
+  {
+    id: "story-split-focus",
+    name: "Dual-Tone Split Focus",
+    headerText: "⚡ TOP THOUGHT TODAY",
+    ctaText: "⬆ TAP STICKER TO READ ⬆",
+    linkStickerZone: { x: 180, y: 1360, width: 720, height: 130 },
+  },
+  {
+    id: "story-minimalist-quote-frame",
+    name: "Minimalist Vector Frame",
+    headerText: "✦ SUCCESS FOR SURE",
+    ctaText: "VIEW POST ➔",
+    linkStickerZone: { x: 200, y: 1320, width: 680, height: 120 },
+  },
+  {
+    id: "story-interactive-spotlight",
+    name: "Interactive Engagement Frame",
+    headerText: "DO YOU AGREE? 🤔",
+    ctaText: "🔗 READ FULL QUOTE",
+    linkStickerZone: { x: 180, y: 1300, width: 720, height: 120 },
+  },
+] as const;
+
+export function findStoryTemplate(id: StoryTemplateId | string): StoryTemplate {
+  const found = STORY_TEMPLATES.find((t) => t.id === id);
+  return found ?? STORY_TEMPLATES[0]!;
+}
+
+export function selectStoryTemplate(
+  _category?: string,
+  previousStoryTemplateId?: string,
+  random: () => number = Math.random,
+): StoryTemplate {
+  const candidates = STORY_TEMPLATES.filter((t) => t.id !== previousStoryTemplateId);
+  const pool = candidates.length > 0 ? candidates : STORY_TEMPLATES;
+  return pool[Math.floor(random() * pool.length)] ?? STORY_TEMPLATES[0]!;
+}
+

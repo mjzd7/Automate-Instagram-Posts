@@ -74,6 +74,7 @@ async function main(): Promise<void> {
       hashtagPools,
       dryRun,
       ignorePostingHour: force,
+      ignoreRateCap: force,
       batchSize,
       noDelay: fast,
     });

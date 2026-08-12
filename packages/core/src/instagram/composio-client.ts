@@ -64,7 +64,7 @@ export async function publishViaComposio(
         return parsed;
       }
     }
-  } catch (_cliErr) {
+  } catch {
     // Fall back to direct HTTP tool execution
   }
 }
@@ -199,6 +199,17 @@ export async function publishViaComposioStories(
   const { imageUrl, apiKey, entityId = "default" } = options;
   const fetchImpl = options.fetchImpl ?? fetch;
 
+  const isVideo = imageUrl.includes(".mp4");
+  const storyArgs: Record<string, unknown> = {
+    media_type: "STORIES",
+  };
+  if (isVideo) {
+    storyArgs.video_url = imageUrl;
+    storyArgs.max_wait_seconds = 300;
+  } else {
+    storyArgs.image_url = imageUrl;
+  }
+
   const createRes = await fetchImpl(
     "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_CREATE_MEDIA_CONTAINER",
     {
@@ -207,14 +218,11 @@ export async function publishViaComposioStories(
         "Content-Type": "application/json",
         "x-api-key": apiKey,
       },
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(360000),
       body: JSON.stringify({
         entity_id: entityId,
         user_id: entityId,
-        arguments: {
-          image_url: imageUrl,
-          media_type: "STORIES",
-        },
+        arguments: storyArgs,
       }),
     },
   );
@@ -239,7 +247,8 @@ export async function publishViaComposioStories(
     throw new Error("Composio response missing story container ID");
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  // Delay for Meta video container ingest (video containers require longer processing time)
+  await new Promise((resolve) => setTimeout(resolve, isVideo ? 10000 : 3000));
 
   let targetIgUserId = options.igUserId;
   if (!targetIgUserId) {
@@ -277,13 +286,14 @@ export async function publishViaComposioStories(
         "Content-Type": "application/json",
         "x-api-key": apiKey,
       },
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(360000),
       body: JSON.stringify({
         entity_id: entityId,
         user_id: entityId,
         arguments: {
           ig_user_id: targetIgUserId,
           creation_id: creationId,
+          max_wait_seconds: 300,
         },
       }),
     },

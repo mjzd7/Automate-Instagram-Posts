@@ -25,7 +25,7 @@ async function main() {
       newInserted++;
     }
 
-    console.log(`[Quote-Refresh] Verified ${curatedQuotes.length} curated quotes in DB.`);
+    console.log(`[Quote-Refresh] Verified ${curatedQuotes.length} curated quotes in DB (${newInserted} processed).`);
     console.log("[Quote-Refresh] Quote pool refresh completed successfully.");
   } finally {
     dbHandle.close();

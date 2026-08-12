@@ -189,7 +189,7 @@ describe("generateAndPublishBatch", () => {
     const { countPublishedSince } = await import("../../src/db/repositories/posts.repo.js");
     const count = await countPublishedSince(handle.db, "acct1", new Date(0).toISOString());
     expect(count).toBe(5);
-  }, 20000);
+  }, 60000);
 
   it("marks a per-item failure and continues the batch rather than aborting (external dep failure isolation)", async () => {
     await seedContent(handle.db, 10);
@@ -224,7 +224,7 @@ describe("generateAndPublishBatch", () => {
     expect(result.items).toHaveLength(5);
     expect(result.items[0]?.status).toBe("failed");
     expect(result.items.slice(1).every((item) => item.status === "published")).toBe(true);
-  }, 20000);
+  }, 60000);
 
   it("aborts the remaining batch after 3 consecutive item failures", async () => {
     await seedContent(handle.db, 10);
@@ -247,7 +247,7 @@ describe("generateAndPublishBatch", () => {
 
     expect(result.items).toHaveLength(3);
     expect(result.items.every((item) => item.status === "failed")).toBe(true);
-  }, 20000);
+  }, 60000);
 
   it("dry run composes real images without an ig_token row, without the posting-hour gate, and never calls the social APIs", async () => {
     const handle2 = await openDb(":memory:"); // deliberately no ig_token row seeded
@@ -283,7 +283,7 @@ describe("generateAndPublishBatch", () => {
     const { countPublishedSince } = await import("../../src/db/repositories/posts.repo.js");
     expect(await countPublishedSince(handle2.db, "acct1", new Date(0).toISOString())).toBe(0);
     handle2.close();
-  }, 20000);
+  }, 60000);
 
   it("prunes composited images for posts published more than IMAGE_RETENTION_DAYS ago, keeps recent ones", async () => {
     await seedContent(handle.db, 10);
@@ -337,7 +337,7 @@ describe("generateAndPublishBatch", () => {
     const recentRow = (await handle.db.select().from(posts).where(eq(posts.id, "recent1")))[0];
     expect(oldRow?.composedImagePath).toBeNull();
     expect(recentRow?.composedImagePath).toBe(recentPath);
-  }, 20000);
+  }, 60000);
 
   it("publishes via Composio when COMPOSIO_API_KEY is set", async () => {
     await seedContent(handle.db, 2);
@@ -377,5 +377,5 @@ describe("generateAndPublishBatch", () => {
     const publishedPost = (await handle.db.select().from(posts))[0];
     expect(publishedPost?.igMediaId).toBe("comp-123");
     expect(publishedPost?.igPermalink).toBe("https://instagram.com/p/C123/");
-  }, 20000);
+  }, 60000);
 });

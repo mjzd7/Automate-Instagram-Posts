@@ -40,4 +40,23 @@ describe("publishToStories", () => {
     await expect(publishToStories("https://example.com/img.jpg", creds, fetchImpl, noSleep)).rejects.toThrow();
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
+
+  it("creates a STORIES-type container with video_url when publishing an MP4 video story with audio", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, { id: "video-creation-1" }))
+      .mockResolvedValueOnce(jsonResponse(200, { status_code: "FINISHED" }))
+      .mockResolvedValueOnce(jsonResponse(200, { id: "story-video-media-1" }));
+
+    const videoUrl = "https://raw.githubusercontent.com/user/repo/main/data/posts/acc1/2026-08-11-post1-story.mp4";
+    const result = await publishToStories(videoUrl, creds, fetchImpl, noSleep);
+
+    expect(result).toEqual({ mediaId: "story-video-media-1" });
+
+    const [, createInit] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const createBody = JSON.parse(createInit.body as string);
+    expect(createBody.media_type).toBe("STORIES");
+    expect(createBody.video_url).toBe(videoUrl);
+    expect(createBody.image_url).toBeUndefined();
+  });
 });

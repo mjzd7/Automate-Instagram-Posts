@@ -29,6 +29,7 @@ const envSchema = z
     COMPOSIO_API_KEY: z.string().min(1).optional(),
     PEXELS_API_KEY: z.string().min(1).optional(),
     PIXABAY_API_KEY: z.string().min(1).optional(),
+    WEB_APP_URL: z.string().url().optional(),
   })
   .check((ctx) => {
     const { JINA_API_KEY, COHERE_API_KEY, HUGGINGFACE_API_KEY, GEMINI_API_KEY } = ctx.value;

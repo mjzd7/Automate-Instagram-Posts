@@ -1,5 +1,6 @@
 import { writeFile, mkdir, unlink } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
+import sharp from "sharp";
 import type { Account } from "../config/accounts.js";
 import type { Env } from "../config/env.js";
 import { decryptToken } from "../crypto/token-encryption.js";
@@ -19,10 +20,13 @@ import { selectHashtags } from "../hashtags/selector.js";
 import { getCandidateBackgrounds } from "../images/background-provider.js";
 import type { Darkness } from "../images/darkness-classifier.js";
 import { composeImage } from "../images/compositor.js";
+import { composeStory } from "../images/story-compositor.js";
+import { createStoryVideoMP4 } from "../images/story-video-compositor.js";
+import { selectStoryAudio } from "../audio/audio-selector.js";
 import { matchBestBackground } from "../matching/image-quote-matcher.js";
 import { checkDuplicate } from "../matching/duplicate-detector.js";
 import { scoreSuitability } from "../images/suitability-scorer.js";
-import { findTemplate, selectTemplate } from "../images/templates.js";
+import { findTemplate, selectTemplate, STORY_TEMPLATES } from "../images/templates.js";
 import { uploadOrGetPublicImageUrl } from "../images/public-hoster.js";
 import {
   recordCaptionTemplateOutcome,
@@ -44,8 +48,6 @@ import { CAPTION_TEMPLATES, findCaptionTemplate } from "./caption-templates.js";
 const BATCH_SIZE = 5;
 const HARD_STOP_POSTS_PER_DAY = 22;
 const IMAGE_RETENTION_DAYS = 3;
-const POST_INTERVAL_BASE_SECONDS = 480;
-const POST_INTERVAL_JITTER_SECONDS = 180;
 const IMAGE_MATCH_CANDIDATE_POOL_SIZE = 5;
 const QUOTE_DUPLICATE_RETRY_ATTEMPTS = 3;
 const CONSECUTIVE_FAILURE_ABORT_THRESHOLD = 3;
@@ -72,6 +74,8 @@ export interface GenerateAndPublishBatchOptions {
   dryRun?: boolean;
   /** When true, bypasses the posting-hour check for manual/on-demand runs. */
   ignorePostingHour?: boolean;
+  /** When true, bypasses the 24h rate-cap check for manual/on-demand runs. */
+  ignoreRateCap?: boolean;
   /** Custom batch size (default: BATCH_SIZE = 5). Set to 1 for single-post tests. */
   batchSize?: number;
   /** When true, disables inter-post jitter sleep delay. */
@@ -199,7 +203,7 @@ export async function generateAndPublishBatch(
   if (!dryRun) {
     // Step: rolling-24h rate-cap check.
     const publishedCount = await countPublishedSince(db, account.id, since);
-    if (publishedCount >= HARD_STOP_POSTS_PER_DAY) {
+    if (!options.ignoreRateCap && publishedCount >= HARD_STOP_POSTS_PER_DAY) {
       return { skippedReason: "rate-cap", items: [] };
     }
 
@@ -245,9 +249,8 @@ export async function generateAndPublishBatch(
 
   const items: BatchItemResult[] = [];
   let consecutiveFailures = 0;
-  let previousTemplateId: string | undefined;
-
-  const recentPublished = await findPublishedForAccount(db, account.id, 1);
+  const recentPublished = await findPublishedForAccount(db, account.id, 4);
+  const recentTemplateIds: string[] = recentPublished.map((p) => p.template_id);
   let lastMode: Darkness = (recentPublished[0]?.mode as Darkness) ?? "dark";
 
   const totalPostsToGenerate = options.batchSize ?? BATCH_SIZE;
@@ -259,7 +262,7 @@ export async function generateAndPublishBatch(
     }
     if (!dryRun) {
       const runningCount = await countPublishedSince(db, account.id, since);
-      if (runningCount >= HARD_STOP_POSTS_PER_DAY) {
+      if (!options.ignoreRateCap && runningCount >= HARD_STOP_POSTS_PER_DAY) {
         break;
       }
     }
@@ -314,17 +317,37 @@ export async function generateAndPublishBatch(
         candidates.map((c) => ({ id: c.id, description: c.description })),
         embeddingsConfig,
       );
-      const chosen = candidates.find((c) => c.id === match.backgroundId)!;
-      lastMode = chosen.darkness;
+      let chosen = candidates.find((c) => c.id === match.backgroundId)!;
+      let backgroundBuffer: Buffer | undefined;
+      const sortedCandidates = [chosen, ...candidates.filter((c) => c.id !== chosen.id)];
 
-      const imageRes = await fetchImpl(chosen.sourceUrl);
-      const backgroundBuffer = Buffer.from(await imageRes.arrayBuffer());
+      for (const cand of sortedCandidates) {
+        try {
+          const imageRes = await fetchImpl(cand.sourceUrl);
+          if (!imageRes.ok) continue;
+          const rawBuffer = Buffer.from(await imageRes.arrayBuffer());
+          backgroundBuffer = await sharp(rawBuffer).toFormat("jpeg").toBuffer();
+          lastMode = cand.darkness;
+          chosen = cand;
+          break;
+        } catch {}
+      }
+
+      if (!backgroundBuffer) {
+        const color = targetMode === "dark" ? { r: 25, g: 30, b: 45 } : { r: 240, g: 237, b: 230 };
+        backgroundBuffer = await sharp({
+          create: { width: 1080, height: 1350, channels: 3, background: color },
+        })
+          .jpeg()
+          .toBuffer();
+      }
+
       const suitability = await scoreSuitability(backgroundBuffer);
       const mode = chosen.darkness;
 
       // Template + caption template selection.
-      const template = selectTemplate(category, previousTemplateId, 0.25, random);
-      previousTemplateId = template.id;
+      const template = selectTemplate(category, recentTemplateIds, 0.25, random);
+      recentTemplateIds.unshift(template.id);
       const captionTemplateId = await selectCaptionTemplate(
         db,
         account.id,
@@ -336,9 +359,9 @@ export async function generateAndPublishBatch(
       // Hashtags.
       const hashtags = selectHashtags(category, options.hashtagPools);
 
-      // Composite.
+      // Composite 1:1 Feed Post
       console.log(`[Batch] Selected quote: "${quote.text.slice(0, 40)}..." by ${quote.author}`);
-      console.log(`[Batch] Composing ${mode} mode image...`);
+      console.log(`[Batch] Composing ${mode} mode feed image...`);
       const imageBuffer = await composeImage({
         backgroundBuffer,
         quoteText: quote.text,
@@ -347,13 +370,64 @@ export async function generateAndPublishBatch(
         mode,
         suitability,
       });
+
+      // Select matched audio track for Instagram Story
+      const audioSelection = selectStoryAudio({
+        category,
+        mode,
+        quoteLength: quote.text.split(" ").length,
+        availableTracks: [],
+        random,
+      });
+
+      // Composite 9:16 Story Image with framed feed post, link sticker target zone & audio badge
+      const chosenStoryTemplate = STORY_TEMPLATES[i % STORY_TEMPLATES.length]!;
+      console.log(`[Batch] Composing 9:16 story image using template "${chosenStoryTemplate.name}" (${chosenStoryTemplate.id}) with audio: "${audioSelection.track.title}"...`);
+      const storyResult = await composeStory({
+        backgroundBuffer,
+        quoteText: quote.text,
+        author: quote.author ?? undefined,
+        template: findTemplate(template.id),
+        mode,
+        suitability,
+        accountHandle: `@${account.id}`,
+        feedPostBuffer: imageBuffer,
+        storyTemplateId: chosenStoryTemplate.id,
+        audioTrack: {
+          title: audioSelection.track.title,
+          artist: audioSelection.track.displayArtist,
+        },
+      });
+
       const dateStr = currentTime.toISOString().slice(0, 10);
       const relativePath = `data/posts/${account.id}/${dateStr}-${postId}.jpg`;
       const absolutePath = `${options.repoRoot}/${relativePath}`;
       await mkdir(absolutePath.slice(0, absolutePath.lastIndexOf("/")), { recursive: true });
       await writeFile(absolutePath, imageBuffer);
-      const imageUrl = `https://raw.githubusercontent.com/${options.githubRepoSlug}/${githubBranch}/${relativePath}`;
-      console.log(`[Batch] Image saved to ${relativePath}`);
+
+      let audioBuffer: Buffer | undefined;
+      if (audioSelection.track.downloadUrl) {
+        try {
+          const audioRes = await fetchImpl(audioSelection.track.downloadUrl);
+          if (audioRes.ok) {
+            audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+          }
+        } catch {}
+      }
+
+      console.log(`[Batch] Assembling 15s MP4 video story with audio stream...`);
+      const storyVideoResult = await createStoryVideoMP4({
+        storyImageBuffer: storyResult.imageBuffer,
+        audioBuffer,
+        startOffsetSeconds: audioSelection.peakStartSecond,
+        durationSeconds: 15,
+      });
+
+      const storyRelativePath = `data/posts/${account.id}/${dateStr}-${postId}-story.mp4`;
+      const storyAbsolutePath = `${options.repoRoot}/${storyRelativePath}`;
+      await writeFile(storyAbsolutePath, storyVideoResult.videoBuffer);
+
+      console.log(`[Batch] Feed image saved to ${relativePath}, Story video saved to ${storyRelativePath}`);
 
       await insertPendingPost(db, {
         id: postId,
@@ -375,10 +449,10 @@ export async function generateAndPublishBatch(
         continue;
       }
 
-      console.log(`[Batch] Committing and pushing image to GitHub...`);
+      console.log(`[Batch] Committing and pushing images to GitHub...`);
       try {
         await commitBatch({ cwd: options.repoRoot, message: `post: publish image ${postId}` });
-        console.log(`[Batch] Image pushed to GitHub raw URL.`);
+        console.log(`[Batch] Images pushed to GitHub raw URL.`);
         await sleepImpl(5000);
       } catch (err) {
         console.warn(`[Batch] Git push warning:`, err);
@@ -404,7 +478,24 @@ export async function generateAndPublishBatch(
         sleepImpl,
       );
 
-      console.log(`[Batch] Publishing to Instagram with image URL ${verifiedImageUrl}...`);
+      const storyHostedImageUrl = await uploadOrGetPublicImageUrl({
+        imageBuffer: storyResult.imageBuffer,
+        relativePath: storyRelativePath,
+        githubRepoSlug: options.githubRepoSlug,
+        githubBranch,
+        webAppUrl: env.WEB_APP_URL,
+        fetchImpl,
+      });
+
+      const storyVerifiedImageUrl = await verifyPublicImageUrl(
+        storyHostedImageUrl,
+        options.githubRepoSlug,
+        storyRelativePath,
+        fetchImpl,
+        sleepImpl,
+      );
+
+      console.log(`[Batch] Publishing to Instagram Feed with image URL ${verifiedImageUrl}...`);
       let feedResult: { mediaId: string; permalink?: string };
       if (env.COMPOSIO_API_KEY) {
         console.log(`[Batch] Using Composio API...`);
@@ -424,9 +515,9 @@ export async function generateAndPublishBatch(
       let storiesMediaId: string | undefined;
       try {
         if (env.COMPOSIO_API_KEY) {
-          console.log(`[Batch] Cross-posting to Instagram Stories via Composio...`);
+          console.log(`[Batch] Cross-posting dedicated 9:16 Story via Composio...`);
           const compStory = await publishViaComposioStories({
-            imageUrl: verifiedImageUrl,
+            imageUrl: storyVerifiedImageUrl,
             caption: "",
             apiKey: env.COMPOSIO_API_KEY,
             entityId: account.id,
@@ -435,8 +526,8 @@ export async function generateAndPublishBatch(
           storiesMediaId = compStory.mediaId;
           console.log(`[Batch] Successfully cross-posted Story! Media ID: ${storiesMediaId}`);
         } else if (igCreds) {
-          console.log(`[Batch] Cross-posting to Instagram Stories via Meta Graph API...`);
-          const stories = await publishToStories(verifiedImageUrl, igCreds, fetchImpl, sleepImpl);
+          console.log(`[Batch] Cross-posting dedicated 9:16 Story via Meta Graph API...`);
+          const stories = await publishToStories(storyVerifiedImageUrl, igCreds, fetchImpl, sleepImpl);
           storiesMediaId = stories.mediaId;
           console.log(`[Batch] Successfully cross-posted Story! Media ID: ${storiesMediaId}`);
         }
