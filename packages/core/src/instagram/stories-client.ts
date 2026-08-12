@@ -18,14 +18,21 @@ export async function publishToStories(
   fetchImpl: typeof fetch = fetch,
   sleepImpl?: (ms: number) => Promise<void>,
 ): Promise<{ mediaId: string }> {
+  const isVideo = imageUrl.includes(".mp4");
+  const mediaBody: Record<string, unknown> = {
+    media_type: "STORIES",
+    access_token: creds.accessToken,
+  };
+  if (isVideo) {
+    mediaBody.video_url = imageUrl;
+  } else {
+    mediaBody.image_url = imageUrl;
+  }
+
   const createRes = await fetchImpl(`${GRAPH_API_BASE}/${creds.igUserId}/media`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      image_url: imageUrl,
-      media_type: "STORIES",
-      access_token: creds.accessToken,
-    }),
+    body: JSON.stringify(mediaBody),
   });
   const createBody = (await createRes.json()) as Record<string, unknown>;
   if (!createRes.ok || typeof createBody.id !== "string") {

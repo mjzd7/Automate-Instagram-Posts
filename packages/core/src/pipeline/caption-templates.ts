@@ -21,7 +21,28 @@ export const CAPTION_TEMPLATES: readonly CaptionTemplate[] = [
     id: "quote-with-cta",
     build: (quoteText, author) => {
       const attribution = author ? ` — ${author}` : "";
-      return `"${quoteText}"${attribution}\n\nSave this for later 🔖`;
+      return `"${quoteText}"${attribution}\n\nSave this post for when you need it 🔖`;
+    },
+  },
+  {
+    id: "quote-with-question",
+    build: (quoteText, author) => {
+      const attribution = author ? ` — ${author}` : "";
+      return `"${quoteText}"${attribution}\n\nWhat are your thoughts on this? Drop your perspective below 👇💬`;
+    },
+  },
+  {
+    id: "quote-with-engagement",
+    build: (quoteText, author) => {
+      const attribution = author ? ` — ${author}` : "";
+      return `"${quoteText}"${attribution}\n\nDouble tap if this resonates with you ❤️\nShare with someone who needs this message today! ✨`;
+    },
+  },
+  {
+    id: "quote-with-action",
+    build: (quoteText, author) => {
+      const attribution = author ? ` — ${author}` : "";
+      return `"${quoteText}"${attribution}\n\nHow do you put this into practice? Let's discuss in the comments 💡`;
     },
   },
 ];

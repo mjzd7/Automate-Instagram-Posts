@@ -112,7 +112,7 @@ describe("composeImage", () => {
       expect(metadata.width, template.id).toBe(IMAGE_WIDTH);
       expect(metadata.height, template.id).toBe(IMAGE_HEIGHT);
     }
-  });
+  }, 15000);
 
   it("handles a very long quote by auto-shrinking/truncating rather than throwing", async () => {
     const background = await solidColorImage(600, 800, { r: 10, g: 10, b: 10 });

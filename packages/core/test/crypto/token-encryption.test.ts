@@ -32,7 +32,9 @@ describe("encryptToken / decryptToken", () => {
   it("fails to decrypt if the ciphertext was tampered with (security plane: GCM auth tag catches modification)", () => {
     const encrypted = encryptToken("secret", validKey);
     const parts = encrypted.split(":");
-    const tampered = `${parts[0]}:${parts[1]}:${parts[2]!.slice(0, -2)}ff`;
+    const origCt = parts[2]!;
+    const modifiedCt = (origCt[0] === "0" ? "1" : "0") + origCt.slice(1);
+    const tampered = `${parts[0]}:${parts[1]}:${modifiedCt}`;
     expect(() => decryptToken(tampered, validKey)).toThrow();
   });
 

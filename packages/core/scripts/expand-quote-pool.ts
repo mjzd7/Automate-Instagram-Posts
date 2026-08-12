@@ -1,6 +1,6 @@
 import { openDb } from "../src/db/client.js";
 import { insertQuote } from "../src/db/repositories/quotes.repo.js";
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));

@@ -97,7 +97,7 @@ async function main() {
 
   // Update data/accounts.json
   const accountsPath = resolve(repoRoot, "data/accounts.json");
-  let existingAccounts: any[] = [];
+  let existingAccounts: Record<string, unknown>[] = [];
   try {
     const raw = await readFile(accountsPath, "utf-8");
     existingAccounts = JSON.parse(raw);
@@ -116,7 +116,7 @@ async function main() {
     active: true,
   };
 
-  const updatedAccounts = existingAccounts.filter((acc: any) => acc.id !== accountId).concat(newAccountObj);
+  const updatedAccounts = existingAccounts.filter((acc: Record<string, unknown>) => acc.id !== accountId).concat(newAccountObj);
   await writeFile(accountsPath, JSON.stringify(updatedAccounts, null, 2), "utf-8");
   console.log(`\n✅ Updated data/accounts.json for account '${accountId}'`);
 
@@ -125,7 +125,7 @@ async function main() {
   await mkdir(secretsDir, { recursive: true });
   const seedPath = resolve(secretsDir, "accounts-seed.json");
   
-  let existingSeed: Record<string, any> = {};
+  let existingSeed: Record<string, unknown> = {};
   try {
     const raw = await readFile(seedPath, "utf-8");
     existingSeed = JSON.parse(raw);

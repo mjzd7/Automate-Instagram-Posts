@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { publishViaComposio } from "../../src/instagram/composio-client.js";
+import { publishViaComposio, publishViaComposioStories } from "../../src/instagram/composio-client.js";
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -44,7 +44,7 @@ describe("publishViaComposio", () => {
       "x-api-key": "test-composio-key",
     });
 
-    const [url2, init2] = fetchImpl.mock.calls[1] as [string, RequestInit];
+    const [url2] = fetchImpl.mock.calls[1] as [string, RequestInit];
     expect(url2).toBe("https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_POST_IG_USER_MEDIA_PUBLISH");
   });
 
@@ -60,4 +60,43 @@ describe("publishViaComposio", () => {
       }),
     ).rejects.toThrow("Composio create container error (401)");
   });
+});
+
+describe("publishViaComposioStories", () => {
+  it("publishes MP4 video story using video_url and STORIES media_type via Composio", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          data: { id: "story-video-container-1" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          data: {
+            id: "comp-story-video-123",
+          },
+        }),
+      );
+
+    const videoUrl = "https://raw.githubusercontent.com/user/repo/main/data/posts/acc1/2026-08-11-story.mp4";
+    const result = await publishViaComposioStories({
+      imageUrl: videoUrl,
+      caption: "",
+      apiKey: "test-composio-key",
+      igUserId: "ig-user-999",
+      fetchImpl,
+    });
+
+    expect(result).toEqual({
+      mediaId: "comp-story-video-123",
+      permalink: undefined,
+    });
+
+    const [, init1] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const body1 = JSON.parse(init1.body as string);
+    expect(body1.arguments.media_type).toBe("STORIES");
+    expect(body1.arguments.video_url).toBe(videoUrl);
+    expect(body1.arguments.image_url).toBeUndefined();
+  }, 15000);
 });

@@ -8,8 +8,6 @@ import {
   GRAIN_TEXTURE_OPACITY,
   IMAGE_HEIGHT,
   IMAGE_WIDTH,
-  SAFE_MARGIN_PX,
-  SCRIM_BAND_PADDING_PX,
   TEXT_SHADOW_BLUR_PX,
   TEXT_SHADOW_COLOR_DARK_MODE,
   TEXT_SHADOW_COLOR_LIGHT_MODE,
@@ -17,7 +15,7 @@ import {
 } from "./constants.js";
 import type { Darkness } from "./darkness-classifier.js";
 import { grainTexturePng } from "./grain.js";
-import { renderScrim, renderVignette } from "./scrim.js";
+import { renderVignette } from "./scrim.js";
 import { renderGlassCard } from "./glass-card.js";
 import type { SuitabilityResult } from "./suitability-scorer.js";
 import { renderFittedText, renderTextAtSize, QuoteTruncatedError } from "./text-render.js";
