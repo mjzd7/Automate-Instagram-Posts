@@ -18,7 +18,8 @@
     "analyze-aesthetic": "pnpm --filter core exec tsx scripts/analyze-account-aesthetic.ts",
     "post-batch": "pnpm --filter core exec tsx scripts/run-post-batch.ts",
     "refresh-tokens": "pnpm --filter core exec tsx scripts/run-token-refresh.ts",
-    "refresh-quotes": "pnpm --filter core exec tsx scripts/refresh-quote-pool.ts"
+    "refresh-quotes": "pnpm --filter core exec tsx scripts/refresh-quote-pool.ts",
+    "update-trending": "pnpm --filter core exec tsx scripts/update-trending-hashtags.ts"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
@@ -33,6 +34,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@composio/core": "^0.15.0"
+    "@composio/core": "^0.15.0",
+    "google-trends-api": "^4.9.2"
   }
 }

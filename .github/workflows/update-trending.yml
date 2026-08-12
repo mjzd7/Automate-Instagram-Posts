@@ -1,0 +1,28 @@
+name: Update Trending Hashtags
+
+on:
+  schedule:
+    - cron: "30 23 * * *" # Runs at 23:30 UTC every day, which is 5:00 AM IST.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-trending:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm update-trending
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/trending-hashtags.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update daily trending hashtags from Google Trends" && git push)
