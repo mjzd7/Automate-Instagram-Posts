@@ -85,8 +85,8 @@ export async function createReelFromFeedImage(
 
   // Ken Burns: drift from 1.0× to 1.06× over the full duration
   const kbDrift = (0.06 / Math.max(durationSeconds, 1)).toFixed(6);
-  // Zoom expression: base drift + exponential beat-sync pulse every 2 s
-  const zoomExpr = `min(1.0+${kbDrift}*t+0.08*exp(-5*mod(t,2.0)),1.15)`;
+  // Zoom expression: base drift + exponential beat-sync pulse every 2 s using output frame number (on/30 = time in seconds)
+  const zoomExpr = `min(1.0+${kbDrift}*on/30+0.08*exp(-5*mod(on/30,2.0)),1.15)`;
   const xExpr = `iw/2-(iw/zoom/2)`;
   const yExpr = `ih/2-(ih/zoom/2)`;
 
@@ -100,8 +100,8 @@ export async function createReelFromFeedImage(
     `[hires]zoompan=z='${zoomExpr}':x='${xExpr}':y='${yExpr}':d=1:s=${fgW}x${fgH}:fps=30[fg]`,
     // Composite: fg centred over blurred bg
     `[bg][fg]overlay=(W-w)/2:(H-h)/2[comp]`,
-    // Post-process: vignette + animated film grain (strength oscillates every 3s)
-    `[comp]vignette=PI/4,noise=c0s='8+6*sin(2*PI*t/3)':c0f=t+u[out]`,
+    // Post-process: vignette + animated film grain (temporal noise)
+    `[comp]vignette=PI/4,noise=c0s=12:c0f=t+u[out]`,
   ].join("; ");
 
   const hasAudio = Boolean(audioBuffer && audioBuffer.length > 100);
