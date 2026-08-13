@@ -100,8 +100,8 @@ export async function createReelFromFeedImage(
     `[hires2]zoompan=z='${zoomExpr}':x='${xExpr}':y='${yExpr}':d=1:s=${fgW}x${fgH}:fps=30[fg]`,
     // Composite: fg centred over blurred bg
     `[bg][fg]overlay=(W-w)/2:(H-h)/2[comp]`,
-    // Post-process: vignette + animated film grain (temporal noise)
-    `[comp]vignette=PI/4,noise=c0s=12:c0f=t+u[out]`,
+    // Post-process: subtle vignette + unsharp sharpening filter for crisp text edges
+    `[comp]vignette=PI/6,unsharp=5:5:0.8:5:5:0.0[out]`,
   ].join("; ");
 
   const hasAudio = Boolean(audioBuffer && audioBuffer.length > 100);
@@ -117,8 +117,8 @@ export async function createReelFromFeedImage(
   await writeFile(tmpImagePath, feedImageBuffer);
   if (hasAudio) await writeFile(tmpAudioPath, audioBuffer!);
 
-  const bv = render4K ? "18M" : "8M";
-  const bufsize = render4K ? "36M" : "16M";
+  const bv = render4K ? "24M" : "12M";
+  const bufsize = render4K ? "48M" : "24M";
 
   const fadeInSec = 0.5;
   const fadeOutSec = 1.2;
@@ -145,8 +145,9 @@ export async function createReelFromFeedImage(
     "-map", "1:a",
     "-af", hasAudio ? audioFilter : "aecho=0.8:0.9:1000:0.3",
     "-c:v", "libx264",
-    "-preset", "fast",      // faster than slow; zoompan is the real bottleneck
-    "-profile:v", "main",
+    "-crf", "17",          // Low CRF for maximum crispness and detail
+    "-preset", "medium",   // Better macroblock quality than "fast"
+    "-profile:v", "high",  // High profile for better color/detail retention
     "-level:v", "4.0",
     "-pix_fmt", "yuv420p",
     "-colorspace", "bt709",
