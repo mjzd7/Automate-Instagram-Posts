@@ -20,13 +20,12 @@ import { selectHashtags } from "../hashtags/selector.js";
 import { getCandidateBackgrounds } from "../images/background-provider.js";
 import type { Darkness } from "../images/darkness-classifier.js";
 import { composeImage } from "../images/compositor.js";
-import { composeStory } from "../images/story-compositor.js";
-import { createReelsVideoMP4 } from "../audio/reels-composer.js";
+import { createReelFromFeedImage } from "../images/reel-video-composer.js";
 import { selectStoryAudio } from "../audio/audio-selector.js";
 import { matchBestBackground } from "../matching/image-quote-matcher.js";
 import { checkDuplicate } from "../matching/duplicate-detector.js";
 import { scoreSuitability } from "../images/suitability-scorer.js";
-import { findTemplate, selectTemplate, STORY_TEMPLATES } from "../images/templates.js";
+import { findTemplate, selectTemplate } from "../images/templates.js";
 import { uploadOrGetPublicImageUrl } from "../images/public-hoster.js";
 import {
   recordCaptionTemplateOutcome,
@@ -393,7 +392,7 @@ export async function generateAndPublishBatch(
         });
       }
 
-      // Select matched audio track for Instagram Story
+      // Select matched audio track
       const audioSelection = selectStoryAudio({
         category,
         mode,
@@ -401,73 +400,6 @@ export async function generateAndPublishBatch(
         availableTracks: [],
         random,
       });
-
-      // Composite 9:16 Story Image with framed feed post, link sticker target zone & audio badge
-      const chosenStoryTemplate = STORY_TEMPLATES[i % STORY_TEMPLATES.length]!;
-      console.log(`[Batch] Composing 9:16 story image using template "${chosenStoryTemplate.name}" (${chosenStoryTemplate.id}) with audio: "${audioSelection.track.title}"...`);
-      
-      let storyResult: any;
-      let storyScale = feedScale; // Use whatever scale worked for feed
-      
-      try {
-        if (storyScale === 2) {
-          console.log(`[Batch] Composing story image (4K Native)...`);
-          storyResult = await composeStory({
-            backgroundBuffer,
-            quoteText: quote.text,
-            author: quote.author ?? undefined,
-            template: findTemplate(template.id),
-            mode,
-            suitability,
-            accountHandle: `@${account.id}`,
-            feedPostBuffer: imageBuffer,
-            storyTemplateId: chosenStoryTemplate.id,
-            audioTrack: {
-              title: audioSelection.track.title,
-              artist: audioSelection.track.displayArtist,
-            },
-            scale: 2,
-          });
-        } else {
-          throw new Error("feedScale is 1, skipping 4K story render");
-        }
-      } catch (e) {
-        if (storyScale === 2) {
-          console.warn(`[Batch] 4K story generation failed, falling back to 1080p: ${e}`);
-        }
-        storyScale = 1;
-        // Need to recreate feedBuffer at 1080p if it was 4K but story failed at 4K.
-        let fallbackFeedBuffer = imageBuffer;
-        if (feedScale === 2) {
-          fallbackFeedBuffer = await composeImage({
-            backgroundBuffer,
-            quoteText: quote.text,
-            author: quote.author ?? undefined,
-            template: findTemplate(template.id),
-            mode,
-            suitability,
-            scale: 1,
-          });
-        }
-        
-        console.log(`[Batch] Composing story image (1080p Fallback)...`);
-        storyResult = await composeStory({
-          backgroundBuffer,
-          quoteText: quote.text,
-          author: quote.author ?? undefined,
-          template: findTemplate(template.id),
-          mode,
-          suitability,
-          accountHandle: `@${account.id}`,
-          feedPostBuffer: fallbackFeedBuffer,
-          storyTemplateId: chosenStoryTemplate.id,
-          audioTrack: {
-            title: audioSelection.track.title,
-            artist: audioSelection.track.displayArtist,
-          },
-          scale: 1,
-        });
-      }
 
       const dateStr = currentTime.toISOString().slice(0, 10);
       const relativePath = `data/posts/${account.id}/${dateStr}-${postId}.jpg`;
@@ -485,20 +417,18 @@ export async function generateAndPublishBatch(
         } catch {}
       }
 
-      console.log(`[Batch] Assembling MP4 video reels with audio stream (Scale: ${storyScale === 2 ? '4K' : '1080p'})...`);
-      
-      // Calculate looping duration based on quote word count (approx. 200 WPM + 1s padding)
+      // Calculate Reel duration from quote length (approx. 200 WPM reading speed + 1s)
       const wordCount = quote.text.split(/\s+/).length;
-      let calculatedDuration = Math.ceil((wordCount / 200) * 60 + 1.0);
-      // Ensure reasonable bounds (e.g. at least 5s, at most 15s for stories compatibility)
-      calculatedDuration = Math.max(5, Math.min(calculatedDuration, 15));
-      
-      const storyVideoResult = await createReelsVideoMP4({
-        postImageBuffer: storyResult.imageBuffer,
+      const calculatedDuration = Math.max(5, Math.min(Math.ceil((wordCount / 200) * 60 + 1.0), 15));
+
+      // Compose the Reel video: feed image → blurred BG + Ken Burns + VFX + audio
+      console.log(`[Batch] Composing Reel video from feed image with audio: "${audioSelection.track.title}" (${feedScale === 2 ? '4K bitrate' : '1080p'})...`);
+      const storyVideoResult = await createReelFromFeedImage({
+        feedImageBuffer: imageBuffer,
         audioBuffer,
         startOffsetSeconds: audioSelection.peakStartSecond,
         durationSeconds: calculatedDuration,
-        render4K: storyScale === 2,
+        render4K: feedScale === 2,
         ghostVolume: 0.05,
       });
 
