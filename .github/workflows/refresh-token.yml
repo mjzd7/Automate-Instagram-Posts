@@ -40,3 +40,5 @@ jobs:
           API_NINJAS_KEY: ${{ secrets.API_NINJAS_KEY }}
           THEY_SAID_SO_KEY: ${{ secrets.THEY_SAID_SO_KEY }}
           GH_PAT_FOR_SECRETS: ${{ secrets.GH_PAT_FOR_SECRETS }}
+          META_APP_ID: ${{ secrets.META_APP_ID }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}

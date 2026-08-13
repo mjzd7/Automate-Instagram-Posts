@@ -515,7 +515,11 @@ export async function generateAndPublishBatch(
         return await publishToFeed(verifiedImageUrl, caption, hashtagComment, igCreds!, fetchImpl, sleepImpl);
       };
 
-      if (env.COMPOSIO_API_KEY) {
+      const isWeekend = currentTime.getDay() === 0 || currentTime.getDay() === 6;
+      // 25% chance on weekends to force Meta Graph API (1 in 4 posts)
+      const forceMetaGraph = isWeekend && random() < 0.25;
+
+      if (env.COMPOSIO_API_KEY && !forceMetaGraph) {
         try {
           feedResult = await tryComposioFeed();
         } catch (err) {
@@ -552,7 +556,7 @@ export async function generateAndPublishBatch(
       };
 
       try {
-        if (env.COMPOSIO_API_KEY) {
+        if (env.COMPOSIO_API_KEY && !forceMetaGraph) {
           try {
             storiesMediaId = await tryComposioStory();
           } catch (err) {

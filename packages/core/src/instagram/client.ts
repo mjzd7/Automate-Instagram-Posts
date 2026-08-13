@@ -162,9 +162,14 @@ export interface TokenRefreshResult {
 /** Plan.md §7.16 step 6. Note: this endpoint is on graph.instagram.com, not graph.facebook.com. */
 export async function refreshLongLivedToken(
   currentToken: string,
+  clientId?: string,
+  clientSecret?: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<TokenRefreshResult> {
-  const url = `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${encodeURIComponent(currentToken)}`;
+  if (!clientId || !clientSecret) {
+    throw new Error("refreshLongLivedToken: META_APP_ID and META_APP_SECRET are required to refresh a Graph API User Token.");
+  }
+  const url = `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${clientId}&client_secret=${clientSecret}&fb_exchange_token=${encodeURIComponent(currentToken)}`;
   const res = await fetchImpl(url);
   const body = (await res.json()) as Record<string, unknown>;
   if (!res.ok) {

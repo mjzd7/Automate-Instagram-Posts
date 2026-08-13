@@ -9,7 +9,7 @@ import { refreshThreadsToken } from "../threads/client.js";
 import { sendDiscordNotification } from "../notify/discord.js";
 
 // plan.md §2.10.
-const TOKEN_REFRESH_TRIGGER_WINDOW_DAYS = 10;
+const TOKEN_REFRESH_TRIGGER_WINDOW_DAYS = 50;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface RefreshTokenOptions {
@@ -66,7 +66,7 @@ export async function refreshTokens(options: RefreshTokenOptions): Promise<Accou
 
       if (isDue(expiresAt, currentTime)) {
         const currentToken = decryptToken(accessTokenEncrypted, env.TOKEN_ENCRYPTION_KEY);
-        const refreshed = await refreshLongLivedToken(currentToken, fetchImpl);
+        const refreshed = await refreshLongLivedToken(currentToken, env.META_APP_ID, env.META_APP_SECRET, fetchImpl);
         accessTokenEncrypted = encryptToken(refreshed.accessToken, env.TOKEN_ENCRYPTION_KEY);
         expiresAt = new Date(currentTime.getTime() + refreshed.expiresInSeconds * 1000).toISOString();
         result.igRefreshed = true;
