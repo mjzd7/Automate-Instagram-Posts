@@ -25,6 +25,7 @@ jobs:
       - run: pnpm update-trending
         env:
           PROXY_URL: ${{ secrets.PROXY_URL }}
+          NODE_TLS_REJECT_UNAUTHORIZED: "0"
       - name: Commit changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
