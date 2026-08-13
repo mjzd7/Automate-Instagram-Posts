@@ -320,3 +320,130 @@ export async function publishViaComposioStories(
     permalink: publishData.data?.permalink,
   };
 }
+
+/**
+ * Publishes an MP4 video as a proper Instagram Reel via Composio's v3.1 tool execution.
+ * Uses media_type: "REELS" — permanent post on the Reels tab, not an ephemeral 24h Story.
+ */
+export async function publishViaComposioReels(
+  options: PublishViaComposioOptions,
+): Promise<ComposioPublishResult> {
+  const { imageUrl: videoUrl, caption, apiKey, entityId = "default" } = options;
+  const fetchImpl = options.fetchImpl ?? fetch;
+
+  const reelArgs: Record<string, unknown> = {
+    media_type: "REELS",
+    video_url: videoUrl,
+    caption,
+    share_to_feed: true,
+  };
+
+  const createRes = await fetchImpl(
+    "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_CREATE_MEDIA_CONTAINER",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      signal: AbortSignal.timeout(360000),
+      body: JSON.stringify({
+        entity_id: entityId,
+        user_id: entityId,
+        arguments: reelArgs,
+      }),
+    },
+  );
+
+  if (!createRes.ok) {
+    const errorText = await createRes.text();
+    throw new Error(`Composio create reel container error (${createRes.status}): ${errorText}`);
+  }
+
+  const createData = (await createRes.json()) as {
+    data?: { id?: string; creation_id?: string };
+    error?: string | { message?: string };
+  };
+
+  if (createData.error) {
+    const errMsg = typeof createData.error === "object" ? createData.error.message : createData.error;
+    throw new Error(`Composio create reel container failed: ${errMsg}`);
+  }
+
+  const creationId = createData.data?.id ?? createData.data?.creation_id;
+  if (!creationId) {
+    throw new Error("Composio reel response missing container ID");
+  }
+
+  // Reels require longer processing time for video ingest than images/stories
+  await new Promise((resolve) => setTimeout(resolve, 15000));
+
+  let targetIgUserId = options.igUserId;
+  if (!targetIgUserId) {
+    try {
+      const userRes = await fetchImpl(
+        "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_GET_USER_INFO",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+          },
+          signal: AbortSignal.timeout(10000),
+          body: JSON.stringify({
+            entity_id: entityId,
+            user_id: entityId,
+            arguments: {},
+          }),
+        },
+      );
+      if (userRes.ok) {
+        const userData = (await userRes.json()) as { data?: { id?: string } };
+        if (userData.data?.id) {
+          targetIgUserId = userData.data.id;
+        }
+      }
+    } catch {}
+  }
+
+  const publishRes = await fetchImpl(
+    "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_POST_IG_USER_MEDIA_PUBLISH",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      signal: AbortSignal.timeout(360000),
+      body: JSON.stringify({
+        entity_id: entityId,
+        user_id: entityId,
+        arguments: {
+          ig_user_id: targetIgUserId,
+          creation_id: creationId,
+        },
+      }),
+    },
+  );
+
+  if (!publishRes.ok) {
+    const errorText = await publishRes.text();
+    throw new Error(`Composio publish reel error (${publishRes.status}): ${errorText}`);
+  }
+
+  const publishData = (await publishRes.json()) as {
+    data?: { id?: string; media_id?: string; permalink?: string };
+    error?: string | { message?: string };
+  };
+
+  if (publishData.error) {
+    const errMsg = typeof publishData.error === "object" ? publishData.error.message : publishData.error;
+    throw new Error(`Composio publish reel failed: ${errMsg}`);
+  }
+
+  const mediaId = publishData.data?.id ?? publishData.data?.media_id ?? `reel-${Date.now()}`;
+  return {
+    mediaId,
+    permalink: publishData.data?.permalink,
+  };
+}

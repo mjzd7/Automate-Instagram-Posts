@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { publishViaComposio, publishViaComposioStories } from "../../src/instagram/composio-client.js";
+import { publishViaComposio, publishViaComposioStories, publishViaComposioReels } from "../../src/instagram/composio-client.js";
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -99,4 +99,37 @@ describe("publishViaComposioStories", () => {
     expect(body1.arguments.video_url).toBe(videoUrl);
     expect(body1.arguments.image_url).toBeUndefined();
   }, 15000);
+});
+
+describe("publishViaComposioReels", () => {
+  it("publishes MP4 as a Reel with REELS media_type, video_url, caption and share_to_feed=true", async () => {
+    const fetchImpl = vi
+      .fn()
+      // Step 1: create container
+      .mockResolvedValueOnce(
+        jsonResponse(200, { data: { id: "reel-container-1" } }),
+      )
+      // Step 2: publish (igUserId is passed explicitly, so user-info fetch is skipped)
+      .mockResolvedValueOnce(
+        jsonResponse(200, { data: { id: "reel-media-123" } }),
+      );
+
+    const videoUrl = "https://automate-instagram-posts.vercel.app/api/media/main/2026-08-13-story.mp4";
+    const result = await publishViaComposioReels({
+      imageUrl: videoUrl,
+      caption: "Test caption #reels",
+      apiKey: "test-composio-key",
+      igUserId: "ig-user-999",
+      fetchImpl,
+    });
+
+    expect(result).toEqual({ mediaId: "reel-media-123", permalink: undefined });
+
+    const [, init1] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const body1 = JSON.parse(init1.body as string);
+    expect(body1.arguments.media_type).toBe("REELS");
+    expect(body1.arguments.video_url).toBe(videoUrl);
+    expect(body1.arguments.caption).toBe("Test caption #reels");
+    expect(body1.arguments.share_to_feed).toBe(true);
+  }, 20000);
 });

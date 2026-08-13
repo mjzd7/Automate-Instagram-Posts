@@ -34,7 +34,7 @@ import {
   selectCaptionTemplate,
 } from "../aesthetics/mode-weighting.js";
 import { getNextQuote } from "../quotes/provider.js";
-import { publishViaComposio, publishViaComposioStories } from "../instagram/composio-client.js";
+import { publishViaComposio, publishViaComposioReels } from "../instagram/composio-client.js";
 import type { IGCredentials } from "../instagram/client.js";
 import { publishToFeed } from "../instagram/client.js";
 import { publishToReels } from "../instagram/reels-client.js";
@@ -617,15 +617,15 @@ export async function generateAndPublishBatch(
       }
       let storiesMediaId: string | undefined;
       const tryComposioStory = async () => {
-        console.log(`[Batch] Cross-posting dedicated 9:16 Story via Composio...`);
-        const compStory = await publishViaComposioStories({
+        console.log(`[Batch] Publishing dedicated 9:16 Reel via Composio...`);
+        const compReel = await publishViaComposioReels({
           imageUrl: storyVerifiedVideoUrl,
-          caption: "",
+          caption,
           apiKey: env.COMPOSIO_API_KEY!,
           entityId: account.id,
           fetchImpl,
         });
-        return compStory.mediaId;
+        return compReel.mediaId;
       };
 
       const tryMetaGraphStory = async () => {
@@ -657,7 +657,7 @@ export async function generateAndPublishBatch(
           storiesMediaId = await tryMetaGraphStory();
         }
         if (storiesMediaId) {
-          console.log(`[Batch] Successfully cross-posted Story! Media ID: ${storiesMediaId}`);
+          console.log(`[Batch] Successfully published Reel! Media ID: ${storiesMediaId}`);
         }
       } catch (err) {
         console.warn(`[Batch] Story cross-post warning:`, err);
