@@ -82,3 +82,9 @@ export async function clearOldQuoteUsage(db: Db, daysCutoff = 38): Promise<numbe
   return res.rowsAffected ?? 0;
 }
 
+/** The absolute final fallback: randomly selects ANY quote from the DB, ignoring usage tracking, to guarantee the bot never crashes from an empty pool. */
+export async function getRandomFallbackQuote(db: Db) {
+  const rows = await db.select().from(quotes).where(eq(quotes.active, true)).orderBy(sql`RANDOM()`).limit(1);
+  return rows[0];
+}
+

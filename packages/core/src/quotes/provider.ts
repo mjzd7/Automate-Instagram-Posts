@@ -116,7 +116,16 @@ export async function getNextQuote(
     if (altCurated) return altCurated;
   }
 
-  const fetched = await runFallbackChain(db, accountId, categoryId, config);
+  let fetched: FetchedQuote;
+  try {
+    fetched = await runFallbackChain(db, accountId, categoryId, config);
+  } catch (error) {
+    console.warn(`[Quotes] All APIs failed, recycling a random quote from the database fallback: ${error instanceof Error ? error.message : String(error)}`);
+    const fallbackDbQuote = await import("../db/repositories/quotes.repo.js").then(m => m.getRandomFallbackQuote(db));
+    if (!fallbackDbQuote) throw new Error("CRITICAL: Database has 0 active quotes.");
+    return { id: fallbackDbQuote.id, text: fallbackDbQuote.text, author: fallbackDbQuote.author, categoryId: fallbackDbQuote.categoryId };
+  }
+
   const normalizedText = normalizeQuoteCapitalization(fetched.text);
   const id = (config.idGenerator ?? defaultIdGenerator)();
   await insertQuote(db, {

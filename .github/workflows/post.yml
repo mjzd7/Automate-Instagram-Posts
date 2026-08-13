@@ -32,7 +32,7 @@ jobs:
         account_id: ${{ fromJson(needs.load-accounts.outputs.accounts) }}
       fail-fast: false
     concurrency:
-      group: post-${{ matrix.account_id }}
+      group: db-lock
       cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
