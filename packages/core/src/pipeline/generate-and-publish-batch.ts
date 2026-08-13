@@ -150,7 +150,8 @@ async function verifyPublicImageUrl(
       try {
         const res = await fetchImpl(url, { method: "HEAD" });
         const contentType = res.headers.get("content-type") ?? "";
-        if (res.ok && contentType.startsWith("image/")) {
+        const isMedia = contentType.startsWith("image/") || contentType.startsWith("video/");
+        if (res.ok && isMedia) {
           console.log(`[Batch] Verified live public image URL: ${url}`);
           return url;
         }
@@ -165,7 +166,8 @@ async function verifyPublicImageUrl(
     try {
       const res = await fetchImpl(url, { method: "GET" });
       const contentType = res.headers.get("content-type") ?? "";
-      if (res.ok && contentType.startsWith("image/")) {
+      const isMedia = contentType.startsWith("image/") || contentType.startsWith("video/");
+      if (res.ok && isMedia) {
         console.log(`[Batch] Verified live public image URL via GET: ${url}`);
         return url;
       }

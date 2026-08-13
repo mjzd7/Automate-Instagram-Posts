@@ -22,11 +22,12 @@ export async function uploadOrGetPublicImageUrl(options: PublicHostOptions): Pro
 
   const fallbackUrl = `https://raw.githubusercontent.com/${options.githubRepoSlug}/${options.githubBranch}/${options.relativePath}`;
 
-  // Primary: Vercel Web App Edge CDN media route (delivers full 100% HD JPEG)
+  // Primary: Vercel Web App Edge CDN media route (delivers full 100% HD JPEG/MP4)
   try {
     const head = await fetchImpl(vercelMediaUrl, { method: "HEAD" });
     const contentType = head.headers.get("content-type") ?? "";
-    if (head.ok && contentType.startsWith("image/")) {
+    const isMedia = contentType.startsWith("image/") || contentType.startsWith("video/");
+    if (head.ok && isMedia) {
       console.log(`[PublicHost] Using primary Vercel Edge CDN Media URL: ${vercelMediaUrl}`);
       return vercelMediaUrl;
     }
