@@ -429,7 +429,7 @@ export async function generateAndPublishBatch(
         startOffsetSeconds: audioSelection.peakStartSecond,
         durationSeconds: calculatedDuration,
         render4K: feedScale === 2,
-        ghostVolume: 0.05,
+        ghostVolume: 0.85,
       });
 
       const storyRelativePath = `data/posts/${account.id}/${dateStr}-${postId}-story.mp4`;

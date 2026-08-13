@@ -71,7 +71,7 @@ export async function createReelFromFeedImage(
     startOffsetSeconds = 0,
     render4K = false,
     ffmpegBin = process.env.FFMPEG_BIN ?? "ffmpeg",
-    ghostVolume = 0.05,
+    ghostVolume = 0.85,
   } = options;
 
   // Output canvas: always 1080×1920 (9:16).
