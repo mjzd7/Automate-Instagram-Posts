@@ -15,7 +15,7 @@ export interface IGCredentials {
 export type ContainerStatus = "IN_PROGRESS" | "FINISHED" | "ERROR";
 
 const CONTAINER_POLL_INTERVAL_MS = 2000;
-const CONTAINER_POLL_MAX_ATTEMPTS = 10;
+const CONTAINER_POLL_MAX_ATTEMPTS = 30;
 
 async function graphFetch(
   url: string,
@@ -145,7 +145,11 @@ export async function publishToFeed(
   const { mediaId } = await publishContainer(creationId, creds, fetchImpl);
   const { permalink } = await fetchPermalink(mediaId, creds, fetchImpl);
   if (hashtagComment?.trim()) {
-    await postFirstComment(mediaId, hashtagComment, creds, fetchImpl);
+    try {
+      await postFirstComment(mediaId, hashtagComment, creds, fetchImpl);
+    } catch (error) {
+      console.warn(`[Batch] postFirstComment failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
   return { mediaId, permalink };
 }
