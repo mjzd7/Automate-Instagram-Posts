@@ -92,12 +92,12 @@ export async function createReelFromFeedImage(
 
   // Full filter_complex (single pass):
   const filterComplex = [
-    // Pre-scale to 4000px wide to prevent zoompan pixel jitter (#1 gotcha)
-    `[0:v]scale=4000:-1[hires]`,
+    // Pre-scale to 4000px wide to prevent zoompan pixel jitter, split into 2 streams for bg & fg branches
+    `[0:v]scale=4000:-1,split=2[hires1][hires2]`,
     // Blurred background: scale to cover 9:16 canvas, crop to exact dims, heavy blur
-    `[hires]scale=${canvasW}:${canvasH}:force_original_aspect_ratio=increase,crop=${canvasW}:${canvasH},gblur=sigma=30[bg]`,
+    `[hires1]scale=${canvasW}:${canvasH}:force_original_aspect_ratio=increase,crop=${canvasW}:${canvasH},gblur=sigma=30[bg]`,
     // Foreground: Ken Burns zoom + beat-sync pulse on the 4:5 image area
-    `[hires]zoompan=z='${zoomExpr}':x='${xExpr}':y='${yExpr}':d=1:s=${fgW}x${fgH}:fps=30[fg]`,
+    `[hires2]zoompan=z='${zoomExpr}':x='${xExpr}':y='${yExpr}':d=1:s=${fgW}x${fgH}:fps=30[fg]`,
     // Composite: fg centred over blurred bg
     `[bg][fg]overlay=(W-w)/2:(H-h)/2[comp]`,
     // Post-process: vignette + animated film grain (temporal noise)
