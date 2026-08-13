@@ -32,6 +32,8 @@ export interface ComposeInput {
   suitability: SuitabilityResult;
   /** Overrides the grain texture's RNG (default Math.random) -- exists so tests can hold grain constant across two composeImage() calls and isolate other differences. */
   grainRandom?: () => number;
+  /** Scale factor for native 4K generation (e.g. 2 for 4K). Default is 1 (1080p). */
+  scale?: number;
 }
 
 const AUTHOR_GAP_PX = 40; // Fix #10: was 24 — more breathing room between quote and author
@@ -63,9 +65,11 @@ async function renderTextShadow(
   fontSize: number,
   maxWidth: number,
   mode: Darkness,
+  scale: number = 1,
+  shadowBlur: number = TEXT_SHADOW_BLUR_PX
 ): Promise<Buffer> {
-  const { data } = await renderTextAtSize(text, face, fontSize, maxWidth, shadowColor(mode));
-  return sharp(data).blur(TEXT_SHADOW_BLUR_PX).png().toBuffer();
+  const { data } = await renderTextAtSize(text, face, fontSize, maxWidth, shadowColor(mode), scale);
+  return sharp(data).blur(shadowBlur).png().toBuffer();
 }
 
 /**
@@ -73,17 +77,27 @@ async function renderTextShadow(
  * (quality 85) ready to write to data/posts/.
  */
 export async function composeImage(input: ComposeInput): Promise<Buffer> {
-  const { backgroundBuffer, quoteText, author, template, mode, suitability, grainRandom } = input;
+  const { backgroundBuffer, quoteText, author, template, mode, suitability, grainRandom, scale = 1 } = input;
 
-  // Step 1: resize background to exactly IMAGE_WIDTH x IMAGE_HEIGHT, cover-fit, and apply ambient softening.
+  const W = IMAGE_WIDTH * scale;
+  const H = IMAGE_HEIGHT * scale;
+  const cardHorizMargin = CARD_HORIZONTAL_MARGIN_PX * scale;
+  const cardVertMargin = CARD_VERTICAL_MARGIN_PX * scale;
+  const cardPaddingX = CARD_PADDING_X_PX * scale;
+  const shadowBlur = TEXT_SHADOW_BLUR_PX * scale;
+  const shadowOffsetY = TEXT_SHADOW_OFFSET_Y_PX * scale;
+  const authorGap = AUTHOR_GAP_PX * scale;
+  const authorLineMin = AUTHOR_LINE_FONT_SIZE_MIN * scale;
+
+  // Step 1: resize background to exactly W x H, cover-fit, and apply ambient softening.
   let baseBuffer = await sharp(backgroundBuffer)
-    .resize(IMAGE_WIDTH, IMAGE_HEIGHT, { fit: "cover" })
+    .resize(W, H, { fit: "cover" })
     .blur(1.5)
     .png()
     .toBuffer();
 
   // Step 2: apply radial vignette to draw focus to the central card.
-  const vignette = await renderVignette(IMAGE_WIDTH, IMAGE_HEIGHT, mode);
+  const vignette = await renderVignette(W, H, mode);
   baseBuffer = await sharp(baseBuffer)
     .composite([{ input: vignette, left: 0, top: 0 }])
     .png()
@@ -98,7 +112,7 @@ export async function composeImage(input: ComposeInput): Promise<Buffer> {
   }
 
   // Step 4: composite grain texture, overlay blend, low opacity.
-  const grain = await grainTexturePng(IMAGE_WIDTH, IMAGE_HEIGHT, grainRandom);
+  const grain = await grainTexturePng(W, H, grainRandom);
   const grainWithOpacity = await sharp(grain)
     .ensureAlpha(GRAIN_TEXTURE_OPACITY)
     .png()
@@ -126,16 +140,19 @@ export async function composeImage(input: ComposeInput): Promise<Buffer> {
   // This gives ~836px vs the former ~337px — quotes will virtually never
   // truncate, and if they somehow still do (single extremely long word), the
   // QuoteTruncatedError guard below prevents a clipped post from being saved.
-  const cardMaxWidth = IMAGE_WIDTH - 2 * CARD_HORIZONTAL_MARGIN_PX;
-  const textMaxWidth = cardMaxWidth - 2 * CARD_PADDING_X_PX;
+  const cardMaxWidth = W - 2 * cardHorizMargin;
+  const textMaxWidth = cardMaxWidth - 2 * cardPaddingX;
   const color = textColor(mode);
-  const cardPaddingTop    = 130;
-  const cardPaddingBottom = 80;
-  const maxCardHeight = IMAGE_HEIGHT - 2 * CARD_VERTICAL_MARGIN_PX;
-  const authorEstimatePx  = AUTHOR_LINE_FONT_SIZE_MIN + AUTHOR_GAP_PX; // conservative upper bound
+  const cardPaddingTop    = 130 * scale;
+  const cardPaddingBottom = 80 * scale;
+  const maxCardHeight = H - 2 * cardVertMargin;
+  const authorEstimatePx  = authorLineMin + authorGap; // conservative upper bound
   const quoteMaxHeight = maxCardHeight - cardPaddingTop - cardPaddingBottom - authorEstimatePx;
 
-  const quoteRender = await renderFittedText(quoteText, template.quoteFont, textMaxWidth, quoteMaxHeight, color);
+  // Note: renderFittedText is called with 1080p logical dimensions and passes the scale directly 
+  // so word-count math and FONT_SIZE_MAX constraints stay in 1080p logical units, but the text 
+  // output buffer is rendered in crisp native scaled pixels.
+  const quoteRender = await renderFittedText(quoteText, template.quoteFont, textMaxWidth / scale, quoteMaxHeight / scale, color, scale);
 
   // Truncation guard: if the renderer still had to clip the quote (only
   // possible now for pathologically long single tokens or very unusual
@@ -150,15 +167,15 @@ export async function composeImage(input: ComposeInput): Promise<Buffer> {
   let authorRender: Awaited<ReturnType<typeof renderFittedText>> | undefined;
   const authorDisplay = author?.trim() ? `— ${author.trim()}` : undefined;
   if (authorDisplay) {
-    const authorFontSize = Math.max(
+    const logicalAuthorFontSize = Math.max(
       AUTHOR_LINE_FONT_SIZE_MIN,
       Math.round(quoteRender.fontSize * AUTHOR_LINE_FONT_SIZE_RATIO),
     );
-    const { data, info } = await renderTextAtSize(authorDisplay, template.authorFont, authorFontSize, textMaxWidth, authorColor(mode));
-    authorRender = { buffer: data, width: info.width, height: info.height, fontSize: authorFontSize, truncated: false };
+    const { data, info } = await renderTextAtSize(authorDisplay, template.authorFont, logicalAuthorFontSize, textMaxWidth / scale, authorColor(mode), scale);
+    authorRender = { buffer: data, width: info.width, height: info.height, fontSize: logicalAuthorFontSize, truncated: false };
   }
 
-  const textBlockHeight = quoteRender.height + (authorRender ? AUTHOR_GAP_PX + authorRender.height : 0);
+  const textBlockHeight = quoteRender.height + (authorRender ? authorGap + authorRender.height : 0);
 
   // Step 7: Mathematically symmetrical glass card & text positioning.
   // Fix #6/#10: increased top/bottom padding for breathing room inside the card.
@@ -166,13 +183,14 @@ export async function composeImage(input: ComposeInput): Promise<Buffer> {
   //         (standard compositional rule for portrait-format graphics).
   // Fix #5: minimum side margin 80px — card max width IMAGE_WIDTH - 160.
   // Guaranteed minimum horizontal padding of CARD_PADDING_X_PX (64px) between text and card edges.
-  const cardWidth = Math.max(760, Math.min(cardMaxWidth, quoteRender.width + 2 * CARD_PADDING_X_PX));
+  const minCardWidth = 760 * scale;
+  const cardWidth = Math.max(minCardWidth, Math.min(cardMaxWidth, quoteRender.width + 2 * cardPaddingX));
   const cardHeight = textBlockHeight + cardPaddingTop + cardPaddingBottom;
 
-  const cardLeft = Math.round((IMAGE_WIDTH - cardWidth) / 2);
+  const cardLeft = Math.round((W - cardWidth) / 2);
   // Fix #4: shift card up by ~5% of IMAGE_HEIGHT so it sits above the mathematical centre
-  const verticalNudgeUp = Math.round(IMAGE_HEIGHT * 0.05);
-  const cardTop  = Math.round((IMAGE_HEIGHT - cardHeight) / 2) - verticalNudgeUp;
+  const verticalNudgeUp = Math.round(H * 0.05);
+  const cardTop  = Math.round((H - cardHeight) / 2) - verticalNudgeUp;
   const textBlockTop = cardTop + cardPaddingTop;
 
   const glassCard = await renderGlassCard({
@@ -183,33 +201,34 @@ export async function composeImage(input: ComposeInput): Promise<Buffer> {
     scrimOpacity: suitability.scrimOpacity,
   });
 
-  const quoteLeft = Math.round((IMAGE_WIDTH - quoteRender.width) / 2);
-  const quoteShadow = await renderTextShadow(quoteText, template.quoteFont, quoteRender.fontSize, textMaxWidth, mode);
+  const quoteLeft = Math.round((W - quoteRender.width) / 2);
+  const quoteShadow = await renderTextShadow(quoteText, template.quoteFont, quoteRender.fontSize, textMaxWidth / scale, mode, scale, shadowBlur);
 
   const compositeLayers: OverlayOptions[] = [
     { input: glassCard, left: cardLeft, top: cardTop },
     {
       input: quoteShadow,
       left: quoteLeft,
-      top: textBlockTop + TEXT_SHADOW_OFFSET_Y_PX,
+      top: textBlockTop + shadowOffsetY,
     },
     { input: quoteRender.buffer, left: quoteLeft, top: textBlockTop },
   ];
 
   if (authorRender && authorDisplay) {
-    const authorLeft = Math.round((IMAGE_WIDTH - authorRender.width) / 2);
-    const authorTop = textBlockTop + quoteRender.height + AUTHOR_GAP_PX;
-    const authorShadow = await renderTextShadow(
-      authorDisplay,
-      template.authorFont,
-      authorRender.fontSize,
-      textMaxWidth,
-      mode,
-    );
-    compositeLayers.push(
-      { input: authorShadow, left: authorLeft, top: authorTop + TEXT_SHADOW_OFFSET_Y_PX },
-      { input: authorRender.buffer, left: authorLeft, top: authorTop },
-    );
+    const authorLeft = Math.round((W - authorRender.width) / 2);
+    const authorTop = textBlockTop + quoteRender.height + authorGap;
+    
+    const authorShadow = await renderTextShadow(authorDisplay, template.authorFont, authorRender.fontSize, textMaxWidth / scale, mode, scale, shadowBlur);
+    compositeLayers.push({
+      input: authorShadow,
+      left: authorLeft,
+      top: authorTop + shadowOffsetY,
+    });
+    compositeLayers.push({
+      input: authorRender.buffer,
+      left: authorLeft,
+      top: authorTop,
+    });
   }
 
   const composed = sharp(baseBuffer).composite(compositeLayers);

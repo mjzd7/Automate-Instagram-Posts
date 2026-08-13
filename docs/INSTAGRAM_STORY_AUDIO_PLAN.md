@@ -1,20 +1,20 @@
-# Automated Instagram Story Audio Selection & MP4 Video Pipeline (Approach B)
+# Automated Instagram Story & Reels Audio Selection & MP4 Video Pipeline (Approach B)
 
 > **Document Status**: APPROVED SPECIFICATION  
 > **Target System**: `Automate-Instagram-Posts` Core Package & Batch Pipeline  
 > **Author**: Antigravity AI Engine  
-> **Last Revision**: 2026-08-11  
+> **Last Revision**: 2026-08-13  
 
 ---
 
 ## 1. Executive Summary & Architectural Overview
 
-Instagram Stories with embedded music generate **2.1x higher watch time** and superior algorithmic distribution compared to silent image posts. However, Meta’s Instagram Graph API enforces strict constraints:
+Instagram Reels and Stories with embedded music generate **2.1x higher watch time** and superior algorithmic distribution compared to silent image posts. Reels specifically are the primary driver for massive organic reach and account growth when optimized correctly. However, Meta’s Instagram Graph API enforces strict constraints:
 1. **Static JPEG Stories cannot accept native music stickers via API** — copyright music stickers can only be attached manually inside the native mobile app.
 2. **Business Accounts face strict commercial music licensing restrictions** — using unauthorized copyrighted songs leads to automated audio muting, video removals, or account strikes.
 
-### The Solution: Approach B (Meta Audio API + FFmpeg MP4 Video Story Assembly)
-We solve this by programmatically querying Meta’s official **Instagram Audio API** (`/v22.0/ig_audio`), selecting commercially cleared tracks (`is_ads_eligible: true`) mapped to post sentiment/category, extracting a 15-second peak audio window, rendering an Instagram-compliant 9:16 MP4 video story (`H.264` + `AAC 48kHz`), and uploading it as a Video Story container (`media_type: STORIES`).
+### The Solution: Approach B (Meta Audio API + FFmpeg MP4 Video Story & Reels Assembly)
+We solve this by programmatically querying Meta’s official **Instagram Audio API** (`/v22.0/ig_audio`), selecting commercially cleared tracks (`is_ads_eligible: true`) mapped to post sentiment/category, extracting a peak audio window, rendering an Instagram-compliant 9:16 MP4 video (`H.264` + `AAC 48kHz`), and uploading it as either a Video Story container (`media_type: STORIES`) or a Reel (`media_type: REELS`).
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────────────┐
@@ -43,16 +43,17 @@ We solve this by programmatically querying Meta’s official **Instagram Audio A
                                           │
                                           ▼
 ┌───────────────────────────────────────────────────────────────────────────────────┐
-│ 4. FFMPEG MP4 VIDEO STORY COMPOSITOR                                              │
-│    • Merges 9:16 Story JPEG + 15s trimmed AAC audio slice                        │
+│ 4. FFMPEG MP4 VIDEO COMPOSITOR (REELS & STORIES)                                  │
+│    • Merges 9:16 Story JPEG + trimmed AAC audio slice                            │
+│    • Applies "Ghost Audio" (5-10% vol) & Infinite Loop for Reels                 │
 │    • Adds subtle animated audio equalizer / sound badge overlay                  │
 │    • Encodes to H.264 (YUV420p) + AAC 48kHz MP4 video                             │
 └─────────────────────────────────────────┬─────────────────────────────────────────┘
                                           │
                                           ▼
 ┌───────────────────────────────────────────────────────────────────────────────────┐
-│ 5. STORY VIDEO CONTAINER PUBLISH                                                  │
-│    Publishes MP4 URL to Instagram Stories via Composio / Meta Graph API           │
+│ 5. REELS & STORY VIDEO PUBLISH                                                    │
+│    Publishes MP4 URL to Instagram Reels/Stories via Composio / Meta Graph API     │
 └───────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -85,7 +86,17 @@ GET /v22.0/ig_audio?audio_type=music&user_id={ig-user-id}&access_token={user-acc
 
 ---
 
-## 3. Category-to-Sound Mapping Matrix
+## 3. Viral Engagement Strategy for Reels (Research-Backed)
+
+To maximize watch time, saves, and shares specifically on Instagram Reels, the FFmpeg rendering pipeline and posting logic must incorporate these proven strategies for quote pages:
+1. **The "Ghost Audio" Mixing Strategy:** When utilizing trending tracks or specific vibes, mix the music volume down to **5%-10%** if voiceovers/TTS are present. This allows the Reel to rank on the trending audio page without distracting from the text.
+2. **The 5-7 Second Infinite Loop:** While Stories default to 15 seconds, Reels should ideally be rendered to EXACTLY the length it takes to read the text (e.g., 5-6 seconds), and seamlessly looped. This creates a natural >100% retention rate as viewers re-read the quote.
+3. **The Visual Hook (Beat Drop):** The first 2 seconds must capture attention. We sync the initial audio volume fade-in or "beat drop" with text transitions or subtle visual equalizers.
+4. **The CTA (Call to Action):** Every generated Reel caption or final frame must include a viral trigger CTA (e.g., *"Save this to remind yourself later"* or *"Tag someone who needs to hear this"*).
+
+---
+
+## 4. Category-to-Sound Mapping Matrix
 
 The audio selection engine maps quote categories to specific acoustic parameters, target BPMs, and search terms:
 
@@ -99,30 +110,43 @@ The audio selection engine maps quote categories to specific acoustic parameters
 
 ---
 
-## 4. The 5-Step Audio Selection & Video Assembly Pipeline
+## 5. The 6-Step Audio Selection & Psychological Retention Engine
 
-### Step 1: Category & Sentiment Query Formulation
-The system extracts post metadata (`category`, `mode: "dark" | "light"`, `quoteText.length`) to construct an optimized Meta Audio API search request.
+### Step 1: Mathematical Pacing & Loop Calculation
+- Calculate reading time: `(wordCount / 200) * 60 + 1.0` seconds of padding.
+- Determine the target duration: If < 15 seconds, set Reel to loop exactly at this duration. If > 15 seconds, cap at 15 for Stories, or allow longer for Reels.
 
-### Step 2: Meta Audio API Query & Commercial Filter
-- Call `/v22.0/ig_audio` with `audio_type=music`.
+### Step 2: Granular Sentiment & "Vibe" Shortlisting
+- The system extracts post metadata (`category`, `mode: "dark" | "light"`, `quoteText.length`) and performs simple sentiment classification (e.g., Struggle/Pain vs. Triumph/Victory).
+- Formulates a target BPM (e.g., fast BPM for short punchy quotes, slow BPM for deep/long quotes) and mood to construct an optimized Meta Audio API search request or fallback catalog query.
+
+### Step 3: Meta Audio API Query & Commercial Filter
+- Call `/v22.0/ig_audio` with `audio_type=music` or use Local Fallback.
 - Filter out any track where `is_ads_eligible === false` (protects Business & Creator accounts from copyright strikes).
 
-### Step 3: Anti-Repetition & Frequency Cap Filter
-- Query `posts` DB for track IDs used by this account in the last 20 published posts.
-- Exclude previously played tracks to prevent audio fatigue.
+### Step 4: Anti-Fatigue Memory (14-Day Frequency Filter)
+- Query `posts` DB for `audio_id`s used by this account in the last 14 days (or last 20 posts).
+- Exclude previously played tracks to prevent audience banner blindness and audio fatigue.
 
-### Step 4: 15-Second Peak Audio Trimming
-- Determine `peakStartSecond` (default `00:08` to skip silent intro).
-- Extract 15-second audio segment with `0.5s fade-in` and `1.0s fade-out`.
+### Step 5: Peak Audio Extraction & Drop Alignment
+- Identify the `peakStartSecond` of the chosen track (e.g. the "beat drop").
+- Extract the exact required duration (from Step 1) starting at `peakStartSecond`, ensuring the visual hook syncs with the drop. Apply `0.5s fade-in` and `1.0s fade-out`.
 
-### Step 5: FFmpeg MP4 Video Story Assembly
-- Merge 9:16 Story JPEG + 15s Audio AAC stream into an H.264 video.
-- Add an animated visual audio equalizer badge in the story corner so users watching on mute know audio is playing.
+### Step 6: Hybrid Native 4K Reels Generation (The "18M 30fps" Trick)
+- To bypass Instagram's aggressive downscaling artifacting (especially on text), all quote image layers are rendered at native 4K (2160x3840 for Reels/Stories or 2160x2700 for feed).
+- FFmpeg merges the native 4K image with the audio using a strictly capped 18Mbps bitrate (`-b:v 18M`) and 30fps (`-r 30`).
+- This tricks Meta's algorithm into placing the file in a higher processing tier while the 30fps allows maximum bitrate-per-frame to preserve the crispness of the text edges.
+- **Fallback**: The pipeline wraps this in a `try/catch` and gracefully degrades to standard 1080p rendering (at 6Mbps) if the 4K render throws an exception or runs out of memory.
+
+### Step 7: FFmpeg MP4 Video Story & Reels Assembly
+- Merge 9:16 Story JPEG + Audio AAC stream into an H.264 video.
+- Apply "Ghost Audio" (5-10% volume) if TTS/Voiceover is used.
+- Ensure the video loops seamlessly for the exact calculated duration.
+- Add an animated visual audio equalizer badge so users watching on mute know audio is playing.
 
 ---
 
-## ⚠️ 5. Comprehensive Edge Cases & Failure Mitigation Strategy
+## ⚠️ 6. Comprehensive Edge Cases & Failure Mitigation Strategy
 
 | # | Edge Case / Risk | Root Cause | Technical Mitigation & Fallback Strategy |
 | :--- | :--- | :--- | :--- |
@@ -136,25 +160,34 @@ The system extracts post metadata (`category`, `mode: "dark" | "light"`, `quoteT
 
 ---
 
-## 📋 6. Actionable Implementation TODO List
+## 📋 7. Actionable Implementation TODO List
 
-### Phase 1: Meta Audio API Client & Local Fallback Catalog
-- [ ] Create `packages/core/src/audio/meta-audio-client.ts` to query Meta `/v22.0/ig_audio` API with retry & timeout handling.
-- [ ] Build local royalty-free fallback audio catalog in `data/audio/fallback/` mapped by category.
-- [ ] Create `packages/core/src/db/repositories/audio.repo.js` to log audio usage per account and enforce anti-repetition rules.
+### Phase 1: Local Fallback Catalog & Database Tracking
+- [ ] Build local royalty-free fallback audio catalog in `data/audio/fallback/` with JSON metadata (BPM, mood, peakStartSecond).
+- [ ] Create/Update `packages/core/src/db/repositories/audio.repo.ts` to log audio usage per account (14-day anti-fatigue memory).
 
-### Phase 2: Selection Logic Engine (`selectStoryAudio`)
-- [ ] Create `packages/core/src/audio/audio-selector.ts` implementing the 5-step selection algorithm.
-- [ ] Implement category-to-BPM and dark/light mode key matching logic (`minor` key for dark mode, `major` key for light mode).
+### Phase 2: Meta Audio API Client
+- [ ] Create `packages/core/src/audio/meta-audio-client.ts` to query Meta `/v22.0/ig_audio` API with retry & timeout handling (ensuring `is_ads_eligible`).
+
+### Phase 3: Selection Logic Engine (`selectStoryAudio`)
+- [ ] Create `packages/core/src/audio/audio-selector.ts` implementing the 6-step psychological selection algorithm.
+- [ ] Implement mathematical pacing: calculate exact duration based on quote word count (200 WPM).
+- [ ] Implement category-to-BPM and sentiment matching logic (Struggle vs. Triumph, Dark vs. Light mode).
 - [ ] Add unit tests in `packages/core/test/audio/audio-selector.test.ts`.
 
-### Phase 3: FFmpeg MP4 Video Story Compositor
+### Phase 4: FFmpeg MP4 Video Reels & Story Compositor
 - [ ] Create `packages/core/src/images/story-video-compositor.ts` wrapping `fluent-ffmpeg` or `child_process.execFile("ffmpeg")`.
 - [ ] Add visual audio equalizer SVG badge generator showing `🎵 Title — Artist`.
-- [ ] Implement 15-second audio slice extraction with 0.5s fade-in & 1.0s fade-out.
+- [ ] Implement peak audio extraction based on `peakStartSecond` and calculated duration.
+- [ ] Implement infinite looping logic for Reels (matching exact reading time).
+- [ ] Implement "Ghost Audio" volume ducking (5-10% target volume) filter.
+- [ ] Implement native 4K scaling support in the compositing engine (`composeImage` / `renderFittedText`).
+- [ ] Use `colorspace bt709`, `profile main`, and `level 4.0` to force best color accuracy and compatibility on Meta's servers.
 
-### Phase 4: Pipeline Integration & Verification
-- [ ] Update `generate-and-publish-batch.ts` to generate `data/posts/${account.id}/${dateStr}-${postId}-story.mp4`.
+### Phase 5: Pipeline Integration & Verification
+- [ ] Update `generate-and-publish-batch.ts` to attempt native 4K generation first, falling back to 1080p if an error occurs.
+- [ ] Update `generate-and-publish-batch.ts` to generate `data/posts/${account.id}/${dateStr}-${postId}-video.mp4`.
+- [ ] Create `publishToReels` to publish videos to Reels (`media_type: REELS`) along with captions containing CTA (e.g. "Save this to remind yourself later").
 - [ ] Update `publishViaComposioStories` and `publishToStories` to accept video payloads (`media_type: STORIES`).
 - [ ] Add video retention pruning in `pruneOldImages` for `.mp4` files.
 - [ ] Run full test suite (`pnpm test`) to ensure 100% green pass.

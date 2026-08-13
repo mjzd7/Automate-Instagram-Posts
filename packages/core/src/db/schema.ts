@@ -63,6 +63,7 @@ export const posts = sqliteTable(
     accountId: text("account_id").notNull(),
     quoteId: text("quote_id"),
     backgroundId: text("background_id"),
+    audioId: text("audio_id"),
     templateId: text("template_id").notNull(),
     captionTemplateId: text("caption_template_id").notNull(),
     mode: text("mode", { enum: ["dark", "light"] }).notNull(),
@@ -103,6 +104,17 @@ export const backgroundUsage = sqliteTable(
     usedAt: text("used_at").notNull().default(sql`(datetime('now'))`),
   },
   (t) => [primaryKey({ columns: [t.accountId, t.backgroundId, t.postId] })],
+);
+
+export const audioUsage = sqliteTable(
+  "audio_usage",
+  {
+    accountId: text("account_id").notNull(),
+    audioId: text("audio_id").notNull(),
+    postId: text("post_id").notNull(),
+    usedAt: text("used_at").notNull().default(sql`(datetime('now'))`),
+  },
+  (t) => [primaryKey({ columns: [t.accountId, t.audioId, t.postId] })],
 );
 
 export const settings = sqliteTable(

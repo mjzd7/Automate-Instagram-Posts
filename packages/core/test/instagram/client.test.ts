@@ -77,17 +77,16 @@ describe("waitForContainerReady", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
-  it("throws after 10 attempts if it never reaches FINISHED (timeout/expiry plane)", async () => {
-    // mockImplementation (not mockResolvedValue) so each of the 10 calls
-    // gets a fresh Response -- a Response body can only be read once, and
-    // mockResolvedValue would hand back the same exhausted instance.
+  it("throws after 30 attempts if it never reaches FINISHED (timeout/expiry plane)", async () => {
+    // mockImplementation (not mockResolvedValue) so each of the 30 calls
+    // returns IN_PROGRESS, never reaching FINISHED.
     const fetchImpl = vi.fn().mockImplementation(() =>
       Promise.resolve(jsonResponse(200, { status_code: "IN_PROGRESS" })),
     );
     await expect(waitForContainerReady("c1", creds, fetchImpl, noSleep)).rejects.toThrow(
-      /did not finish within 10 attempts/,
+      /did not finish within 30 attempts/,
     );
-    expect(fetchImpl).toHaveBeenCalledTimes(10);
+    expect(fetchImpl).toHaveBeenCalledTimes(30);
   });
 });
 
@@ -174,15 +173,15 @@ describe("refreshLongLivedToken", () => {
     const fetchImpl = vi
       .fn()
       .mockResolvedValue(jsonResponse(200, { access_token: "new-token", expires_in: 5184000 }));
-    const result = await refreshLongLivedToken("old-token", fetchImpl);
+    const result = await refreshLongLivedToken("old-token", "fake-id", "fake-secret", fetchImpl);
     expect(result).toEqual({ accessToken: "new-token", expiresInSeconds: 5184000 });
     const [url] = fetchImpl.mock.calls[0] as [string];
-    expect(url).toContain("graph.instagram.com/refresh_access_token");
-    expect(url).toContain("grant_type=ig_refresh_token");
+    expect(url).toContain("graph.facebook.com");
+    expect(url).toContain("grant_type=fb_exchange_token");
   });
 
   it("throws on a non-2xx response", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(401, {}));
-    await expect(refreshLongLivedToken("bad-token", fetchImpl)).rejects.toThrow(/401/);
+    await expect(refreshLongLivedToken("bad-token", "fake-id", "fake-secret", fetchImpl)).rejects.toThrow(/401/);
   });
 });

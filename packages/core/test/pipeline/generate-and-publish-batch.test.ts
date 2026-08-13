@@ -1,6 +1,11 @@
+import * as reelsComposer from "../../src/audio/reels-composer.js";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../../src/audio/reels-composer.js", () => ({
+  createReelsVideoMP4: vi.fn().mockResolvedValue({ videoBuffer: Buffer.from("mock-video"), durationSeconds: 15 })
+}));
 import { openDb, type DbHandle } from "../../src/db/client.js";
 import { insertQuote } from "../../src/db/repositories/quotes.repo.js";
 import { insertBackground, updateDarkness } from "../../src/db/repositories/backgrounds.repo.js";

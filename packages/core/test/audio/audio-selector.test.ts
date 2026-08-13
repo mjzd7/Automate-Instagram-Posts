@@ -44,7 +44,8 @@ describe("audio-selector", () => {
 
     expect(result.track.audioId).toBe("track-stoic");
     expect(result.peakStartSecond).toBe(8);
-    expect(result.durationSeconds).toBe(15);
+    // short quote => 5 seconds minimum
+    expect(result.durationSeconds).toBe(5);
   });
 
   it("applies anti-repetition filter to exclude recently used audio tracks", () => {
@@ -60,6 +61,18 @@ describe("audio-selector", () => {
     expect(result.track.audioId).toBe("track-stoic-02");
   });
 
+  it("calculates reading time properly for longer quotes", () => {
+    // 250 character quote = 50 words = 15 seconds reading time + 1s padding = 16 => clamped to 15s
+    const result = selectStoryAudio({
+      category: "stoic",
+      mode: "dark",
+      quoteLength: 250,
+      availableTracks: sampleTracks,
+      random: () => 0,
+    });
+    expect(result.durationSeconds).toBe(15);
+  });
+
   it("falls back gracefully to FALLBACK_AUDIO_CATALOG when availableTracks is empty", () => {
     const result = selectStoryAudio({
       category: "business",
@@ -69,6 +82,6 @@ describe("audio-selector", () => {
     });
 
     expect(result.track).toBeDefined();
-    expect(result.durationSeconds).toBe(15);
+    expect(result.durationSeconds).toBe(5);
   });
 });

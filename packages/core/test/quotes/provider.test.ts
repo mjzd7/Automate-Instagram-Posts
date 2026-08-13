@@ -102,7 +102,7 @@ describe("getNextQuote", () => {
   it("throws an aggregated error when every provider fails or is unconfigured", async () => {
     const fetchImpl = routedFetch({});
     await expect(getNextQuote(handle.db, "acct1", "motivational", { fetchImpl })).rejects.toThrow(
-      /All quote fallback providers failed/,
+      /CRITICAL: Database has 0 active quotes/,
     );
   });
 

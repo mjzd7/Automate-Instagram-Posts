@@ -60,6 +60,7 @@ export async function renderTextAtSize(
   fontSize: number,
   maxWidth: number,
   color: string,
+  scale: number = 1,
 ): Promise<{ data: Buffer; info: { width: number; height: number } }> {
   if (!existsSync(face.file)) {
     throw new Error(`renderTextAtSize: font file does not exist: ${face.file}`);
@@ -68,8 +69,8 @@ export async function renderTextAtSize(
     text: {
       text: withColor(text, color),
       fontfile: face.file,
-      font: `${face.family} ${fontSize}`,
-      width: maxWidth,
+      font: `${face.family} ${fontSize * scale}`,
+      width: maxWidth * scale,
       align: "centre",
       rgba: true,
       wrap: "word",
@@ -93,6 +94,7 @@ export async function renderFittedText(
   maxWidth: number,
   maxHeight: number,
   color: string,
+  scale: number = 1,
 ): Promise<TextRenderResult> {
   if (!text.trim()) {
     throw new Error("renderFittedText: text must not be empty");
@@ -104,8 +106,8 @@ export async function renderFittedText(
   const effectiveFontSizeMax = Math.min(FONT_SIZE_MAX, fontSizeMaxForWordCount(wordCount));
 
   for (let fontSize = effectiveFontSizeMax; fontSize >= FONT_SIZE_MIN; fontSize -= FONT_SIZE_STEP) {
-    const { data, info } = await renderTextAtSize(text, face, fontSize, maxWidth, color);
-    if (info.height <= maxHeight) {
+    const { data, info } = await renderTextAtSize(text, face, fontSize, maxWidth, color, scale);
+    if (info.height <= maxHeight * scale) {
       return { buffer: data, width: info.width, height: info.height, fontSize, truncated: false };
     }
   }

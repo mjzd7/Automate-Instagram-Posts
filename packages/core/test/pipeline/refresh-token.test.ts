@@ -17,6 +17,8 @@ const baseEnv: Env = {
   UNSPLASH_ACCESS_KEY: "u",
   DISCORD_WEBHOOK_URL: "https://discord.com/api/webhooks/x/y",
   JINA_API_KEY: "j",
+  META_APP_ID: "fake-id",
+  META_APP_SECRET: "fake-secret",
 };
 
 const baseAccount: Account = {
@@ -53,7 +55,7 @@ describe("refreshTokens", () => {
       expiresAt: nearExpiry,
     });
     const fetchImpl = vi.fn().mockImplementation((url: string) => {
-      if (url.includes("graph.instagram.com/refresh_access_token")) {
+      if (url.includes("graph.facebook.com")) {
         return Promise.resolve(jsonResponse(200, { access_token: "new-ig-token", expires_in: 5184000 }));
       }
       return Promise.resolve(jsonResponse(500, {}));
@@ -133,7 +135,7 @@ describe("refreshTokens", () => {
 
     let secretPutCalled = false;
     const fetchImpl = vi.fn().mockImplementation((url: string) => {
-      if (url.includes("graph.instagram.com/refresh_access_token")) {
+      if (url.includes("graph.facebook.com")) {
         return Promise.resolve(jsonResponse(200, { access_token: "new", expires_in: 5184000 }));
       }
       if (url.includes("public-key")) {
@@ -164,7 +166,7 @@ describe("refreshTokens", () => {
       expiresAt: nearExpiry,
     });
     const fetchImpl = vi.fn().mockImplementation((url: string) => {
-      if (url.includes("graph.instagram.com/refresh_access_token")) {
+      if (url.includes("graph.facebook.com")) {
         return Promise.resolve(jsonResponse(200, { access_token: "new", expires_in: 5184000 }));
       }
       return Promise.resolve(jsonResponse(500, { error: "should not be called" }));
@@ -185,7 +187,7 @@ describe("refreshTokens", () => {
     const secondAccount: Account = { ...baseAccount, id: "acct2" };
     await upsertToken(handle.db, "acct2", { accessTokenEncrypted: encryptToken("t", validKey), expiresAt: nearExpiry });
     const fetchImpl = vi.fn().mockImplementation((url: string) =>
-      url.includes("graph.instagram.com/refresh_access_token")
+      url.includes("graph.facebook.com")
         ? Promise.resolve(jsonResponse(200, { access_token: "new", expires_in: 5184000 }))
         : Promise.resolve(jsonResponse(500, {})),
     );
@@ -212,7 +214,7 @@ describe("refreshTokens", () => {
     await upsertToken(handle.db, "acct1", { accessTokenEncrypted: encryptToken("old", validKey), expiresAt: nearExpiry });
     let discordCalled = false;
     const fetchImpl = vi.fn().mockImplementation((url: string) => {
-      if (url.includes("graph.instagram.com/refresh_access_token")) return Promise.resolve(jsonResponse(401, {}));
+      if (url.includes("graph.facebook.com")) return Promise.resolve(jsonResponse(401, {}));
       if (url.includes("discord.com")) {
         discordCalled = true;
         return Promise.resolve(new Response(null, { status: 204 }));

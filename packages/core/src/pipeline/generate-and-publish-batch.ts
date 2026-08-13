@@ -21,7 +21,7 @@ import { getCandidateBackgrounds } from "../images/background-provider.js";
 import type { Darkness } from "../images/darkness-classifier.js";
 import { composeImage } from "../images/compositor.js";
 import { composeStory } from "../images/story-compositor.js";
-import { createStoryVideoMP4 } from "../images/story-video-compositor.js";
+import { createReelsVideoMP4 } from "../audio/reels-composer.js";
 import { selectStoryAudio } from "../audio/audio-selector.js";
 import { matchBestBackground } from "../matching/image-quote-matcher.js";
 import { checkDuplicate } from "../matching/duplicate-detector.js";
@@ -34,10 +34,10 @@ import {
   selectCaptionTemplate,
 } from "../aesthetics/mode-weighting.js";
 import { getNextQuote } from "../quotes/provider.js";
+import { publishViaComposio, publishViaComposioStories } from "../instagram/composio-client.js";
 import type { IGCredentials } from "../instagram/client.js";
 import { publishToFeed } from "../instagram/client.js";
-import { publishViaComposio, publishViaComposioStories } from "../instagram/composio-client.js";
-import { publishToStories } from "../instagram/stories-client.js";
+import { publishToReels } from "../instagram/reels-client.js";
 import type { ThreadsCredentials } from "../threads/client.js";
 import { publishToThreads } from "../threads/client.js";
 import { sendDiscordNotification } from "../notify/discord.js";
@@ -250,7 +250,7 @@ export async function generateAndPublishBatch(
   const items: BatchItemResult[] = [];
   let consecutiveFailures = 0;
   const recentPublished = await findPublishedForAccount(db, account.id, 4);
-  const recentTemplateIds: string[] = recentPublished.map((p) => p.template_id);
+  const recentTemplateIds: string[] = recentPublished.map((p) => p.templateId);
   let lastMode: Darkness = (recentPublished[0]?.mode as Darkness) ?? "dark";
 
   const totalPostsToGenerate = options.batchSize ?? BATCH_SIZE;
@@ -361,15 +361,35 @@ export async function generateAndPublishBatch(
 
       // Composite 1:1 Feed Post
       console.log(`[Batch] Selected quote: "${quote.text.slice(0, 40)}..." by ${quote.author}`);
-      console.log(`[Batch] Composing ${mode} mode feed image...`);
-      const imageBuffer = await composeImage({
-        backgroundBuffer,
-        quoteText: quote.text,
-        author: quote.author ?? undefined,
-        template: findTemplate(template.id),
-        mode,
-        suitability,
-      });
+      
+      let imageBuffer: Buffer;
+      let feedScale = 2; // Default to native 4K (2160x2700)
+      
+      try {
+        console.log(`[Batch] Composing ${mode} mode feed image (4K Native)...`);
+        imageBuffer = await composeImage({
+          backgroundBuffer,
+          quoteText: quote.text,
+          author: quote.author ?? undefined,
+          template: findTemplate(template.id),
+          mode,
+          suitability,
+          scale: 2,
+        });
+      } catch (e) {
+        console.warn(`[Batch] 4K generation failed, falling back to 1080p: ${e}`);
+        feedScale = 1;
+        console.log(`[Batch] Composing ${mode} mode feed image (1080p Fallback)...`);
+        imageBuffer = await composeImage({
+          backgroundBuffer,
+          quoteText: quote.text,
+          author: quote.author ?? undefined,
+          template: findTemplate(template.id),
+          mode,
+          suitability,
+          scale: 1,
+        });
+      }
 
       // Select matched audio track for Instagram Story
       const audioSelection = selectStoryAudio({
@@ -383,21 +403,69 @@ export async function generateAndPublishBatch(
       // Composite 9:16 Story Image with framed feed post, link sticker target zone & audio badge
       const chosenStoryTemplate = STORY_TEMPLATES[i % STORY_TEMPLATES.length]!;
       console.log(`[Batch] Composing 9:16 story image using template "${chosenStoryTemplate.name}" (${chosenStoryTemplate.id}) with audio: "${audioSelection.track.title}"...`);
-      const storyResult = await composeStory({
-        backgroundBuffer,
-        quoteText: quote.text,
-        author: quote.author ?? undefined,
-        template: findTemplate(template.id),
-        mode,
-        suitability,
-        accountHandle: `@${account.id}`,
-        feedPostBuffer: imageBuffer,
-        storyTemplateId: chosenStoryTemplate.id,
-        audioTrack: {
-          title: audioSelection.track.title,
-          artist: audioSelection.track.displayArtist,
-        },
-      });
+      
+      let storyResult: any;
+      let storyScale = feedScale; // Use whatever scale worked for feed
+      
+      try {
+        if (storyScale === 2) {
+          console.log(`[Batch] Composing story image (4K Native)...`);
+          storyResult = await composeStory({
+            backgroundBuffer,
+            quoteText: quote.text,
+            author: quote.author ?? undefined,
+            template: findTemplate(template.id),
+            mode,
+            suitability,
+            accountHandle: `@${account.id}`,
+            feedPostBuffer: imageBuffer,
+            storyTemplateId: chosenStoryTemplate.id,
+            audioTrack: {
+              title: audioSelection.track.title,
+              artist: audioSelection.track.displayArtist,
+            },
+            scale: 2,
+          });
+        } else {
+          throw new Error("feedScale is 1, skipping 4K story render");
+        }
+      } catch (e) {
+        if (storyScale === 2) {
+          console.warn(`[Batch] 4K story generation failed, falling back to 1080p: ${e}`);
+        }
+        storyScale = 1;
+        // Need to recreate feedBuffer at 1080p if it was 4K but story failed at 4K.
+        let fallbackFeedBuffer = imageBuffer;
+        if (feedScale === 2) {
+          fallbackFeedBuffer = await composeImage({
+            backgroundBuffer,
+            quoteText: quote.text,
+            author: quote.author ?? undefined,
+            template: findTemplate(template.id),
+            mode,
+            suitability,
+            scale: 1,
+          });
+        }
+        
+        console.log(`[Batch] Composing story image (1080p Fallback)...`);
+        storyResult = await composeStory({
+          backgroundBuffer,
+          quoteText: quote.text,
+          author: quote.author ?? undefined,
+          template: findTemplate(template.id),
+          mode,
+          suitability,
+          accountHandle: `@${account.id}`,
+          feedPostBuffer: fallbackFeedBuffer,
+          storyTemplateId: chosenStoryTemplate.id,
+          audioTrack: {
+            title: audioSelection.track.title,
+            artist: audioSelection.track.displayArtist,
+          },
+          scale: 1,
+        });
+      }
 
       const dateStr = currentTime.toISOString().slice(0, 10);
       const relativePath = `data/posts/${account.id}/${dateStr}-${postId}.jpg`;
@@ -415,12 +483,21 @@ export async function generateAndPublishBatch(
         } catch {}
       }
 
-      console.log(`[Batch] Assembling 15s MP4 video story with audio stream...`);
-      const storyVideoResult = await createStoryVideoMP4({
-        storyImageBuffer: storyResult.imageBuffer,
+      console.log(`[Batch] Assembling MP4 video reels with audio stream (Scale: ${storyScale === 2 ? '4K' : '1080p'})...`);
+      
+      // Calculate looping duration based on quote word count (approx. 200 WPM + 1s padding)
+      const wordCount = quote.text.split(/\s+/).length;
+      let calculatedDuration = Math.ceil((wordCount / 200) * 60 + 1.0);
+      // Ensure reasonable bounds (e.g. at least 5s, at most 15s for stories compatibility)
+      calculatedDuration = Math.max(5, Math.min(calculatedDuration, 15));
+      
+      const storyVideoResult = await createReelsVideoMP4({
+        postImageBuffer: storyResult.imageBuffer,
         audioBuffer,
         startOffsetSeconds: audioSelection.peakStartSecond,
-        durationSeconds: 15,
+        durationSeconds: calculatedDuration,
+        render4K: storyScale === 2,
+        ghostVolume: 0.05,
       });
 
       const storyRelativePath = `data/posts/${account.id}/${dateStr}-${postId}-story.mp4`;
@@ -478,8 +555,8 @@ export async function generateAndPublishBatch(
         sleepImpl,
       );
 
-      const storyHostedImageUrl = await uploadOrGetPublicImageUrl({
-        imageBuffer: storyResult.imageBuffer,
+      const storyHostedVideoUrl = await uploadOrGetPublicImageUrl({
+        imageBuffer: storyVideoResult.videoBuffer,
         relativePath: storyRelativePath,
         githubRepoSlug: options.githubRepoSlug,
         githubBranch,
@@ -487,8 +564,8 @@ export async function generateAndPublishBatch(
         fetchImpl,
       });
 
-      const storyVerifiedImageUrl = await verifyPublicImageUrl(
-        storyHostedImageUrl,
+      const storyVerifiedVideoUrl = await verifyPublicImageUrl(
+        storyHostedVideoUrl,
         options.githubRepoSlug,
         storyRelativePath,
         fetchImpl,
@@ -540,7 +617,7 @@ export async function generateAndPublishBatch(
       const tryComposioStory = async () => {
         console.log(`[Batch] Cross-posting dedicated 9:16 Story via Composio...`);
         const compStory = await publishViaComposioStories({
-          imageUrl: storyVerifiedImageUrl,
+          imageUrl: storyVerifiedVideoUrl,
           caption: "",
           apiKey: env.COMPOSIO_API_KEY!,
           entityId: account.id,
@@ -550,9 +627,15 @@ export async function generateAndPublishBatch(
       };
 
       const tryMetaGraphStory = async () => {
-        console.log(`[Batch] Cross-posting dedicated 9:16 Story via Meta Graph API...`);
-        const stories = await publishToStories(storyVerifiedImageUrl, igCreds!, fetchImpl, sleepImpl);
-        return stories.mediaId;
+        console.log(`[Batch] Cross-posting dedicated 9:16 Reel via Meta Graph API...`);
+        try {
+          const storyRes = await publishToReels(storyVerifiedVideoUrl, caption, igCreds!, fetchImpl, sleepImpl);
+          console.log(`[Batch] Successfully cross-posted Reel! Media ID: ${storyRes.mediaId}`);
+          return storyRes.mediaId;
+        } catch (err) {
+          console.error(`[Batch] Failed to post Reel:`, err);
+          return undefined;
+        }
       };
 
       try {

@@ -1,5 +1,4 @@
-import googleTrends from "google-trends-api";
-import { type RelatedQueriesObject } from "./../types/google-trends-api.js";
+import googleTrends, { type RelatedQueriesObject } from "google-trends-api";
 
 export function sanitizeHashtag(query: string): string {
   const clean = query.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
@@ -13,7 +12,7 @@ export async function fetchTrendingHashtags(geo: string = "IN"): Promise<string[
   const allQueries: string[] = [];
   
   for (let i = 0; i < keywords.length; i++) {
-    const keyword = keywords[i];
+    const keyword = keywords[i]!;
     
     let agent;
     if (process.env.PROXY_URL) {

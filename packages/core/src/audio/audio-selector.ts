@@ -10,7 +10,7 @@ export interface SelectedAudioResult {
 export interface SelectAudioInput {
   category: string;
   mode: Darkness;
-  quoteLength: number;
+  quoteLength: number; // Character count of the quote
   recentAudioIds?: string[];
   availableTracks: MetaAudioTrack[];
   random?: () => number;
@@ -61,36 +61,54 @@ export const FALLBACK_AUDIO_CATALOG: readonly MetaAudioTrack[] = [
 ];
 
 /**
- * 5-Step Audio Selection Engine implementing sentiment, visual tone, and anti-repetition guards.
+ * 6-Step Audio Selection Engine implementing psychological retention strategies.
  */
 export function selectStoryAudio(input: SelectAudioInput): SelectedAudioResult {
-  const { category, recentAudioIds = [], availableTracks, random = Math.random } = input;
+  const { category, mode, quoteLength, recentAudioIds = [], availableTracks, random = Math.random } = input;
 
+  // Step 1: Mathematical Pacing & Loop Calculation
+  // Assuming average 5 characters per word and 200 words per minute reading speed
+  const wordCount = Math.max(1, quoteLength / 5);
+  const readingTimeSeconds = (wordCount / 200) * 60;
+  // Exact duration with 1s padding, clamped between 5s and 15s for optimal loops
+  const durationSeconds = Math.max(5, Math.min(15, Math.ceil(readingTimeSeconds + 1.0)));
+
+  // Step 2 & 3: Pool initialization and Commercial Filter
   const pool = availableTracks.length > 0 ? availableTracks : [...FALLBACK_AUDIO_CATALOG];
+  let commercialTracks = pool.filter((t) => t.isAdsEligible !== false);
 
-  // Step 1: Strict Category Filtering (with commercial clearance check)
-  let candidates = pool.filter(
-    (t) => t.category?.toLowerCase() === category.toLowerCase() && t.isAdsEligible !== false,
-  );
-  if (candidates.length === 0) {
-    candidates = pool.filter((t) => t.isAdsEligible !== false);
+  if (commercialTracks.length === 0) {
+    commercialTracks = [...FALLBACK_AUDIO_CATALOG];
   }
 
-  // Step 2: Anti-Repetition Guard (Exclude tracks played in last 20 posts)
-  const freshCandidates = candidates.filter((t) => !recentAudioIds.includes(t.audioId));
-  if (freshCandidates.length > 0) {
-    candidates = freshCandidates;
+  // Step 4: Anti-Fatigue Memory (Filter out recently used tracks)
+  const freshTracks = commercialTracks.filter((t) => !recentAudioIds.includes(t.audioId));
+  let candidates = freshTracks.length > 0 ? freshTracks : commercialTracks;
+
+  // Step 5: Granular Sentiment & "Vibe" Shortlisting
+  // If dark mode, prioritize minor key/ambient tracks (e.g., stoic/mindset).
+  // If light mode, prioritize upbeat/epic tracks.
+  // We use the fallback catalog's category as a proxy for mood in this simple implementation.
+  let moodCandidates = candidates.filter((t) => {
+    if (mode === "dark") {
+      return t.category === "mindset" || t.category === "mindfulness" || t.category?.toLowerCase() === category.toLowerCase();
+    }
+    return t.category === "motivation" || t.category === "business" || t.category?.toLowerCase() === category.toLowerCase();
+  });
+
+  if (moodCandidates.length === 0) {
+    moodCandidates = candidates;
   }
 
-  // Step 3: Selection based on Visual Mode & Quote Pacing
-  const chosenTrack = candidates[Math.floor(random() * candidates.length)] ?? FALLBACK_AUDIO_CATALOG[0]!;
+  const chosenTrack = moodCandidates[Math.floor(random() * moodCandidates.length)] ?? FALLBACK_AUDIO_CATALOG[0]!;
 
-  // Step 4: Calculate 15-second Peak Offset (default offset 8 seconds into track)
+  // Step 6: Peak Audio Extraction & Drop Alignment
+  // We offset by 8s by default to hit the beat drop (unless it's a very short track)
   const peakStartSecond = chosenTrack.durationMs > 30000 ? 8 : 0;
 
   return {
     track: chosenTrack,
     peakStartSecond,
-    durationSeconds: 15,
+    durationSeconds,
   };
 }

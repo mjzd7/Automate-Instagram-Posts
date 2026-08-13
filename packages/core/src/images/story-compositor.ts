@@ -27,6 +27,7 @@ export interface ComposeStoryInput {
     title: string;
     artist: string;
   };
+  scale?: number;
 }
 
 export interface ComposeStoryResult {
@@ -44,21 +45,25 @@ function escapeXml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-async function createHeaderBadge(text: string, width: number, height: number, mode: Darkness): Promise<Buffer> {
+async function createHeaderBadge(text: string, width: number, height: number, mode: Darkness, scale: number = 1): Promise<Buffer> {
   const isDark = mode === "dark";
   const fill = isDark ? "rgba(255, 255, 255, 0.14)" : "rgba(0, 0, 0, 0.08)";
   const stroke = isDark ? "rgba(255, 255, 255, 0.30)" : "rgba(0, 0, 0, 0.20)";
   const textColor = isDark ? "#FFFFFF" : "#1A1A1A";
 
+  const sw = 1.5 * scale;
+  const fs = 20 * scale;
+  const ls = 2 * scale;
+
   const svg = `<svg width="${width}" height="${height}">
-    <rect x="1" y="1" width="${width - 2}" height="${height - 2}" rx="${height / 2}" ry="${height / 2}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
-    <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="${textColor}" font-family="sans-serif" font-size="20" font-weight="700" letter-spacing="2">${escapeXml(text)}</text>
+    <rect x="${1 * scale}" y="${1 * scale}" width="${width - 2 * scale}" height="${height - 2 * scale}" rx="${height / 2}" ry="${height / 2}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
+    <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="${textColor}" font-family="sans-serif" font-size="${fs}" font-weight="700" letter-spacing="${ls}">${escapeXml(text)}</text>
   </svg>`;
 
   return Buffer.from(svg);
 }
 
-async function createCtaBox(text: string, width: number, height: number, mode: Darkness, style: StoryTemplateId): Promise<Buffer> {
+async function createCtaBox(text: string, width: number, height: number, mode: Darkness, style: StoryTemplateId, scale: number = 1): Promise<Buffer> {
   const isDark = mode === "dark";
   let fill = isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(0, 0, 0, 0.12)";
   let stroke = isDark ? "rgba(255, 255, 255, 0.35)" : "rgba(0, 0, 0, 0.25)";
@@ -68,22 +73,26 @@ async function createCtaBox(text: string, width: number, height: number, mode: D
   if (style === "story-editorial-newspaper") {
     fill = isDark ? "#1E1E1E" : "#F4F1EA";
     stroke = isDark ? "#FFFFFF" : "#1A1A1A";
-    radius = 6;
+    radius = 6 * scale;
   } else if (style === "story-polaroid-teaser") {
     fill = "#FFFFFF";
     stroke = "#E2DDD3";
     textColor = "#1A1A1A";
-    radius = 14;
+    radius = 14 * scale;
   } else if (style === "story-split-focus") {
     fill = isDark ? "#FFD700" : "#1A1A1A";
     stroke = isDark ? "#FFD700" : "#1A1A1A";
     textColor = isDark ? "#1A1A1A" : "#FFFFFF";
-    radius = 28;
+    radius = 28 * scale;
   }
 
+  const sw = 2 * scale;
+  const fs = 22 * scale;
+  const ls = 1 * scale;
+
   const svg = `<svg width="${width}" height="${height}">
-    <rect x="2" y="2" width="${width - 4}" height="${height - 4}" rx="${radius}" ry="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
-    <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="${textColor}" font-family="sans-serif" font-size="22" font-weight="bold" letter-spacing="1">${escapeXml(text)}</text>
+    <rect x="${2 * scale}" y="${2 * scale}" width="${width - 4 * scale}" height="${height - 4 * scale}" rx="${radius}" ry="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
+    <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="${textColor}" font-family="sans-serif" font-size="${fs}" font-weight="bold" letter-spacing="${ls}">${escapeXml(text)}</text>
   </svg>`;
 
   return Buffer.from(svg);
@@ -98,23 +107,25 @@ async function createFramedFeedPost(
     borderStrokeColor?: string;
     polaroid?: boolean;
     polaroidCaption?: string;
+    scale?: number;
   },
 ): Promise<Buffer> {
-  const { borderRadius = 24, borderStrokeColor, polaroid = false, polaroidCaption } = options;
+  const { borderRadius = 24, borderStrokeColor, polaroid = false, polaroidCaption, scale = 1 } = options;
 
   if (polaroid) {
     const frameW = targetWidth;
     const frameH = targetHeight;
-    const imageMargin = 40;
+    const imageMargin = 40 * scale;
     const imgSize = frameW - imageMargin * 2;
+    const rx = 16 * scale;
 
     const resizedImg = await sharp(feedBuffer)
       .resize(imgSize, imgSize, { fit: "cover" })
       .toBuffer();
 
     const polaroidBgSvg = `<svg width="${frameW}" height="${frameH}">
-      <rect x="0" y="0" width="${frameW}" height="${frameH}" rx="16" ry="16" fill="#FDFBF7" />
-      <rect x="${imageMargin - 2}" y="${imageMargin - 2}" width="${imgSize + 4}" height="${imgSize + 4}" fill="#EAE5D9" />
+      <rect x="0" y="0" width="${frameW}" height="${frameH}" rx="${rx}" ry="${rx}" fill="#FDFBF7" />
+      <rect x="${imageMargin - 2 * scale}" y="${imageMargin - 2 * scale}" width="${imgSize + 4 * scale}" height="${imgSize + 4 * scale}" fill="#EAE5D9" />
     </svg>`;
 
     let basePolaroid = await sharp(Buffer.from(polaroidBgSvg))
@@ -123,11 +134,13 @@ async function createFramedFeedPost(
       .toBuffer();
 
     if (polaroidCaption) {
+      const fs = 24 * scale;
+      const topOff = imageMargin + imgSize + 10 * scale;
       const captionSvg = `<svg width="${frameW}" height="${frameH - imgSize - imageMargin * 2}">
-        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#2B2B2B" font-family="sans-serif" font-size="24" font-weight="600">${escapeXml(polaroidCaption)}</text>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#2B2B2B" font-family="sans-serif" font-size="${fs}" font-weight="600">${escapeXml(polaroidCaption)}</text>
       </svg>`;
       basePolaroid = await sharp(basePolaroid)
-        .composite([{ input: Buffer.from(captionSvg), left: 0, top: imageMargin + imgSize + 10 }])
+        .composite([{ input: Buffer.from(captionSvg), left: 0, top: topOff }])
         .png()
         .toBuffer();
     }
@@ -149,8 +162,9 @@ async function createFramedFeedPost(
     .toBuffer();
 
   if (borderStrokeColor) {
+    const sw = 3 * scale;
     const strokeSvg = `<svg width="${targetWidth}" height="${targetHeight}">
-      <rect x="1" y="1" width="${targetWidth - 2}" height="${targetHeight - 2}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderStrokeColor}" stroke-width="3"/>
+      <rect x="${1 * scale}" y="${1 * scale}" width="${targetWidth - 2 * scale}" height="${targetHeight - 2 * scale}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderStrokeColor}" stroke-width="${sw}"/>
     </svg>`;
     framed = await sharp(framed)
       .composite([{ input: Buffer.from(strokeSvg) }])
@@ -161,14 +175,17 @@ async function createFramedFeedPost(
   return framed;
 }
 
-async function createDropShadow(width: number, height: number, borderRadius = 24): Promise<Buffer> {
-  const shadowSvg = `<svg width="${width + 40}" height="${height + 40}">
-    <rect x="20" y="20" width="${width}" height="${height}" rx="${borderRadius}" ry="${borderRadius}" fill="rgba(0, 0, 0, 0.5)"/>
+async function createDropShadow(width: number, height: number, borderRadius = 24, scale = 1): Promise<Buffer> {
+  const pad = 40 * scale;
+  const off = 20 * scale;
+  const blur = 16 * scale;
+  const shadowSvg = `<svg width="${width + pad}" height="${height + pad}">
+    <rect x="${off}" y="${off}" width="${width}" height="${height}" rx="${borderRadius}" ry="${borderRadius}" fill="rgba(0, 0, 0, 0.5)"/>
   </svg>`;
-  return sharp(Buffer.from(shadowSvg)).blur(16).toBuffer();
+  return sharp(Buffer.from(shadowSvg)).blur(blur).toBuffer();
 }
 
-async function createAudioBadgeOverlay(title: string, artist: string, mode: Darkness): Promise<Buffer> {
+async function createAudioBadgeOverlay(title: string, artist: string, mode: Darkness, scale: number = 1): Promise<Buffer> {
   const isDark = mode === "dark";
   const bg = isDark ? "rgba(0, 0, 0, 0.45)" : "rgba(255, 255, 255, 0.55)";
   const stroke = isDark ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.15)";
@@ -176,16 +193,25 @@ async function createAudioBadgeOverlay(title: string, artist: string, mode: Dark
   const barColor = isDark ? "#A5F3FC" : "#2563EB";
 
   const textDisplay = escapeXml(`${title} — ${artist}`.slice(0, 32));
+  
+  const w = 420 * scale;
+  const h = 48 * scale;
+  const sw = 1.5 * scale;
+  const rx = 23 * scale;
+  const fs = 16 * scale;
+  
+  const tx = 18 * scale;
+  const ty = 14 * scale;
 
-  const svg = `<svg width="420" height="48">
-    <rect x="1" y="1" width="418" height="46" rx="23" ry="23" fill="${bg}" stroke="${stroke}" stroke-width="1.5"/>
-    <g transform="translate(18, 14)">
-      <rect x="0" y="4" width="3" height="12" fill="${barColor}" rx="1"/>
-      <rect x="6" y="0" width="3" height="18" fill="${barColor}" rx="1"/>
-      <rect x="12" y="7" width="3" height="10" fill="${barColor}" rx="1"/>
-      <rect x="18" y="2" width="3" height="15" fill="${barColor}" rx="1"/>
+  const svg = `<svg width="${w}" height="${h}">
+    <rect x="${1 * scale}" y="${1 * scale}" width="${w - 2 * scale}" height="${h - 2 * scale}" rx="${rx}" ry="${rx}" fill="${bg}" stroke="${stroke}" stroke-width="${sw}"/>
+    <g transform="translate(${tx}, ${ty})">
+      <rect x="0" y="${4 * scale}" width="${3 * scale}" height="${12 * scale}" fill="${barColor}" rx="${scale}"/>
+      <rect x="${6 * scale}" y="0" width="${3 * scale}" height="${18 * scale}" fill="${barColor}" rx="${scale}"/>
+      <rect x="${12 * scale}" y="${7 * scale}" width="${3 * scale}" height="${10 * scale}" fill="${barColor}" rx="${scale}"/>
+      <rect x="${18 * scale}" y="${2 * scale}" width="${3 * scale}" height="${15 * scale}" fill="${barColor}" rx="${scale}"/>
     </g>
-    <text x="46" y="52%" dominant-baseline="middle" fill="${textColor}" font-family="sans-serif" font-size="16" font-weight="600">${textDisplay}</text>
+    <text x="${46 * scale}" y="52%" dominant-baseline="middle" fill="${textColor}" font-family="sans-serif" font-size="${fs}" font-weight="600">${textDisplay}</text>
   </svg>`;
 
   return Buffer.from(svg);
@@ -196,7 +222,12 @@ async function createAudioBadgeOverlay(title: string, artist: string, mode: Dark
  * engagement hook headers, and dedicated link sticker target zones.
  */
 export async function composeStory(input: ComposeStoryInput): Promise<ComposeStoryResult> {
-  const { backgroundBuffer, quoteText, author, template, mode, suitability, accountHandle, grainRandom } = input;
+  const { backgroundBuffer, quoteText, author, template, mode, suitability, accountHandle, grainRandom, scale = 1 } = input;
+  
+  const W = STORY_WIDTH * scale;
+  const H = STORY_HEIGHT * scale;
+  const topSafe = STORY_TOP_SAFE_ZONE * scale;
+  const bottomSafe = STORY_BOTTOM_SAFE_ZONE * scale;
 
   const chosenStoryTemplate = input.storyTemplateId
     ? findStoryTemplate(input.storyTemplateId)
@@ -213,17 +244,18 @@ export async function composeStory(input: ComposeStoryInput): Promise<ComposeSto
       mode,
       suitability,
       grainRandom,
+      scale,
     }));
 
   // Step 1: Create ambient blurred full-bleed background
   let baseBuffer = await sharp(backgroundBuffer)
-    .resize(STORY_WIDTH, STORY_HEIGHT, { fit: "cover", position: "center" })
+    .resize(W, H, { fit: "cover", position: "center" })
     .blur(30)
     .toBuffer();
 
   // Step 2: Apply vignette & scrim
-  const vignettePng = await renderVignette(STORY_WIDTH, STORY_HEIGHT, mode);
-  const scrimPng = await renderScrim(STORY_WIDTH, STORY_HEIGHT, mode, suitability.scrimOpacity);
+  const vignettePng = await renderVignette(W, H, mode);
+  const scrimPng = await renderScrim(W, H, mode, suitability.scrimOpacity);
 
   baseBuffer = await sharp(baseBuffer)
     .composite([
@@ -233,7 +265,7 @@ export async function composeStory(input: ComposeStoryInput): Promise<ComposeSto
     .toBuffer();
 
   // Step 3: Grain texture
-  const grainPng = await grainTexturePng(STORY_WIDTH, STORY_HEIGHT, grainRandom);
+  const grainPng = await grainTexturePng(W, H, grainRandom);
   baseBuffer = await sharp(baseBuffer)
     .composite([{ input: grainPng, left: 0, top: 0 }])
     .toBuffer();
@@ -243,73 +275,65 @@ export async function composeStory(input: ComposeStoryInput): Promise<ComposeSto
 
   // Step 4: Render Header Badge (Y = 210px)
   const headerText = chosenStoryTemplate.headerText || `NEW POST ✦ ${handleDisplay}`;
-  const headerBadge = await createHeaderBadge(headerText, 480, 56, mode);
+  const headerW = 480 * scale;
+  const headerH = 56 * scale;
+  const headerBadge = await createHeaderBadge(headerText, headerW, headerH, mode, scale);
   compositeLayers.push({
     input: headerBadge,
-    left: Math.round((STORY_WIDTH - 480) / 2),
-    top: STORY_TOP_SAFE_ZONE + 30,
+    left: Math.round((W - headerW) / 2),
+    top: topSafe + 30 * scale,
   });
 
   // Step 5: Render Framed Post based on Template Style
-  let postW = 800;
-  let postH = 800;
-  let postTop = 310;
+  let postW = 800 * scale;
+  let postH = 800 * scale;
+  let postTop = 310 * scale;
   let isPolaroid = false;
-  let borderRadius = 24;
+  let borderRadius = 24 * scale;
   let strokeColor: string | undefined = undefined;
 
   switch (chosenStoryTemplate.id) {
     case "story-polaroid-teaser":
-      postW = 820;
-      postH = 940;
-      postTop = 300;
+      postW = 820 * scale;
+      postH = 940 * scale;
+      postTop = 300 * scale;
       isPolaroid = true;
       break;
     case "story-editorial-newspaper":
-      postW = 780;
-      postH = 780;
-      postTop = 320;
-      borderRadius = 4;
+      postW = 780 * scale;
+      postH = 780 * scale;
+      postTop = 320 * scale;
+      borderRadius = 4 * scale;
       strokeColor = mode === "dark" ? "#FFFFFF" : "#1A1A1A";
       break;
     case "story-split-focus":
-      postW = 740;
-      postH = 740;
-      postTop = 340;
-      borderRadius = 28;
+      postW = 740 * scale;
+      postH = 740 * scale;
+      postTop = 340 * scale;
+      borderRadius = 28 * scale;
       strokeColor = mode === "dark" ? "rgba(255,215,0,0.6)" : "rgba(0,0,0,0.4)";
       break;
     case "story-minimalist-quote-frame":
-      postW = 820;
-      postH = 820;
-      postTop = 300;
-      borderRadius = 12;
+      postW = 820 * scale;
+      postH = 820 * scale;
+      postTop = 300 * scale;
+      borderRadius = 12 * scale;
       strokeColor = mode === "dark" ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.3)";
       break;
     case "story-interactive-spotlight":
-      postW = 760;
-      postH = 760;
-      postTop = 330;
-      borderRadius = 20;
+      postW = 760 * scale;
+      postH = 760 * scale;
+      postTop = 330 * scale;
+      borderRadius = 20 * scale;
       break;
     case "story-floating-card":
     default:
-      postW = 800;
-      postH = 800;
-      postTop = 310;
-      borderRadius = 24;
+      postW = 800 * scale;
+      postH = 800 * scale;
+      postTop = 310 * scale;
+      borderRadius = 24 * scale;
       break;
   }
-
-  const postLeft = Math.round((STORY_WIDTH - postW) / 2);
-
-  // Drop Shadow
-  const shadowBuf = await createDropShadow(postW, postH, borderRadius);
-  compositeLayers.push({
-    input: shadowBuf,
-    left: postLeft - 20,
-    top: postTop - 10,
-  });
 
   // Framed Post
   const framedPost = await createFramedFeedPost(feedPostBuffer, postW, postH, {
@@ -317,31 +341,54 @@ export async function composeStory(input: ComposeStoryInput): Promise<ComposeSto
     borderStrokeColor: strokeColor,
     polaroid: isPolaroid,
     polaroidCaption: author ? `— ${author.toUpperCase()} —` : quoteText.slice(0, 30) + "...",
+    scale,
   });
 
-  compositeLayers.push({
-    input: framedPost,
-    left: postLeft,
-    top: postTop,
-  });
+  const postShadow = await createDropShadow(postW, postH, borderRadius, scale);
+  const postLeft = Math.round((W - postW) / 2);
+  const shadowOff = 20 * scale;
 
-  // Step 6: Render CTA Link Sticker Zone (Y = 1320px)
+  compositeLayers.push(
+    { input: postShadow, left: postLeft - shadowOff, top: postTop - shadowOff },
+    { input: framedPost, left: postLeft, top: postTop },
+  );
+
+  // Step 6: Render Audio Badge (Y = 1220px depending on post height)
+  if (input.audioTrack) {
+    const audioBadge = await createAudioBadgeOverlay(input.audioTrack.title, input.audioTrack.artist, mode, scale);
+    const audioY = postTop + postH + 60 * scale;
+    const badgeW = 420 * scale;
+    compositeLayers.push({
+      input: audioBadge,
+      left: Math.round((W - badgeW) / 2),
+      top: audioY,
+    });
+  }
+
+  // Step 7: Render CTA / Link Sticker Target (Bottom Safe Zone)
   const zone = chosenStoryTemplate.linkStickerZone;
-  const ctaBox = await createCtaBox(chosenStoryTemplate.ctaText, zone.width, zone.height, mode, chosenStoryTemplate.id);
+  const ctaText = chosenStoryTemplate.ctaText || "READ THE FULL POST";
+  const ctaW = zone.width * scale;
+  const ctaH = zone.height * scale;
+  const ctaBox = await createCtaBox(ctaText, ctaW, ctaH, mode, chosenStoryTemplate.id, scale);
+  const ctaY = zone.y * scale;
+  const ctaX = zone.x * scale;
+  
   compositeLayers.push({
     input: ctaBox,
-    left: zone.x,
-    top: zone.y,
+    left: ctaX,
+    top: ctaY,
   });
 
-  // Step 7: Audio Badge Overlay removed (User requested no music name tag in stories)
+  // Calculate Link Sticker Zone relative to 1080p equivalent API targets
+  const linkStickerZone = zone;
 
   const composed = sharp(baseBuffer).composite(compositeLayers);
   const imageBuffer = await composed.jpeg({ quality: 100, chromaSubsampling: "4:4:4", mozjpeg: true }).toBuffer();
 
   return {
     imageBuffer,
-    linkStickerZone: zone,
+    linkStickerZone,
     templateId: chosenStoryTemplate.id,
   };
 }

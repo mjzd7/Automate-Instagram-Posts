@@ -21,6 +21,7 @@ describe("sanitizeHashtag", () => {
 
 describe("fetchTrendingHashtags", () => {
   it("fetches, parses, and sanitizes rising related queries into niche hashtags", async () => {
+    vi.useFakeTimers();
     // Simulated JSON response from google-trends-api for relatedQueries
     const mockResponse = JSON.stringify({
       default: {
@@ -42,7 +43,9 @@ describe("fetchTrendingHashtags", () => {
 
     vi.mocked(googleTrends.relatedQueries).mockResolvedValue(mockResponse);
 
-    const result = await fetchTrendingHashtags("IN");
+    const promise = fetchTrendingHashtags("IN");
+    await vi.runAllTimersAsync();
+    const result = await promise;
 
     // It loops through ["motivation", "success", "business"] so it should have been called 3 times
     expect(googleTrends.relatedQueries).toHaveBeenCalledTimes(3);
@@ -51,6 +54,7 @@ describe("fetchTrendingHashtags", () => {
     // 3 keywords * 3 queries each = 9 queries total (actually due to de-duplication and our specific mock, 
     // it will just output duplicates since the mock returns the same array for all 3 calls.
     // The unique set will just be 3 strings.)
+    vi.useRealTimers();
     expect(result).toEqual([
       "#risingquery1",
       "#risingquery2",
