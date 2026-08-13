@@ -496,39 +496,78 @@ export async function generateAndPublishBatch(
       );
 
       console.log(`[Batch] Publishing to Instagram Feed with image URL ${verifiedImageUrl}...`);
-      let feedResult: { mediaId: string; permalink?: string };
-      if (env.COMPOSIO_API_KEY) {
+      let feedResult: { mediaId: string; permalink?: string } | undefined;
+      
+      const tryComposioFeed = async () => {
         console.log(`[Batch] Using Composio API...`);
         const compRes = await publishViaComposio({
           imageUrl: verifiedImageUrl,
           caption: `${caption}\n\n${hashtagComment}`,
-          apiKey: env.COMPOSIO_API_KEY,
+          apiKey: env.COMPOSIO_API_KEY!,
           entityId: account.id,
           fetchImpl,
         });
-        feedResult = { mediaId: compRes.mediaId, permalink: compRes.permalink };
-      } else {
+        return { mediaId: compRes.mediaId, permalink: compRes.permalink };
+      };
+
+      const tryMetaGraphFeed = async () => {
         console.log(`[Batch] Using Meta Graph API...`);
-        feedResult = await publishToFeed(verifiedImageUrl, caption, hashtagComment, igCreds!, fetchImpl, sleepImpl);
+        return await publishToFeed(verifiedImageUrl, caption, hashtagComment, igCreds!, fetchImpl, sleepImpl);
+      };
+
+      if (env.COMPOSIO_API_KEY) {
+        try {
+          feedResult = await tryComposioFeed();
+        } catch (err) {
+          console.warn(`[Batch] Composio API failed for feed:`, err);
+          if (igCreds) {
+            console.log(`[Batch] Falling back to Meta Graph API...`);
+            feedResult = await tryMetaGraphFeed();
+          } else {
+            throw err;
+          }
+        }
+      } else if (igCreds) {
+        feedResult = await tryMetaGraphFeed();
+      } else {
+        throw new Error("No publishing credentials available");
       }
-      // Best-effort surfaces -- failures here don't fail the item.
       let storiesMediaId: string | undefined;
+      const tryComposioStory = async () => {
+        console.log(`[Batch] Cross-posting dedicated 9:16 Story via Composio...`);
+        const compStory = await publishViaComposioStories({
+          imageUrl: storyVerifiedImageUrl,
+          caption: "",
+          apiKey: env.COMPOSIO_API_KEY!,
+          entityId: account.id,
+          fetchImpl,
+        });
+        return compStory.mediaId;
+      };
+
+      const tryMetaGraphStory = async () => {
+        console.log(`[Batch] Cross-posting dedicated 9:16 Story via Meta Graph API...`);
+        const stories = await publishToStories(storyVerifiedImageUrl, igCreds!, fetchImpl, sleepImpl);
+        return stories.mediaId;
+      };
+
       try {
         if (env.COMPOSIO_API_KEY) {
-          console.log(`[Batch] Cross-posting dedicated 9:16 Story via Composio...`);
-          const compStory = await publishViaComposioStories({
-            imageUrl: storyVerifiedImageUrl,
-            caption: "",
-            apiKey: env.COMPOSIO_API_KEY,
-            entityId: account.id,
-            fetchImpl,
-          });
-          storiesMediaId = compStory.mediaId;
-          console.log(`[Batch] Successfully cross-posted Story! Media ID: ${storiesMediaId}`);
+          try {
+            storiesMediaId = await tryComposioStory();
+          } catch (err) {
+            console.warn(`[Batch] Composio API failed for stories:`, err);
+            if (igCreds) {
+              console.log(`[Batch] Falling back to Meta Graph API for stories...`);
+              storiesMediaId = await tryMetaGraphStory();
+            } else {
+              throw err;
+            }
+          }
         } else if (igCreds) {
-          console.log(`[Batch] Cross-posting dedicated 9:16 Story via Meta Graph API...`);
-          const stories = await publishToStories(storyVerifiedImageUrl, igCreds, fetchImpl, sleepImpl);
-          storiesMediaId = stories.mediaId;
+          storiesMediaId = await tryMetaGraphStory();
+        }
+        if (storiesMediaId) {
           console.log(`[Batch] Successfully cross-posted Story! Media ID: ${storiesMediaId}`);
         }
       } catch (err) {

@@ -20,6 +20,8 @@ export async function uploadOrGetPublicImageUrl(options: PublicHostOptions): Pro
   const cleanPath = options.relativePath.replace(/^data\/posts\//, "");
   const vercelMediaUrl = `${webAppUrl}/api/media/${cleanPath}`;
 
+  const fallbackUrl = `https://raw.githubusercontent.com/${options.githubRepoSlug}/${options.githubBranch}/${options.relativePath}`;
+
   // Primary: Vercel Web App Edge CDN media route (delivers full 100% HD JPEG)
   try {
     const head = await fetchImpl(vercelMediaUrl, { method: "HEAD" });
@@ -30,5 +32,6 @@ export async function uploadOrGetPublicImageUrl(options: PublicHostOptions): Pro
     }
   } catch {}
 
-  return vercelMediaUrl;
+  console.log(`[PublicHost] Vercel URL not ready/available, falling back to GitHub RAW URL: ${fallbackUrl}`);
+  return fallbackUrl;
 }
