@@ -9,7 +9,7 @@ import { refreshThreadsToken } from "../threads/client.js";
 import { sendDiscordNotification } from "../notify/discord.js";
 
 // plan.md §2.10.
-const TOKEN_REFRESH_TRIGGER_WINDOW_DAYS = 50;
+const TOKEN_REFRESH_TRIGGER_WINDOW_DAYS = 61;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface RefreshTokenOptions {
