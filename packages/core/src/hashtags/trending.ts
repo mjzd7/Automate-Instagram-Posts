@@ -12,8 +12,16 @@ export async function fetchTrendingHashtags(geo: string = "IN"): Promise<string[
   
   const allQueries: string[] = [];
   
-  for (const keyword of keywords) {
-    const resString = await googleTrends.relatedQueries({ keyword, geo });
+  for (let i = 0; i < keywords.length; i++) {
+    const keyword = keywords[i];
+    
+    let agent;
+    if (process.env.PROXY_URL) {
+      const { HttpsProxyAgent } = await import("https-proxy-agent");
+      agent = new HttpsProxyAgent(process.env.PROXY_URL);
+    }
+    
+    const resString = await googleTrends.relatedQueries({ keyword, geo, agent });
     const res = JSON.parse(resString) as RelatedQueriesObject;
     
     // rankedList[0] contains "Top" queries, rankedList[1] contains "Rising" queries
@@ -23,6 +31,12 @@ export async function fetchTrendingHashtags(geo: string = "IN"): Promise<string[
     // Prefer rising queries (fastest growing), fallback to top queries
     const combined = [...risingQueries, ...topQueries].map(k => k.query);
     allQueries.push(...combined);
+    
+    if (i < keywords.length - 1) {
+      // 5-10 second random delay to avoid rate limiting
+      const delay = Math.floor(5000 + Math.random() * 5000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
   }
   
   if (allQueries.length === 0) {
