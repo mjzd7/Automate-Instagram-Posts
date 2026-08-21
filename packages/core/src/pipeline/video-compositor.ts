@@ -5,7 +5,7 @@ import sharp from "sharp";
 import { renderGlassCard } from "../images/glass-card.js";
 import { renderFittedText } from "../images/text-render.js";
 import { generateTypewriterSequence } from "../images/typewriter.ts";
-import { fetchPexelsVideo } from "./video-fetcher.js";
+import { fetchPexelsVideo } from "./video-fetcher";
 import { selectTemplate } from "../images/templates.js";
 import { 
   CARD_HORIZONTAL_MARGIN_PX, 
