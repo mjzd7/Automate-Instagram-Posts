@@ -1,4 +1,5 @@
-import { writeFile, mkdir, unlink } from "node:fs/promises";
+import { writeFile, mkdir, unlink, readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import sharp from "sharp";
 import type { Account } from "../config/accounts.js";
@@ -20,7 +21,10 @@ import { selectHashtags } from "../hashtags/selector.js";
 import { getCandidateBackgrounds } from "../images/background-provider.js";
 import type { Darkness } from "../images/darkness-classifier.js";
 import { composeImage } from "../images/compositor.js";
+import { composeViralReelImage, composeViralReelOverlay, selectViralStyle } from "../images/viral-compositor.js";
 import { createReelFromFeedImage } from "../images/reel-video-composer.js";
+import { composeVideoReel } from "./video-compositor.js";
+import { fetchPexelsVideo } from "../images/pexels-video-provider.js";
 import { selectStoryAudio } from "../audio/audio-selector.js";
 import { searchMetaAudioTracks, type MetaAudioTrack } from "../audio/meta-audio-client.js";
 import { matchBestBackground } from "../matching/image-quote-matcher.js";
@@ -34,15 +38,15 @@ import {
   selectCaptionTemplate,
 } from "../aesthetics/mode-weighting.js";
 import { getNextQuote } from "../quotes/provider.js";
-import { publishViaComposio, publishViaComposioReels } from "../instagram/composio-client.js";
+import { publishViaComposioReels } from "../instagram/composio-client.js";
 import type { IGCredentials } from "../instagram/client.js";
-import { publishToFeed } from "../instagram/client.js";
 import { publishToReels } from "../instagram/reels-client.js";
 import type { ThreadsCredentials } from "../threads/client.js";
 import { publishToThreads } from "../threads/client.js";
 import { sendDiscordNotification } from "../notify/discord.js";
 import { commitBatch } from "../git/commit-batch.js";
 import { CAPTION_TEMPLATES, findCaptionTemplate } from "./caption-templates.js";
+import { generateReelHook } from "./hooks.js";
 
 // plan.md §2.6/§2.9.
 const BATCH_SIZE = 5;
@@ -254,6 +258,7 @@ export async function generateAndPublishBatch(
   const recentPublished = await findPublishedForAccount(db, account.id, 4);
   const recentTemplateIds: string[] = recentPublished.map((p) => p.templateId);
   let lastMode: Darkness = (recentPublished[0]?.mode as Darkness) ?? "dark";
+  const usedAudioIds: string[] = [];
 
   const totalPostsToGenerate = options.batchSize ?? BATCH_SIZE;
 
@@ -361,37 +366,7 @@ export async function generateAndPublishBatch(
       // Hashtags.
       const hashtags = selectHashtags(category, options.hashtagPools);
 
-      // Composite 1:1 Feed Post
       console.log(`[Batch] Selected quote: "${quote.text.slice(0, 40)}..." by ${quote.author}`);
-      
-      let imageBuffer: Buffer;
-      let feedScale = 2; // Default to native 4K (2160x2700)
-      
-      try {
-        console.log(`[Batch] Composing ${mode} mode feed image (4K Native)...`);
-        imageBuffer = await composeImage({
-          backgroundBuffer,
-          quoteText: quote.text,
-          author: quote.author ?? undefined,
-          template: findTemplate(template.id),
-          mode,
-          suitability,
-          scale: 2,
-        });
-      } catch (e) {
-        console.warn(`[Batch] 4K generation failed, falling back to 1080p: ${e}`);
-        feedScale = 1;
-        console.log(`[Batch] Composing ${mode} mode feed image (1080p Fallback)...`);
-        imageBuffer = await composeImage({
-          backgroundBuffer,
-          quoteText: quote.text,
-          author: quote.author ?? undefined,
-          template: findTemplate(template.id),
-          mode,
-          suitability,
-          scale: 1,
-        });
-      }
 
       // Query Meta Audio API if Instagram credentials are available
       let availableTracks: MetaAudioTrack[] = [];
@@ -408,64 +383,35 @@ export async function generateAndPublishBatch(
         }
       }
 
-      // Select matched audio track
+      // Select matched audio track with anti-fatigue rotation across the batch
       const audioSelection = selectStoryAudio({
         category,
         mode,
         quoteLength: quote.text.split(" ").length,
+        recentAudioIds: usedAudioIds,
         availableTracks,
         random,
       });
+      usedAudioIds.push(audioSelection.track.audioId);
 
       const dateStr = currentTime.toISOString().slice(0, 10);
-      const relativePath = `data/posts/${account.id}/${dateStr}-${postId}.jpg`;
-      const absolutePath = `${options.repoRoot}/${relativePath}`;
-      await mkdir(absolutePath.slice(0, absolutePath.lastIndexOf("/")), { recursive: true });
-      await writeFile(absolutePath, imageBuffer);
-
-      let audioBuffer: Buffer | undefined;
-      if (audioSelection.track.downloadUrl) {
-        try {
-          const audioRes = await fetchImpl(audioSelection.track.downloadUrl);
-          if (audioRes.ok) {
-            audioBuffer = Buffer.from(await audioRes.arrayBuffer());
-          }
-        } catch {}
-      }
-
-      // Calculate Reel duration from quote length (approx. 200 WPM reading speed + 1s)
-      const wordCount = quote.text.split(/\s+/).length;
-      const calculatedDuration = Math.max(5, Math.min(Math.ceil((wordCount / 200) * 60 + 1.0), 15));
-
-      // Version 2: Native 9:16 cutout composed directly from the raw background image
-      const reelImageBuffer = await composeImage({
-        backgroundBuffer,
-        quoteText: quote.text,
-        author: quote.author,
-        template,
-        mode,
-        suitability,
-        scale: feedScale,
-        targetWidth: 1080,
-        targetHeight: 1920,
-      });
-
-      // Compose the Reel video: native 9:16 full-bleed image → Ken Burns cosine infinite loop + VFX + audio
-      console.log(`[Batch] Composing native 9:16 Reel video from raw background with audio: "${audioSelection.track.title}" (${feedScale === 2 ? '4K bitrate' : '1080p'})...`);
-      const storyVideoResult = await createReelFromFeedImage({
-        feedImageBuffer: reelImageBuffer,
-        audioBuffer,
-        startOffsetSeconds: audioSelection.peakStartSecond,
-        durationSeconds: calculatedDuration,
-        render4K: feedScale === 2,
-        ghostVolume: 0.85,
-      });
-
       const storyRelativePath = `data/posts/${account.id}/${dateStr}-${postId}-story.mp4`;
       const storyAbsolutePath = `${options.repoRoot}/${storyRelativePath}`;
-      await writeFile(storyAbsolutePath, storyVideoResult.videoBuffer);
+      
+      console.log(`[Batch] Composing dedicated 9:16 Typewriter Reel...`);
+      const reelResult_composed = await composeVideoReel(
+        quote.text,
+        category,
+        storyAbsolutePath,
+        availableTracks,
+        false, // Voiceovers off by default
+        mode,
+        quote.author ?? undefined
+      );
 
-      console.log(`[Batch] Feed image saved to ${relativePath}, Story video saved to ${storyRelativePath}`);
+      const coverRelativePath = storyRelativePath.replace(/\.mp4$/, "-cover.jpg");
+      const coverAbsolutePath = reelResult_composed.coverImagePath;
+      console.log(`[Batch] Reel video saved to ${storyRelativePath}`);
 
       await insertPendingPost(db, {
         id: postId,
@@ -482,7 +428,7 @@ export async function generateAndPublishBatch(
       await recordBackgroundUsage(db, account.id, chosen.id, postId);
 
       if (dryRun) {
-        items.push({ status: "composed", postId, composedImagePath: relativePath });
+        items.push({ status: "composed", postId, composedImagePath: storyRelativePath });
         consecutiveFailures = 0;
         continue;
       }
@@ -499,25 +445,10 @@ export async function generateAndPublishBatch(
       const caption = captionTemplate.build(quote.text, quote.author, hashtags);
       const hashtagComment = hashtags.join(" ");
 
-      const hostedImageUrl = await uploadOrGetPublicImageUrl({
-        imageBuffer,
-        relativePath,
-        githubRepoSlug: options.githubRepoSlug,
-        githubBranch,
-        webAppUrl: env.WEB_APP_URL,
-        fetchImpl,
-      });
-
-      const verifiedImageUrl = await verifyPublicImageUrl(
-        hostedImageUrl,
-        options.githubRepoSlug,
-        relativePath,
-        fetchImpl,
-        sleepImpl,
-      );
+      const storyVideoBuffer = await readFile(storyAbsolutePath);
 
       const storyHostedVideoUrl = await uploadOrGetPublicImageUrl({
-        imageBuffer: storyVideoResult.videoBuffer,
+        imageBuffer: storyVideoBuffer,
         relativePath: storyRelativePath,
         githubRepoSlug: options.githubRepoSlug,
         githubBranch,
@@ -533,13 +464,41 @@ export async function generateAndPublishBatch(
         sleepImpl,
       );
 
-      console.log(`[Batch] Publishing to Instagram Feed with image URL ${verifiedImageUrl}...`);
-      let feedResult: { mediaId: string; permalink?: string } | undefined;
+      console.log(`[Batch] Publishing dedicated 9:16 Reel to Instagram with video URL ${storyVerifiedVideoUrl}...`);
+
+      // Upload cover image (complete quote frame) for the Reel grid thumbnail
+      let verifiedCoverUrl: string | undefined;
+      if (existsSync(coverAbsolutePath)) {
+        try {
+          const coverBuffer = await readFile(coverAbsolutePath);
+          const coverHostedUrl = await uploadOrGetPublicImageUrl({
+            imageBuffer: coverBuffer,
+            relativePath: coverRelativePath,
+            githubRepoSlug: options.githubRepoSlug,
+            githubBranch,
+            webAppUrl: env.WEB_APP_URL,
+            fetchImpl,
+          });
+          verifiedCoverUrl = await verifyPublicImageUrl(
+            coverHostedUrl,
+            options.githubRepoSlug,
+            coverRelativePath,
+            fetchImpl,
+            sleepImpl,
+          );
+          console.log(`[Batch] Cover image uploaded: ${verifiedCoverUrl}`);
+        } catch (err) {
+          console.warn(`[Batch] Cover image upload failed, Instagram will auto-select:`, err);
+        }
+      }
+
+      let reelResult: { mediaId: string; permalink?: string } | undefined;
       
-      const tryComposioFeed = async () => {
-        console.log(`[Batch] Using Composio API...`);
-        const compRes = await publishViaComposio({
-          imageUrl: verifiedImageUrl,
+      const tryComposioReel = async () => {
+        console.log(`[Batch] Publishing Reel via Composio API...`);
+        const compRes = await publishViaComposioReels({
+          imageUrl: storyVerifiedVideoUrl,
+          coverUrl: verifiedCoverUrl,
           caption: `${caption}\n\n${hashtagComment}`,
           apiKey: env.COMPOSIO_API_KEY!,
           entityId: account.id,
@@ -548,9 +507,12 @@ export async function generateAndPublishBatch(
         return { mediaId: compRes.mediaId, permalink: compRes.permalink };
       };
 
-      const tryMetaGraphFeed = async () => {
-        console.log(`[Batch] Using Meta Graph API...`);
-        return await publishToFeed(verifiedImageUrl, caption, hashtagComment, igCreds!, fetchImpl, sleepImpl);
+      const tryMetaGraphReel = async () => {
+        console.log(`[Batch] Publishing Reel via Meta Graph API...`);
+        const reelRes = await publishToReels(storyVerifiedVideoUrl, `${caption}\n\n${hashtagComment}`, igCreds!, fetchImpl, sleepImpl, {
+          coverUrl: verifiedCoverUrl,
+        });
+        return { mediaId: reelRes.mediaId };
       };
 
       const isWeekend = currentTime.getDay() === 0 || currentTime.getDay() === 6;
@@ -559,87 +521,31 @@ export async function generateAndPublishBatch(
 
       if (env.COMPOSIO_API_KEY && !forceMetaGraph) {
         try {
-          feedResult = await tryComposioFeed();
+          reelResult = await tryComposioReel();
         } catch (err) {
-          console.warn(`[Batch] Composio API failed for feed:`, err);
+          console.warn(`[Batch] Composio API failed for Reel:`, err);
           if (igCreds) {
-            console.log(`[Batch] Falling back to Meta Graph API...`);
-            feedResult = await tryMetaGraphFeed();
+            console.log(`[Batch] Falling back to Meta Graph API for Reel...`);
+            reelResult = await tryMetaGraphReel();
           } else {
             throw err;
           }
         }
       } else if (igCreds) {
-        feedResult = await tryMetaGraphFeed();
+        reelResult = await tryMetaGraphReel();
       } else {
         throw new Error("No publishing credentials available");
       }
-      let storiesMediaId: string | undefined;
-      const tryComposioStory = async () => {
-        console.log(`[Batch] Publishing dedicated 9:16 Reel via Composio...`);
-        const compReel = await publishViaComposioReels({
-          imageUrl: storyVerifiedVideoUrl,
-          caption,
-          apiKey: env.COMPOSIO_API_KEY!,
-          entityId: account.id,
-          fetchImpl,
-        });
-        return compReel.mediaId;
-      };
 
-      const tryMetaGraphStory = async () => {
-        console.log(`[Batch] Cross-posting dedicated 9:16 Reel via Meta Graph API...`);
-        try {
-          const storyRes = await publishToReels(storyVerifiedVideoUrl, caption, igCreds!, fetchImpl, sleepImpl);
-          console.log(`[Batch] Successfully cross-posted Reel! Media ID: ${storyRes.mediaId}`);
-          return storyRes.mediaId;
-        } catch (err) {
-          console.error(`[Batch] Failed to post Reel:`, err);
-          return undefined;
-        }
-      };
-
-      try {
-        if (env.COMPOSIO_API_KEY && !forceMetaGraph) {
-          try {
-            storiesMediaId = await tryComposioStory();
-          } catch (err) {
-            console.warn(`[Batch] Composio API failed for stories:`, err);
-            if (igCreds) {
-              console.log(`[Batch] Falling back to Meta Graph API for stories...`);
-              storiesMediaId = await tryMetaGraphStory();
-            } else {
-              throw err;
-            }
-          }
-        } else if (igCreds) {
-          storiesMediaId = await tryMetaGraphStory();
-        }
-        if (storiesMediaId) {
-          console.log(`[Batch] Successfully published Reel! Media ID: ${storiesMediaId}`);
-        }
-      } catch (err) {
-        console.warn(`[Batch] Story cross-post warning:`, err);
-      }
-
-      let threadsPostId: string | undefined;
-      if (threadsCreds) {
-        try {
-          console.log(`[Batch] Cross-posting to Threads...`);
-          const threads = await publishToThreads(verifiedImageUrl, caption, threadsCreds, fetchImpl, sleepImpl);
-          threadsPostId = threads.mediaId;
-          console.log(`[Batch] Successfully cross-posted to Threads! Post ID: ${threadsPostId}`);
-        } catch (err) {
-          console.warn(`[Batch] Threads cross-post warning:`, err);
-        }
+      if (reelResult?.mediaId) {
+        console.log(`[Batch] Successfully published Reel! Media ID: ${reelResult.mediaId}`);
       }
 
       await markPublished(db, postId, {
-        composedImagePath: relativePath,
-        igMediaId: feedResult.mediaId,
-        igPermalink: feedResult.permalink,
-        threadsPostId,
-        storiesMediaId,
+        composedImagePath: storyRelativePath,
+        igMediaId: reelResult.mediaId,
+        igPermalink: reelResult.permalink,
+        storiesMediaId: reelResult.mediaId,
         publishedAt: currentTime.toISOString(),
       });
       await recordModeOutcome(db, account.id, mode, true);

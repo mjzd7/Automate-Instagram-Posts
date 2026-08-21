@@ -56,7 +56,7 @@ jobs:
       - name: Organic start time jitter
         if: ${{ !inputs.fast }}
         run: |
-          JITTER_SEC=$((RANDOM % 1200))
+          JITTER_SEC=$((RANDOM % 60))
           echo "Applying organic anti-bot timing delay of ${JITTER_SEC} seconds..."
           sleep $JITTER_SEC
       - run: pnpm --filter core exec tsx scripts/run-post-batch.ts --account ${{ matrix.account_id }} ${{ inputs.force && '--force' || '' }} ${{ inputs.fast && '--fast' || '' }}
