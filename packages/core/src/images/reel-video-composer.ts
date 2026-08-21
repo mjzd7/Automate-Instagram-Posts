@@ -74,33 +74,22 @@ export async function createReelFromFeedImage(
     ghostVolume = 0.85,
   } = options;
 
-  // Output canvas: always 1080×1920 (9:16).
-  // 4K mode uses 18 Mbps bitrate to signal high quality to Instagram.
+  // Full 9:16 canvas
   const canvasW = 1080;
   const canvasH = 1920;
 
-  // 4:5 foreground display area (same aspect as the feed image)
-  const fgW = canvasW;       // 1080
-  const fgH = Math.round(canvasW * 5 / 4); // 1350
-
-  // Ken Burns: drift from 1.0× to 1.06× over the full duration
-  const kbDrift = (0.06 / Math.max(durationSeconds, 1)).toFixed(6);
-  // Zoom expression: base drift + exponential beat-sync pulse every 2 s using output frame number (on/30 = time in seconds)
-  const zoomExpr = `min(1.0+${kbDrift}*on/30+0.08*exp(-5*mod(on/30,2.0)),1.15)`;
+  // Infinite Seamless Loop: Symmetrical Cosine Wave
+  // Starts at 1.000x at t=0, smoothly swells to 1.050x at t=D/2, and returns smoothly to 1.000x at t=D
+  // Because zoom(0) === zoom(D) = 1.000x, when Instagram loops the video there is ZERO visual jump!
+  const zoomExpr = `(1.0+0.05*0.5*(1.0-cos(2*PI*(on/30)/${durationSeconds})))`;
   const xExpr = `iw/2-(iw/zoom/2)`;
   const yExpr = `ih/2-(ih/zoom/2)`;
 
   // Full filter_complex (single pass):
+  // Operates directly on the 9:16 native image for full-bleed immersion
   const filterComplex = [
-    // Pre-scale to 4000px wide to prevent zoompan pixel jitter, split into 2 streams for bg & fg branches
-    `[0:v]scale=4000:-1,split=2[hires1][hires2]`,
-    // Blurred background: scale to cover 9:16 canvas, crop to exact dims, heavy blur
-    `[hires1]scale=${canvasW}:${canvasH}:force_original_aspect_ratio=increase,crop=${canvasW}:${canvasH},gblur=sigma=30[bg]`,
-    // Foreground: Ken Burns zoom + beat-sync pulse on the 4:5 image area
-    `[hires2]zoompan=z='${zoomExpr}':x='${xExpr}':y='${yExpr}':d=1:s=${fgW}x${fgH}:fps=30[fg]`,
-    // Composite: fg centred over blurred bg
-    `[bg][fg]overlay=(W-w)/2:(H-h)/2[comp]`,
-    // Post-process: subtle vignette + unsharp sharpening filter for crisp text edges
+    `[0:v]scale=4000:-1[hires]`,
+    `[hires]zoompan=z='${zoomExpr}':x='${xExpr}':y='${yExpr}':d=1:s=${canvasW}x${canvasH}:fps=30[comp]`,
     `[comp]vignette=PI/6,unsharp=5:5:0.8:5:5:0.0[out]`,
   ].join("; ");
 

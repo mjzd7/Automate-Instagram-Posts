@@ -70,7 +70,7 @@ export async function searchMetaAudioTracks(
         displayArtist: item.display_artist ?? "Unknown Artist",
         durationMs: item.duration_in_ms ?? 180000,
         audioType: item.audio_type ?? "music",
-        downloadUrl: item.download_url,
+        downloadUrl: item.download_url ?? item.on_platform_audio_preview_link,
         previewUrl: item.on_platform_audio_preview_link,
         isAdsEligible: item.is_ads_eligible ?? true,
       }));

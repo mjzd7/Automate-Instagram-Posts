@@ -88,74 +88,9 @@ Posting consistent, high-quality quote content to Instagram manually is time-con
 
 ### System Overview
 
-```mermaid
-graph TB
-    subgraph "Execution Layer"
-        Scheduler[Cron Scheduler]
-        Scripts[Post Batch Scripts]
-    end
+<img src="diagrams/system-overview.svg" alt="System Overview - Automated Instagram Quote Poster" style="max-width:100%; height:auto;">
 
-    subgraph "Core Pipeline (packages/core)"
-        QuoteProvider[Quote Provider]
-        BackgroundProvider[Background Provider]
-        Matcher[Image-Quote Matcher]
-        Filter[Content Filter]
-        Compositor[Image Compositor]
-        HashtagSelector[Hashtag Selector]
-        Publisher[Instagram Publisher]
-    end
-
-    subgraph "Data Layer"
-        DB[(SQLite Database)]
-        Hashtags[data/hashtags.json]
-        Trending[data/trending-hashtags.json]
-    end
-
-    subgraph "External APIs"
-        GoogleVision[Google Cloud Vision]
-        Pexels[Pexels API]
-        Unsplash[Unsplash API]
-        Pixabay[Pixabay API]
-        Instagram[Instagram Graph API]
-        Discord[Discord Webhooks]
-        GitHub[GitHub CDN]
-    end
-
-    subgraph "Frontend (apps/web)"
-        Dashboard[Next.js Dashboard]
-        Auth[NextAuth.js]
-        API[API Routes]
-    end
-
-    Scheduler --> Scripts
-    Scripts --> QuoteProvider
-    QuoteProvider --> Matcher
-    Matcher --> BackgroundProvider
-    BackgroundProvider --> Filter
-    Filter --> Compositor
-    Compositor --> HashtagSelector
-    HashtagSelector --> Publisher
-    Publisher --> Instagram
-
-    QuoteProvider --> DB
-    BackgroundProvider --> DB
-    Matcher --> DB
-    Publisher --> DB
-
-    BackgroundProvider --> Pexels
-    BackgroundProvider --> Unsplash
-    BackgroundProvider --> Pixabay
-    Filter --> GoogleVision
-    Publisher --> Discord
-    Compositor --> GitHub
-
-    Hashtags --> HashtagSelector
-    Trending --> HashtagSelector
-
-    Dashboard --> Auth
-    Dashboard --> API
-    API --> DB
-```
+*Architecture diagram showing the core components and data flow of the Automated Instagram Quote Poster system.*
 
 ### Monorepo Structure
 
@@ -195,53 +130,7 @@ Automate-Instagram-Posts/
 
 ### Data Flow
 
-```mermaid
-sequenceDiagram
-    participant S as Scheduler/CLI
-    participant Q as Quote Provider
-    participant B as Background Provider
-    participant F as Content Filter
-    participant C as Compositor
-    participant H as Hashtag Selector
-    participant P as Publisher
-    participant IG as Instagram API
-    participant GH as GitHub CDN
-
-    S->>Q: Request quote (with fallbacks)
-    Q-->>S: Return quote + author
-
-    S->>B: Fetch candidate backgrounds
-    B->>B: Query Pexels/Unsplash/Pixabay
-    B-->>S: Return background candidates
-
-    S->>F: Check content safety
-    F->>F: Google Vision SafeSearch + Labels + OCR
-    F-->>S: Pass/Fail with reason
-
-    alt Background passes filter
-        S->>C: Compose image (9-step pipeline)
-        C->>C: Resize, vignette, grain, text, glass card, shadow
-        C-->>S: Return composed JPEG
-
-        S->>GH: Upload composed image
-        GH-->>S: Return public URL
-
-        S->>H: Select hashtags
-        H->>H: 1 fixed + 3 trending + 1 category
-        H-->>S: Return hashtag list
-
-        S->>P: Publish to Instagram
-        P->>IG: Create media object
-        P->>IG: Publish media
-        IG-->>P: Return post ID
-        P-->>S: Success with post ID
-
-        S->>S: Save post record to DB
-        S->>S: Git commit composed image
-    else Background fails filter
-        S->>S: Retry with next candidate
-    end
-```
+<img src="diagrams/data-flow.svg" alt="Data Flow - Quote-to-Post Pipeline" style="max-width:100%; height:auto;">
 
 ## Core Components
 
@@ -265,18 +154,7 @@ The quote pipeline provides a robust fallback chain to ensure posts can always b
 
 The image composition pipeline is a **9-step process** that transforms a quote and background into a publish-ready Instagram post:
 
-```mermaid
-flowchart LR
-    A[1. Background Resize<br/>1080x1350 fit:cover<br/>+ Ambient Blur] --> B
-    B[2. Radial Vignette<br/>Darken edges] --> C
-    C[3. Regional Blur<br/>If text zone busy] --> D
-    D[4. Grain Texture<br/>Generated fresh per call] --> E
-    E[5. Text Rendering<br/>Dynamic font sizing] --> F
-    F[6. Glass Card<br/>Semi-transparent bg] --> G
-    G[7. Text Shadow<br/>Improve readability] --> H
-    H[8. Final Composition<br/>All layers merged] --> I
-    I[9. JPEG Export<br/>quality:100 4:4:4]
-```
+<img src="diagrams/image-composition.svg" alt="Image Composition Pipeline - 9-Step Process" style="max-width:100%; height:auto;">
 
 **Key Implementation Details:**
 
@@ -303,21 +181,7 @@ flowchart LR
 
 The background provider manages image sourcing from multiple APIs with suitability scoring:
 
-```mermaid
-flowchart TB
-    A[Request Background] --> B{Check DB Cache}
-    B -->|Hit| C[Return Cached Background]
-    B -->|Miss| D[Fetch from APIs]
-    D --> E[Pexels]
-    D --> F[Unsplash]
-    D --> G[Pixabay]
-    E --> H[Apply Safety Filter]
-    F --> H
-    G --> H
-    H --> I[Score Suitability]
-    I --> J[Store in DB]
-    J --> K[Return Best Match]
-```
+<img src="diagrams/background-management.svg" alt="Background & Asset Management Pipeline" style="max-width:100%; height:auto;">
 
 **Background Sources:**
 - **Pexels**: `pexels-provider.ts` — Free stock photos
@@ -337,22 +201,7 @@ Composed images are committed to the repository and served via `raw.githubuserco
 
 The publishing layer handles Instagram Graph API and Threads API with comprehensive error handling:
 
-```mermaid
-flowchart LR
-    A[Generate Post] --> B{Check Rate Cap}
-    B -->|Exceeded| C[Skip Post]
-    B -->|OK| D{Check Posting Hour}
-    D -->|Not Window| E[Skip Post]
-    D -->|OK| F[Create Media Object]
-    F --> G[Upload Image]
-    G --> H[Publish to Instagram]
-    H --> I{Success?}
-    I -->|Yes| J[Save Post Record]
-    I -->|No| K[Retry with Backoff]
-    K -->|Max Retries| L[Mark Failed + Notify]
-    J --> M[Git Commit Image]
-    M --> N[Send Discord Notification]
-```
+<img src="diagrams/publishing-integration.svg" alt="Publishing & API Integration Workflow" style="max-width:100%; height:auto;">
 
 **Instagram API Flow:**
 1. **Create Media Object**: Upload image, get media ID

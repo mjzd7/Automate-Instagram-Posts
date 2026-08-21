@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg role="img" aria-labelledby="comp-title comp-desc" viewBox="0 0 900 300">
+<title id="comp-title">Image Composition Pipeline</title>
+<desc id="comp-desc">Flowchart showing the 9-step image composition pipeline from background resize through JPEG export for Instagram posts.</desc>
+
+<!-- Background -->
+<rect width="100%" height="100%" fill="#f5f5f5"/>
+
+<!-- Markers -->
+<defs>
+  <marker id="comp-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+  </marker>
+</defs>
+
+<!-- Step 1: Background Resize -->
+<rect x="40" y="100" width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="110" y="120" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">1. Background</text>
+<text x="110" y="135" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">Resize 1080x1350</text>
+<text x="110" y="148" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">+ Ambient Blur</text>
+
+<!-- Step 2: Radial Vignette -->
+<rect x="210" y="100" width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="280" y="120" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">2. Radial Vignette</text>
+<text x="280" y="135" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">Darken edges</text>
+
+<!-- Step 3: Regional Blur -->
+<rect x="380" y="100" width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="450" y="120" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">3. Regional Blur</text>
+<text x="450" y="135" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">If text zone busy</text>
+
+<!-- Step 4: Grain Texture -->
+<rect x="550" y="100" width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="620" y="120" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">4. Grain Texture</text>
+<text x="620" y="135" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">Generated fresh</text>
+
+<!-- Step 5: Text Rendering -->
+<rect x="720" y="100" width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="790" y="120" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">5. Text Rendering</text>
+<text x="790" y="135" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">Dynamic font sizing</text>
+
+<!-- Step 6: Glass Card -->
+<rect x="40" y="180" width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="110" y="200" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">6. Glass Card</text>
+<text x="110" y="213" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">Semi-transparent bg</text>
+
+<!-- Step 7: Text Shadow -->
+<rect x="210" y="180" width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="280" y="200" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">7. Text Shadow</text>
+<text x="280" y="213" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">Improve readability</text>
+
+<!-- Step 8: Final Composition -->
+<rect x="380" y="180" width="140" height="50" rx="6" fill="#eb6c36" fill-opacity="0.10" stroke="#eb6c36" stroke-width="1.2"/>
+<rect x="384" y="184" width="132" height="12" rx="2" fill="#ffffff"/>
+<text x="454" y="194" fill="#eb6c36" font-size="7" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.14em">FOCAL</text>
+<text x="454" y="204" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">8. Final</text>
+<text x="454" y="217" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">All layers</text>
+<text x="454" y="228" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">merged</text>
+
+<!-- Step 9: JPEG Export -->
+<rect x="550" y="180" width="140" height="50" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="620" y="200" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">9. JPEG Export</text>
+<text x="620" y="213" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">quality:100</text>
+<text x="620" y="226" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">4:4:4 chroma</text>
+
+<!-- Arrows -->
+<path d="M 180 125 L 210 125" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 350 125 L 380 125" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 520 125 L 550 125" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 690 125 L 720 125" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 180 150 L 180 175" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 180 175 L 350 175" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 350 175 L 350 150" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 520 175 L 520 150" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 690 175 L 690 150" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 180 150 L 520 150" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 690 150 L 720 150" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+<path d="M 720 150 L 720 175" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#comp-arrow)"/>
+
+</svg>

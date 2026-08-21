@@ -16,7 +16,7 @@ export async function fetchUnsplashPhoto(
   accessKey: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<UnsplashPhoto> {
-  const res = await fetchImpl(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}`, {
+  const res = await fetchImpl(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=portrait`, {
     headers: { Authorization: `Client-ID ${accessKey}` },
     signal: AbortSignal.timeout(8000),
   });

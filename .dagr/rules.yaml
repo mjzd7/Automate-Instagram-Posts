@@ -1,0 +1,21 @@
+version: 1
+rules:
+  - name: "Presentation & Pure Logic Layer Isolation"
+    source: "packages/core/src/content-filter/**"
+    disallow:
+      - "packages/core/src/db/**"
+      - "apps/web/**"
+    reason: "Content filtering logic must remain pure and free from direct DB / UI dependencies."
+
+  - name: "Crypto Package Isolation"
+    source: "packages/core/src/crypto/**"
+    disallow:
+      - "apps/web/**"
+      - "packages/core/src/db/**"
+    reason: "Cryptographic token encryption must not depend on database or UI layers."
+
+  - name: "App API Boundary"
+    source: "apps/web/app/api/**"
+    disallow:
+      - "packages/core/scripts/**"
+    reason: "Next.js API routes must not import one-off migration scripts."

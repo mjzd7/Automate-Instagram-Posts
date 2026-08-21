@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Overview - Automated Instagram Quote Poster</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:32px; font-family:'Instrument Serif',serif; background:#ffffff; }
+  .eyebrow { font-family:'Geist Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:#4f5d75; margin-bottom:8px; }
+  h1 { font-family:'Instrument Serif',serif; font-size:28px; font-weight:400; margin:0 0 16px; color:#2d3142; }
+  svg { width:100%; max-width:800px; height:auto; display:block; margin:0 auto; }
+  .zone { fill:#ffffff; stroke:#d0d7de; stroke-width:1; }
+  .zone-title { fill:#2d3142; font-size:11px; font-weight:600; font-family:'Geist',sans-serif; }
+  .accent-zone { fill:#eb6c36; fill-opacity:0.08; stroke:#eb6c36; stroke-width:1.2; }
+  .accent-zone-title { fill:#eb6c36; font-size:11px; font-weight:600; font-family:'Geist',sans-serif; }
+</style>
+</head>
+<body>
+<div class="eyebrow">SYSTEM OVERVIEW</div>
+<h1>Automated Instagram Quote Poster</h1>
+
+<svg role="img" aria-labelledby="sys-title sys-desc" viewBox="0 0 800 500">
+<title id="sys-title">System Overview</title>
+<desc id="sys-diagram">Architecture diagram showing the core components and data flow of the Automated Instagram Quote Poster system.</desc>
+
+<!-- Background -->
+<rect width="100%" height="100%" fill="#f5f5f5"/>
+
+<!-- Markers -->
+<defs>
+  <marker id="sys-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+  </marker>
+  <marker id="sys-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+  </marker>
+  <marker id="sys-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+  </marker>
+</defs>
+
+<!-- Zones -->
+<!-- Data Sources Zone -->
+<rect x="40" y="40" width="220" height="120" rx="8" class="zone"/>
+<text x="150" y="65" class="zone-title">Data Sources</text>
+<rect x="60" y="80" width="90" height="30" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="105" y="98" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Quote Provider</text>
+<rect x="60" y="120" width="90" height="30" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="105" y="138" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Background Provider</text>
+
+<!-- Core Processing Zone -->
+<rect x="280" y="40" width="240" height="120" rx="8" class="zone accent-zone"/>
+<text x="400" y="65" class="accent-zone-title">Core Processing</text>
+<rect x="300" y="80" width="100" height="30" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="350" y="98" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Scheduler</text>
+<rect x="300" y="120" width="100" height="30" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="350" y="138" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Quote Selector</text>
+<rect x="420" y="80" width="100" height="30" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="470" y="98" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Image Composer</text>
+<rect x="420" y="120" width="100" height="30" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="470" y="138" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Hashtag Selector</text>
+
+<!-- Publishing & Storage Zone -->
+<rect x="540" y="40" width="220" height="120" rx="8" class="zone"/>
+<text x="650" y="65" class="zone-title">Publishing & Storage</text>
+<rect x="560" y="80" width="100" height="30" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="610" y="98" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Publisher</text>
+<rect x="560" y="120" width="100" height="30" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="610" y="138" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Database</text>
+
+<!-- External Services -->
+<!-- Instagram API -->
+<rect x="40" y="200" width="160" height="60" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="120" y="225" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Instagram Graph API</text>
+<text x="120" y="245" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">Media creation & publishing</text>
+
+<!-- GitHub CDN -->
+<rect x="220" y="200" width="160" height="60" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="300" y="225" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">GitHub CDN</text>
+<text x="300" y="245" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">Image hosting & versioning</text>
+
+<!-- Local Storage -->
+<rect x="400" y="200" width="160" height="60" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="480" y="225" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Local Storage</text>
+<text x="480" y="245" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">SQLite DB & Git repo</text>
+
+<!-- Notifications -->
+<rect x="580" y="200" width="160" height="60" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="660" y="225" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Notifications</text>
+<text x="660" y="245" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">Discord alerts</text>
+
+<!-- Arrows -->
+<!-- Data Sources to Core -->
+<path d="M 180 100 L 280 100" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<text x="210" y="92" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">quotes, backgrounds</text>
+<path d="M 260 160 L 260 160" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<path d="M 180 160 L 260 160" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<text x="210" y="152" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">processed quotes</text>
+
+<!-- Core to Publishing -->
+<path d="M 520 100 L 540 100" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<text x="500" y="92" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">composed image</text>
+<path d="M 520 160 L 540 160" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<text x="500" y="152" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">metadata</text>
+
+<!-- Core to External -->
+<path d="M 400 160 L 400 200" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<path d="M 500 160 L 500 200" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<text x="430" y="175" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">composed JPEG</text>
+<text x="510" y="175" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">final image</text>
+
+<!-- Publishing flow -->
+<path d="M 660 100 L 660 200" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<text x="650" y="130" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">final post</text>
+<path d="M 660 260 L 660 300" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#sys-arrow)"/>
+<text x="650" y="270" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">notifications</text>
+
+<!-- External to Storage -->
+<path d="M 180 240 L 180 260" fill="none" stroke="#2e5aa8" stroke-width="1" marker-end="url(#sys-arrow-link)"/>
+<path d="M 180 260 L 480 260" fill="none" stroke="#2e5aa8" stroke-width="1" marker-end="url(#sys-arrow-link)"/>
+<text x="200" y="252" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">media URL</text>
+<path d="M 380 240 L 380 260" fill="none" stroke="#2e5aa8" stroke-width="1" marker-end="url(#sys-arrow-link)"/>
+<path d="M 380 260 L 480 260" fill="none" stroke="#2e5aa8" stroke-width="1" marker-end="url(#sys-arrow-link)"/>
+<text x="400" y="252" fill="#7a8399" font-size="8" font-family="'Geist Mono',monospace" text-anchor="middle">image asset</text>
+
+<!-- Focal elements -->
+<rect x="270" y="30" width="260" height="140" rx="8" fill="#eb6c36" fill-opacity="0.08" stroke="#eb6c36" stroke-width="1.2"/>
+<rect x="274" y="34" width="100" height="12" rx="2" fill="#ffffff"/>
+<text x="324" y="44" fill="#eb6c36" font-size="7" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.14em">FOCAL</text>
+<text x="324" y="54" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Core Processing</text>
+<text x="324" y="66" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">scheduler → composer</text>
+
+<rect x="410" y="220" width="160" height="60" rx="6" fill="#eb6c36" fill-opacity="0.08" stroke="#eb6c36" stroke-width="1.2"/>
+<rect x="414" y="224" width="100" height="12" rx="2" fill="#ffffff"/>
+<text x="464" y="234" fill="#eb6c36" font-size="7" font-family="'Geist Mono',monospace" text-anchor="middle" letter-spacing="0.14em">FOCAL</text>
+<text x="464" y="244" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist',sans-serif" text-anchor="middle">Local Storage</text>
+<text x="464" y="256" fill="#4f5d75" font-size="9" font-family="'Geist Mono',monospace" text-anchor="middle">DB + Git</text>
+
+<!-- Legend -->
+<line x1="40" y1="340" x2="760" y2="340" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="40" y="360" fill="#4f5d75" font-size="8" font-family="'Geist Mono',monospace" letter-spacing="0.14em">LEGEND</text>
+<text x="120" y="360" fill="#4f5d75" font-size="8" font-family="'Geist Mono',monospace">  <span class="legend-dot" style="background:#eb6c36;"></span> Focal Elements | <span class="legend-dot" style="background:#2e5aa8;"></span> External Storage | <span class="legend-dot" style="background:#4f5d75;"></span> Data Flow</text>
+</svg>
+</body>
+</html>

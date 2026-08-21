@@ -34,6 +34,10 @@ export interface ComposeInput {
   grainRandom?: () => number;
   /** Scale factor for native 4K generation (e.g. 2 for 4K). Default is 1 (1080p). */
   scale?: number;
+  /** Optional target width in logical pixels (default IMAGE_WIDTH 1080). */
+  targetWidth?: number;
+  /** Optional target height in logical pixels (default IMAGE_HEIGHT 1350). */
+  targetHeight?: number;
 }
 
 const AUTHOR_GAP_PX = 40; // Fix #10: was 24 — more breathing room between quote and author
@@ -77,10 +81,10 @@ async function renderTextShadow(
  * (quality 85) ready to write to data/posts/.
  */
 export async function composeImage(input: ComposeInput): Promise<Buffer> {
-  const { backgroundBuffer, quoteText, author, template, mode, suitability, grainRandom, scale = 1 } = input;
+  const { backgroundBuffer, quoteText, author, template, mode, suitability, grainRandom, scale = 1, targetWidth = IMAGE_WIDTH, targetHeight = IMAGE_HEIGHT } = input;
 
-  const W = IMAGE_WIDTH * scale;
-  const H = IMAGE_HEIGHT * scale;
+  const W = targetWidth * scale;
+  const H = targetHeight * scale;
   const cardHorizMargin = CARD_HORIZONTAL_MARGIN_PX * scale;
   const cardVertMargin = CARD_VERTICAL_MARGIN_PX * scale;
   const cardPaddingX = CARD_PADDING_X_PX * scale;

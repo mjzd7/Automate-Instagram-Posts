@@ -71,6 +71,20 @@ async function makeFetchImpl(overrides: Partial<Record<string, RouteHandler>> = 
     "example.com/bg": () => new Response(solidBg),
     "api.jina.ai": () => jsonResponse(200, { data: [{ embedding: [1, 0, 0] }] }),
     "graph.facebook.com": (url: string) => {
+      if (url.includes("ig_audio")) {
+        return jsonResponse(200, {
+          audio: [
+            {
+              audio_id: "meta-track-1",
+              title: "Meta Ambient Track",
+              display_artist: "Meta Artist",
+              duration_in_ms: 180000,
+              download_url: "https://example.com/audio.mp3",
+              is_ads_eligible: true,
+            },
+          ],
+        });
+      }
       if (url.includes("/media_publish")) return jsonResponse(200, { id: "ig-media-1" });
       if (url.includes("/comments")) return jsonResponse(200, { id: "comment-1" });
       if (url.includes("fields=status_code")) return jsonResponse(200, { status_code: "FINISHED" });
@@ -201,7 +215,7 @@ describe("generateAndPublishBatch", () => {
     let ignoreFirstFeedCreate = true;
     const fetchImpl = await makeFetchImpl({
       "graph.facebook.com": (url: string) => {
-        if (!url.includes("media_publish") && !url.includes("comments") && !url.includes("fields=") && ignoreFirstFeedCreate) {
+        if (!url.includes("ig_audio") && !url.includes("media_publish") && !url.includes("comments") && !url.includes("fields=") && ignoreFirstFeedCreate) {
           ignoreFirstFeedCreate = false;
           return jsonResponse(400, { error: { message: "Simulated container failure" } });
         }

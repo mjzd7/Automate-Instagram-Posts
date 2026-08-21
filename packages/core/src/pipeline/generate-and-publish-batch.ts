@@ -22,6 +22,7 @@ import type { Darkness } from "../images/darkness-classifier.js";
 import { composeImage } from "../images/compositor.js";
 import { createReelFromFeedImage } from "../images/reel-video-composer.js";
 import { selectStoryAudio } from "../audio/audio-selector.js";
+import { searchMetaAudioTracks, type MetaAudioTrack } from "../audio/meta-audio-client.js";
 import { matchBestBackground } from "../matching/image-quote-matcher.js";
 import { checkDuplicate } from "../matching/duplicate-detector.js";
 import { scoreSuitability } from "../images/suitability-scorer.js";
@@ -392,12 +393,27 @@ export async function generateAndPublishBatch(
         });
       }
 
+      // Query Meta Audio API if Instagram credentials are available
+      let availableTracks: MetaAudioTrack[] = [];
+      if (igCreds?.igUserId && igCreds?.accessToken) {
+        try {
+          availableTracks = await searchMetaAudioTracks({
+            igUserId: igCreds.igUserId,
+            accessToken: igCreds.accessToken,
+            query: category,
+            fetchImpl,
+          });
+        } catch {
+          availableTracks = [];
+        }
+      }
+
       // Select matched audio track
       const audioSelection = selectStoryAudio({
         category,
         mode,
         quoteLength: quote.text.split(" ").length,
-        availableTracks: [],
+        availableTracks,
         random,
       });
 
@@ -421,10 +437,23 @@ export async function generateAndPublishBatch(
       const wordCount = quote.text.split(/\s+/).length;
       const calculatedDuration = Math.max(5, Math.min(Math.ceil((wordCount / 200) * 60 + 1.0), 15));
 
-      // Compose the Reel video: feed image → blurred BG + Ken Burns + VFX + audio
-      console.log(`[Batch] Composing Reel video from feed image with audio: "${audioSelection.track.title}" (${feedScale === 2 ? '4K bitrate' : '1080p'})...`);
+      // Version 2: Native 9:16 cutout composed directly from the raw background image
+      const reelImageBuffer = await composeImage({
+        backgroundBuffer,
+        quoteText: quote.text,
+        author: quote.author,
+        template,
+        mode,
+        suitability,
+        scale: feedScale,
+        targetWidth: 1080,
+        targetHeight: 1920,
+      });
+
+      // Compose the Reel video: native 9:16 full-bleed image → Ken Burns cosine infinite loop + VFX + audio
+      console.log(`[Batch] Composing native 9:16 Reel video from raw background with audio: "${audioSelection.track.title}" (${feedScale === 2 ? '4K bitrate' : '1080p'})...`);
       const storyVideoResult = await createReelFromFeedImage({
-        feedImageBuffer: imageBuffer,
+        feedImageBuffer: reelImageBuffer,
         audioBuffer,
         startOffsetSeconds: audioSelection.peakStartSecond,
         durationSeconds: calculatedDuration,
