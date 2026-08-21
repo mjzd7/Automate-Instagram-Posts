@@ -6,6 +6,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../../src/images/reel-video-composer.js", () => ({
   createReelFromFeedImage: vi.fn().mockResolvedValue({ videoBuffer: Buffer.from("mock-reel-video"), durationSeconds: 15 })
 }));
+
+vi.mock("../../src/pipeline/video-compositor.js", () => ({
+  composeVideoReel: vi.fn().mockImplementation(async (text, category, storyAbsolutePath) => {
+    const fs = await import("node:fs/promises");
+    const coverPath = storyAbsolutePath.replace(/\.mp4$/, "-cover.jpg");
+    await fs.mkdir(storyAbsolutePath.slice(0, storyAbsolutePath.lastIndexOf("/")), { recursive: true });
+    await fs.writeFile(storyAbsolutePath, Buffer.from("mock-video"));
+    await fs.writeFile(coverPath, Buffer.from("mock-cover"));
+    return { videoPath: storyAbsolutePath, coverImagePath: coverPath };
+  })
+}));
 import { openDb, type DbHandle } from "../../src/db/client.js";
 import { insertQuote } from "../../src/db/repositories/quotes.repo.js";
 import { insertBackground, updateDarkness } from "../../src/db/repositories/backgrounds.repo.js";

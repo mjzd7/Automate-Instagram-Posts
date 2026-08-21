@@ -169,16 +169,16 @@ export async function composeVideoReel(
       
     const halfDuration = totalVideoDuration / 2;
     const filterGraph = [
-      // 1. Create a seamless Ping-Pong loop so frame 0 and frame N are identical
-      `[0:v]trim=start=0:end=${halfDuration},setpts=PTS-STARTPTS[v_fwd]`,
+      // 1. Scale and crop to fit 9:16 perfectly first (reduces memory consumption for reverse)
+      `[0:v]scale=${REEL_WIDTH}:${REEL_HEIGHT}:force_original_aspect_ratio=increase,crop=${REEL_WIDTH}:${REEL_HEIGHT}[bg_scaled]`,
+
+      // 2. Create a seamless Ping-Pong loop so frame 0 and frame N are identical
+      `[bg_scaled]trim=start=0:end=${halfDuration},setpts=PTS-STARTPTS[v_fwd]`,
       `[v_fwd]reverse[v_rev]`,
       `[v_fwd][v_rev]concat=n=2:v=1:a=0[bg_pingpong]`,
-
-      // 2. Scale and crop to fit 9:16 perfectly without breaking the loop
-      `[bg_pingpong]scale=${REEL_WIDTH}:${REEL_HEIGHT}:force_original_aspect_ratio=increase,crop=${REEL_WIDTH}:${REEL_HEIGHT}[bg_scaled]`,
       
       // 3. Overlay the static UI layer (borders, badges, semi-transparent gradient fill)
-      `[bg_scaled][1:v]overlay=${cardX}:${cardY}[bg_with_ui]`,
+      `[bg_pingpong][1:v]overlay=${cardX}:${cardY}[bg_with_ui]`,
       
       // Create drop shadow for text frames
       `[2:v]split[text_main][text_shadow]`,
