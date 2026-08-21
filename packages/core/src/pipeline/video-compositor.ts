@@ -4,7 +4,7 @@ import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import sharp from "sharp";
 import { renderGlassCard } from "../images/glass-card.js";
 import { renderFittedText } from "../images/text-render.js";
-import { generateTypewriterSequence } from "../images/typewriter.js";
+import { generateTypewriterSequence } from "../images/typewriter";
 import { fetchPexelsVideo } from "./video-fetcher.js";
 import { selectTemplate } from "../images/templates.js";
 import { 
