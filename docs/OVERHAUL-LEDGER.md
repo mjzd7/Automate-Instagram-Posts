@@ -15,7 +15,7 @@
 | P3b/c | categories/templates/history/preview pages still use deleted Elias-Thorne classes (readable but unstyled) | ⏳ TODO | — | rebuild on components/ui.tsx primitives like overview/accounts pattern |
 | P3a-lite | overview+accounts NOT yet rebuilt either (still old classes; tokens gone so partially unstyled) | ⏳ TODO | — | same pattern |
 | P8 | Vercel finalize + freshness badge + ops docs | ⏳ TODO | — | env: DASHBOARD_GITHUB_PAT(fine-grained contents:rw this repo), NEXTAUTH_SECRET, DASHBOARD_PASSWORD_HASH; GH-Pages rejected static-only |
-| P9 | e2e coverage expansion (schedules save, pipeline generate/render, sha-conflict banner, double-submit, dangling category), .github/workflows/e2e.yml PR gate, 404/error.tsx, DoD closeout | ⏳ TODO | — | auth setup project exists; extend smoke.spec.ts patterns |
+| P9 | CI e2e gate + styled error/404 pages | ◐ partial | (this commit) | DONE: .github/workflows/e2e.yml PR-gate, (dashboard)/error.tsx retry card, app/not-found.tsx w/ back-home link. REMAINING: expand smoke.spec.ts to schedules-save + pipeline-generate/render flows; DoD closeout sweep |
 
 ## Verification state at last commit (c8a4a4f)
 - web tsc clean · eslint clean on ALL touched files
