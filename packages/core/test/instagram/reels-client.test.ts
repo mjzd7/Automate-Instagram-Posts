@@ -24,37 +24,42 @@ function containerCreateBody(fetchImpl: ReturnType<typeof vi.fn>): Record<string
 }
 
 describe("publishToReels", () => {
-  it("sends audio_id on container creation when options.audioId is set (licensed-track attribution)", async () => {
+  it("sends audio_configuration on container creation when options.audioId is set (licensed-track attribution)", async () => {
     const fetchImpl = reelFetchMock();
     const result = await publishToReels("https://example.com/reel.mp4", "cap", creds, fetchImpl, noSleep, {
       audioId: "1784140000999",
     });
     expect(result).toEqual({ mediaId: "media-456" });
-    expect(containerCreateBody(fetchImpl)).toMatchObject({
+    const body = containerCreateBody(fetchImpl);
+    expect(body).toMatchObject({
       media_type: "REELS",
       video_url: "https://example.com/reel.mp4",
       caption: "cap",
       access_token: "test-token",
-      audio_id: "1784140000999",
     });
-  });
-
-  it("omits audio_id when options.audioId is not set (original-audio behaviour preserved)", async () => {
-    const fetchImpl = reelFetchMock();
-    await publishToReels("https://example.com/reel.mp4", "cap", creds, fetchImpl, noSleep);
-    const body = containerCreateBody(fetchImpl);
+    expect(JSON.parse(body.audio_configuration as string)).toEqual({
+      audio_id: "1784140000999",
+      audio_volume: 100,
+      video_volume: 0,
+    });
     expect(body.audio_id).toBeUndefined();
   });
 
-  it("still sends cover_url alongside audio_id when both options are set", async () => {
+  it("omits audio_configuration when options.audioId is not set (original-audio behaviour preserved)", async () => {
+    const fetchImpl = reelFetchMock();
+    await publishToReels("https://example.com/reel.mp4", "cap", creds, fetchImpl, noSleep);
+    const body = containerCreateBody(fetchImpl);
+    expect(body.audio_configuration).toBeUndefined();
+  });
+
+  it("still sends cover_url alongside audio_configuration when both options are set", async () => {
     const fetchImpl = reelFetchMock();
     await publishToReels("https://example.com/reel.mp4", "cap", creds, fetchImpl, noSleep, {
       coverUrl: "https://example.com/cover.jpg",
       audioId: "42",
     } satisfies PublishToReelsOptions);
-    expect(containerCreateBody(fetchImpl)).toMatchObject({
-      cover_url: "https://example.com/cover.jpg",
-      audio_id: "42",
-    });
+    const body = containerCreateBody(fetchImpl);
+    expect(body.cover_url).toBe("https://example.com/cover.jpg");
+    expect(JSON.parse(body.audio_configuration as string)).toMatchObject({ audio_id: "42" });
   });
 });

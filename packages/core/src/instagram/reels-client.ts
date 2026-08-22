@@ -7,11 +7,11 @@ import {
 export interface PublishToReelsOptions {
   coverUrl?: string;
   /**
-   * Numeric audio ID of a licensed track from Meta's ig_audio catalog.
-   * Without it Instagram labels the reel's audio as "Original audio" even
-   * when the MP4 has a licensed track mixed in. Fallback-catalog placeholder
-   * IDs (e.g. "fallback-mindset-01") must NOT be passed here -- guard with
-   * a numeric check at the call site.
+   * Numeric audio ID of a licensed track from Meta's ig_audio catalog
+   * (audio_type=music). Sent via audio_configuration so the reel displays
+   * the track's title/artist and is searchable under that music. Top-level
+   * audio_id fields are silently ignored by the Graph API. Placeholder
+   * fallback-catalog IDs must be filtered out by the caller (numeric check).
    */
   audioId?: string;
 }
@@ -39,8 +39,15 @@ export async function publishToReels(
     mediaBody.cover_url = options.coverUrl;
   }
 
+  // The MP4 must still CONTAIN an audio stream (silent videos fail with
+  // error 2207082); video_volume: 0 mutes our embedded ghost mix so the
+  // catalog track plays without double-playing the same song.
   if (options?.audioId) {
-    mediaBody.audio_id = options.audioId;
+    mediaBody.audio_configuration = JSON.stringify({
+      audio_id: options.audioId,
+      audio_volume: 100,
+      video_volume: 0,
+    });
   }
 
   const createRes = await fetchImpl(`${GRAPH_API_BASE}/${creds.igUserId}/media`, {
