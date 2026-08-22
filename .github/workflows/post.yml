@@ -14,6 +14,10 @@ on:
         description: "Skip organic jitter delay and inter-post gaps (for testing)"
         type: boolean
         default: false
+      single:
+        description: "Post only a single Reel instead of a full batch"
+        type: boolean
+        default: false
 
 permissions:
   contents: write # commit-batch.ts pushes data/app.db + data/posts/ changes
@@ -60,7 +64,7 @@ jobs:
           JITTER_SEC=$((RANDOM % 60))
           echo "Applying organic anti-bot timing delay of ${JITTER_SEC} seconds..."
           sleep $JITTER_SEC
-      - run: pnpm --filter core exec tsx scripts/run-post-batch.ts --account ${{ matrix.account_id }} ${{ inputs.force && '--force' || '' }} ${{ inputs.fast && '--fast' || '' }}
+      - run: pnpm --filter core exec tsx scripts/run-post-batch.ts --account ${{ matrix.account_id }} ${{ inputs.force && '--force' || '' }} ${{ inputs.fast && '--fast' || '' }} ${{ inputs.single && '--single' || '' }}
         env:
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
           GOOGLE_CLOUD_VISION_API_KEY: ${{ secrets.GOOGLE_CLOUD_VISION_API_KEY }}
