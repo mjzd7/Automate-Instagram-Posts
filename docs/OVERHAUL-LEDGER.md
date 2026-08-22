@@ -1,27 +1,30 @@
 # Dashboard Overhaul — Execution Ledger
 
-> Living tracker for `.omo/plans/dashboard-dagr-overhaul.md` (read that file FIRST for full context: design tokens, decided ledger A/D/G/X items, veto-list).
-> Any agent picking this up: find the first phase below without ✅ and continue from there. Update this file after EVERY task.
+> Plan of record: `.omo/plans/dashboard-dagr-overhaul.md` (tokens, decided ledger, veto-list).
+> Any agent: resume at first non-✅ row. Stage only your own files (tree carries unrelated churn). Gates before every commit.
 
-| Phase | Scope | Status | Commit | Evidence |
+| Phase | Scope | Status | Commit | Notes |
 |---|---|---|---|---|
-| P0 | Persist plan, resolve plan.md §11 open item, create ledger | ✅ done 2026-08-23 | `docs(plan): resolve §11 visual item, adopt Monochrome Titanium overhaul plan` | this file + §11 edit |
-| P1 | Playwright scaffold: config :3100, mock-writer seam, auth storageState fixture, seeded fixtures, smoke spec | ✅ done 2026-08-23 | `274b1a6` | vitest 467/467 · playwright 6/6 · eslint+tsc clean on touched files (pre-existing core tsc/eslint failures documented) |
-| P2 | Design system core: @theme Monochrome Titanium, next/font trio, 6 primitives, pill Nav (+Schedules/Pipeline), kill Nebula+three, Tri-Node logo/favicon verbatim | ⏳ pending | | |
-| P3a | Overview + Accounts pages rebuild | ⏳ pending | | |
-| P3b | Categories + Templates pages (enabledTemplates editor) | ⏳ pending | | |
-| P3c | Preview + History pages | ⏳ pending | | |
-| P4 | Schedule domain: schema extensions, wall-time.ts Intl conversions, generator.ts pure fn, regenerateMonth contract | ✅ done 2026-08-23 | (this commit) | vitest 483/483 repo-wide incl. 16 schedule tests; eslint+tsc clean on touched files |
-| P5 | Schedules editor UI | ⏳ pending | | |
-| P6 | Pipeline engine wiring: month-file generate/regen actions, runner binding + status→app.db + legacy fallback + kill-switch | ⏳ pending | | |
-| P7 | Pipeline viewer (month calendar) + builder stepper UI | ⏳ pending | | |
-| P8 | Vercel deploy finalization + ops docs + freshness badge | ⏳ pending | | |
-| P9 | Full e2e matrix + CI e2e.yml + 404/error pages + DoD closeout | ⏳ pending | | |
+| P0 | plan persistence, §11 resolution, ledger | ✅ | b9065a5 | |
+| P1 | Playwright scaffold, writer seam, auth fixture, fixtures db/jsons, smoke 6/6 | ✅ | 274b1a6 | fixture app.db minted from core migrations (strip `--> statement-breakpoint` BEFORE executeMultiple) |
+| P2 | Monochrome Titanium @theme, next/font trio, primitives ui.tsx, pill Nav+TriNodeMark, icon.svg, kill Nebula+three, login/forms reskin | ✅ | f6ab0db | |
+| P4 | schema extensions, wall-time.ts, generator.ts, regenerateMonth | ✅ | a91168d | 16 tests incl DST NY/Auckland, half-hour zones, leap 2028 |
+| P5 | /schedules editor (tz/hours/cap/blackouts/pause → accounts.json) | ✅ | 08db4d8 | |
+| P6 | schedule/due.ts runner contract | ✅ core primitive | 14484f6 | REMAINING: branch inside packages/core/scripts/run-post-batch.ts consuming dueEntries(file,accountId,now,tz) when data/pipeline/<month>.json exists; pipeline_status write-back to app.db |
+| P7 | /pipeline viewer (calendar grid) + builder (generate/regen month) | ✅ | c8a4a4f | buildPipeline action merges via regenerateMonth |
+| P3b/c | categories/templates/history/preview pages still use deleted Elias-Thorne classes (readable but unstyled) | ⏳ TODO | — | rebuild on components/ui.tsx primitives like overview/accounts pattern |
+| P3a-lite | overview+accounts NOT yet rebuilt either (still old classes; tokens gone so partially unstyled) | ⏳ TODO | — | same pattern |
+| P8 | Vercel finalize + freshness badge + ops docs | ⏳ TODO | — | env: DASHBOARD_GITHUB_PAT(fine-grained contents:rw this repo), NEXTAUTH_SECRET, DASHBOARD_PASSWORD_HASH; GH-Pages rejected static-only |
+| P9 | e2e coverage expansion (schedules save, pipeline generate/render, sha-conflict banner, double-submit, dangling category), .github/workflows/e2e.yml PR gate, 404/error.tsx, DoD closeout | ⏳ TODO | — | auth setup project exists; extend smoke.spec.ts patterns |
 
-## Ground rules (binding)
-- Stage ONLY your own files — working tree contains unrelated pipeline churn (image prunes, .dagr/*). Never `git add -A`.
-- Gates before each commit: `pnpm -r typecheck`, lint, affected vitest; playwright from P1 on. Paste outputs in phase evidence.
-- Mock-writer seam: server actions import writer from `apps/web/lib/writer.ts`; octokit never imported directly elsewhere. Prod build throws if `DASHBOARD_LOCAL_FS` set.
-- Pipeline entries store LOCAL date+hour only; UTC derived via Intl at use-site. Never manual offsets.
-- Every interactive element gets `data-testid`.
-- Commit titles fixed per phase (see plan file §3); body lists what was added and why.
+## Verification state at last commit (c8a4a4f)
+- web tsc clean · eslint clean on ALL touched files
+- repo vitest 483/483 except 1 PRE-EXISTING flake story-compositor 5s-timeout under load (passes isolated)
+- playwright 6/6 (login/auth/redirect/nav/accounts list/add/delete through seam)
+
+## Gotchas learned (do not rediscover)
+- getByLabel needs htmlFor/id pairs (AccountForm fixed; keep the pattern in all new forms).
+- Duplicate embedded AccountForms → scope locators to form filtered by its submit button.
+- Playwright reuseExistingServer can attach an ORPHANED server missing new env vars — lsof -ti :3100 and kill between runs.
+- libsql executeMultiple does NOT tolerate drizzle's `--> statement-breakpoint`; replace token with newline, never drop lines (inline markers carry statements!).
+- vitest must exclude apps/web/e2e (root vitest.config.ts exclude) — do not shadow root config from apps/web.
