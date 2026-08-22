@@ -14,7 +14,8 @@
 | P7 | /pipeline viewer (calendar grid) + builder (generate/regen month) | ✅ | c8a4a4f | buildPipeline action merges via regenerateMonth |
 | P3a-c | ALL six dashboard pages rebuilt on ui.tsx primitives | ✅ | c6bdab3 d2ca524 5cdfee2 | overview gains StatBlock grid + failure Banner + recent table; history pill filter + mono table |
 | P8 | Vercel finalize + freshness badge + ops docs | ⏳ TODO | — | env: DASHBOARD_GITHUB_PAT(fine-grained contents:rw this repo), NEXTAUTH_SECRET, DASHBOARD_PASSWORD_HASH; GH-Pages rejected static-only |
-| P9 | CI e2e gate + styled error/404 pages | ◐ partial | (this commit) | DONE: .github/workflows/e2e.yml PR-gate, (dashboard)/error.tsx retry card, app/not-found.tsx w/ back-home link. REMAINING: expand smoke.spec.ts to schedules-save + pipeline-generate/render flows; DoD closeout sweep |
+| P9 | FULL: features.spec.ts (schedules save+tz-reject w/ fixture self-heal, pipeline generate/render/regen id-stability) + CI gate + error/404 | ✅ | (this commit) | playwright 9/9 · vitest 483/483 · core tsc no new errors · extensionless imports in new schedule modules (turbopack literal-resolution gotcha) |
+| v1.1 backlog | pipeline_status write-back to app.db for live status chips; chip-grid hours UI replacing csv input | ⏳ deferred | — | |
 
 ## Verification state at last commit (c8a4a4f)
 - web tsc clean · eslint clean on ALL touched files

@@ -1,5 +1,5 @@
 import type { Account } from "../config/accounts.js";
-import { daysInMonth, resolveWallTime } from "./wall-time.js";
+import { daysInMonth, resolveWallTime } from "./wall-time";
 
 export type PipelineEntryStatus = "planned" | "published" | "failed" | "skipped";
 

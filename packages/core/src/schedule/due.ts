@@ -1,5 +1,5 @@
-import type { PipelineFile, PipelineEntry } from "./generator.js";
-import { localDateIso, localHour } from "./wall-time.js";
+import type { PipelineFile, PipelineEntry } from "./generator";
+import { localDateIso, localHour } from "./wall-time";
 
 /**
  * Binding-lite runner contract: returns this account's PLANNED entries whose

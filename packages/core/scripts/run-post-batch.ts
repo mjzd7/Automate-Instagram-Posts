@@ -6,8 +6,8 @@ import { loadEnv } from "../src/config/env.js";
 import { openDb } from "../src/db/client.js";
 import { commitBatch } from "../src/git/commit-batch.js";
 import { generateAndPublishBatch, HASHTAG_CATEGORIES_PATH } from "../src/pipeline/generate-and-publish-batch.js";
-import { dueEntries } from "../src/schedule/due.js";
-import type { PipelineFile } from "../src/schedule/generator.js";
+import { dueEntries } from "../src/schedule/due";
+import type { PipelineFile } from "../src/schedule/generator";
 
 // packages/core/scripts/ -> packages/core/ -> packages/ -> repo root. Computed
 // from this file's own location (not process.cwd()) so the script behaves
