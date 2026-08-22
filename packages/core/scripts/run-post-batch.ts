@@ -6,6 +6,8 @@ import { loadEnv } from "../src/config/env.js";
 import { openDb } from "../src/db/client.js";
 import { commitBatch } from "../src/git/commit-batch.js";
 import { generateAndPublishBatch, HASHTAG_CATEGORIES_PATH } from "../src/pipeline/generate-and-publish-batch.js";
+import { dueEntries } from "../src/schedule/due.js";
+import type { PipelineFile } from "../src/schedule/generator.js";
 
 // packages/core/scripts/ -> packages/core/ -> packages/ -> repo root. Computed
 // from this file's own location (not process.cwd()) so the script behaves
@@ -36,7 +38,6 @@ async function main(): Promise<void> {
   const dryRun = argv.includes("--dry-run");
   const force = argv.includes("--force");
   const single = argv.includes("--single");
-  const fast = argv.includes("--fast") || argv.includes("--no-delay");
   const countArg = parseCountArg(argv);
   const batchSize = countArg ?? (single ? 1 : undefined);
 
@@ -56,6 +57,13 @@ async function main(): Promise<void> {
   const accounts = await loadAccounts(`${repoRoot}/data/accounts.json`);
   const account = findAccount(accounts, accountId);
 
+  // Kill-switch (dashboard Schedules page): a paused account never posts
+  // unless a human forces the run.
+  if (account.paused && !force && !dryRun) {
+    console.log(`run-post-batch: account ${accountId} is paused; exiting`);
+    return;
+  }
+
   const githubRepoSlug = process.env.GITHUB_REPOSITORY ?? "mjzd7/Automate-Instagram-Posts";
 
   const hashtagPools = JSON.parse(await readFile(`${repoRoot}/${HASHTAG_CATEGORIES_PATH}`, "utf-8")) as Record<
@@ -65,8 +73,31 @@ async function main(): Promise<void> {
   try {
     const trending = JSON.parse(await readFile(`${repoRoot}/data/trending-hashtags.json`, "utf-8")) as string[];
     hashtagPools.trending = trending;
-  } catch (error) {
+  } catch {
     console.warn("run-post-batch: No trending-hashtags.json found, skipping trending injection.");
+  }
+
+  // Binding-lite contract: when a current-month pipeline file exists it
+  // governs this account -- execute exactly its due planned slots and skip
+  // otherwise. Absent file -> legacy ad-hoc behaviour. --force bypasses.
+  let effectiveBatchSize = batchSize;
+  const now = new Date();
+  const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  if (!force) {
+    try {
+      const raw = JSON.parse(
+        await readFile(`${repoRoot}/data/pipeline/${month}.json`, "utf-8"),
+      ) as PipelineFile;
+      const due = dueEntries(raw, accountId, now, account.timezone);
+      console.log(`run-post-batch: pipeline ${month} governs ${accountId} (${due.length} due)`);
+      if (due.length === 0) {
+        console.log(`run-post-batch: nothing due in pipeline for ${accountId}; exiting`);
+        return;
+      }
+      effectiveBatchSize = batchSize ?? due.length;
+    } catch {
+      console.log(`run-post-batch: no pipeline file for ${month}; legacy ad-hoc mode`);
+    }
   }
 
   const dbHandle = await openDb(`file:${repoRoot}/data/app.db`);
@@ -81,7 +112,7 @@ async function main(): Promise<void> {
       dryRun,
       ignorePostingHour: force,
       ignoreRateCap: force,
-      batchSize,
+      batchSize: effectiveBatchSize,
       noDelay: true,
     });
 

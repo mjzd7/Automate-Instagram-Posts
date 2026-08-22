@@ -10,10 +10,9 @@
 | P2 | Monochrome Titanium @theme, next/font trio, primitives ui.tsx, pill Nav+TriNodeMark, icon.svg, kill Nebula+three, login/forms reskin | ✅ | f6ab0db | |
 | P4 | schema extensions, wall-time.ts, generator.ts, regenerateMonth | ✅ | a91168d | 16 tests incl DST NY/Auckland, half-hour zones, leap 2028 |
 | P5 | /schedules editor (tz/hours/cap/blackouts/pause → accounts.json) | ✅ | 08db4d8 | |
-| P6 | schedule/due.ts runner contract | ✅ core primitive | 14484f6 | REMAINING: branch inside packages/core/scripts/run-post-batch.ts consuming dueEntries(file,accountId,now,tz) when data/pipeline/<month>.json exists; pipeline_status write-back to app.db |
+| P6 | runner binding + kill-switch wired into run-post-batch.ts | ✅ | (this commit) | paused→exit; pipeline file present→due-only execution (batchSize=due count), nothing-due→exit, absent file→legacy ad-hoc; --force bypasses all. REMAINING (v1.1): pipeline_status write-back to app.db for viewer status chips |
 | P7 | /pipeline viewer (calendar grid) + builder (generate/regen month) | ✅ | c8a4a4f | buildPipeline action merges via regenerateMonth |
-| P3b/c | categories/templates/history/preview pages still use deleted Elias-Thorne classes (readable but unstyled) | ⏳ TODO | — | rebuild on components/ui.tsx primitives like overview/accounts pattern |
-| P3a-lite | overview+accounts NOT yet rebuilt either (still old classes; tokens gone so partially unstyled) | ⏳ TODO | — | same pattern |
+| P3a-c | ALL six dashboard pages rebuilt on ui.tsx primitives | ✅ | c6bdab3 d2ca524 5cdfee2 | overview gains StatBlock grid + failure Banner + recent table; history pill filter + mono table |
 | P8 | Vercel finalize + freshness badge + ops docs | ⏳ TODO | — | env: DASHBOARD_GITHUB_PAT(fine-grained contents:rw this repo), NEXTAUTH_SECRET, DASHBOARD_PASSWORD_HASH; GH-Pages rejected static-only |
 | P9 | CI e2e gate + styled error/404 pages | ◐ partial | (this commit) | DONE: .github/workflows/e2e.yml PR-gate, (dashboard)/error.tsx retry card, app/not-found.tsx w/ back-home link. REMAINING: expand smoke.spec.ts to schedules-save + pipeline-generate/render flows; DoD closeout sweep |
 
