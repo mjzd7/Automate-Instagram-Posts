@@ -24,7 +24,7 @@ export default async function OverviewPage() {
 
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Overview" subtitle="Last 24 hours across all accounts" />
+        <PageHeader title="Overview" subtitle="Last 24 hours across all accounts · data as of last deploy" />
 
         {recentFailures.length > 0 && (
           <Banner variant="error">

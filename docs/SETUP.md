@@ -185,3 +185,10 @@ Then sign in at `/login` with the plaintext password matching `DASHBOARD_PASSWOR
 ## Ongoing operation
 
 Once §10–§16 are done, the system runs unattended: `post.yml` fires hourly and no-ops outside each account's configured posting hours; `refresh-token.yml` fires weekly. The only recurring maintenance is watching the configured Discord webhook for failure alerts — a systemic failure (e.g. an expired token, or 3 consecutive post failures) surfaces there, not just in GitHub's own Actions UI.
+
+### Schedules kill-switch
+
+Pausing an account on the dashboard's Schedules page sets `paused` in
+`data/accounts.json`; `run-post-batch.ts` exits before any posting for that
+account (a manual `--force` run overrides). This works whether or not a
+month pipeline file exists.
