@@ -11,18 +11,18 @@ export function CategoryForm({ category }: { category?: Category }) {
       <input type="hidden" name="originalId" value={category?.id ?? ""} />
 
       <div>
-        <label className={labelClass}>Category id (slug)</label>
-        <input name="id" defaultValue={category?.id} required className={inputClass} />
+        <label htmlFor={`${category?.id ?? "new"}-id`} className={labelClass}>Category id (slug)</label>
+        <input id={`${category?.id ?? "new"}-id`} name="id" defaultValue={category?.id} required className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Name</label>
-        <input name="name" defaultValue={category?.name} required className={inputClass} />
+        <label htmlFor={`${category?.id ?? "new"}-name`} className={labelClass}>Name</label>
+        <input id={`${category?.id ?? "new"}-name`} name="name" defaultValue={category?.name} required className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Description (optional)</label>
-        <input name="description" defaultValue={category?.description ?? ""} className={inputClass} />
+        <label htmlFor={`${category?.id ?? "new"}-description`} className={labelClass}>Description (optional)</label>
+        <input id={`${category?.id ?? "new"}-description`} name="description" defaultValue={category?.description ?? ""} className={inputClass} />
       </div>
 
       <label className="flex items-center gap-1.5 text-sm text-platinum">
@@ -32,7 +32,7 @@ export function CategoryForm({ category }: { category?: Category }) {
 
       <button
         type="submit"
-        className="w-fit rounded-control bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-150 ease-brand hover:bg-primary/90"
+        className="w-fit rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-colors duration-200 ease-brand outline-none hover:bg-platinum focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50"
       >
         {category ? "Save changes" : "Add category"}
       </button>

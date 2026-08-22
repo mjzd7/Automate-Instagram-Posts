@@ -89,7 +89,7 @@ export function AccountForm({ account, categories }: { account?: Account; catego
 
       <button
         type="submit"
-        className="w-fit rounded-control bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-150 ease-brand hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-fit rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-colors duration-200 ease-brand outline-none hover:bg-platinum focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50"
       >
         {account ? "Save changes" : "Add account"}
       </button>

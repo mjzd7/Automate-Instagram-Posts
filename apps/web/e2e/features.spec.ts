@@ -63,7 +63,7 @@ test.describe("pipeline builder + viewer", () => {
     expect(await cells.count()).toBeGreaterThan(27);
 
     const raw = await readFile(path.join(FIXTURES_ROOT, "data/pipeline/2026-12.json"), "utf-8");
-    const file = JSON.parse(raw) as { month: string; entries: Array<{ status: string }> };
+    const file = JSON.parse(raw) as { month: string; entries: Array<{ id: string; status: string }> };
     expect(file.month).toBe("2026-12");
     expect(file.entries.length).toBeGreaterThan(0);
     expect(file.entries.every((e) => e.status === "planned")).toBe(true);
@@ -72,7 +72,7 @@ test.describe("pipeline builder + viewer", () => {
     await page.getByTestId("pipeline-generate").click();
     await expect(page).toHaveURL(/month=2026-12/);
     const raw2 = await readFile(path.join(FIXTURES_ROOT, "data/pipeline/2026-12.json"), "utf-8");
-    const file2 = JSON.parse(raw2) as { entries: Array<{ id: string }> };
+    const file2 = JSON.parse(raw2) as typeof file;
     expect(file2.entries.map((e) => e.id).sort()).toEqual(file.entries.map((e) => e.id).sort());
   });
 });
