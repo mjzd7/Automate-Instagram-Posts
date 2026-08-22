@@ -1,35 +1,33 @@
 import { AccountForm } from "@/components/AccountForm";
 import { deleteAccount } from "@/lib/actions/accounts";
 import { getAccounts, getCategories } from "@/lib/db";
+import { Banner, Button, PageHeader, TitaniumCard } from "@/components/ui";
 
 export default async function AccountsPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const [accounts, categories, { error }] = await Promise.all([getAccounts(), getCategories(), searchParams]);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <h1 className="font-display text-3xl font-light">Accounts</h1>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+    <div className="flex max-w-2xl flex-col gap-6">
+      <PageHeader title="Accounts" subtitle="CRUD on data/accounts.json — every save is a commit" />
+      {error && <Banner variant="error">{error}</Banner>}
 
-      <section className="shadow-elevated rounded-control border border-white/10 bg-surface p-6">
-        <h2 className="mb-4 text-sm font-medium text-text-secondary">Add account</h2>
+      <TitaniumCard className="p-6">
+        <p className="mb-4 font-mono text-xs uppercase tracking-wider text-slate-muted">Add account</p>
         <AccountForm categories={categories} />
-      </section>
+      </TitaniumCard>
 
       {accounts.map((account) => (
-        <details key={account.id} className="shadow-elevated rounded-control border border-white/10 bg-surface p-6">
-          <summary className="cursor-pointer text-sm font-medium text-text-primary">
+        <details key={account.id} className="rounded-2xl border border-white/10 bg-[rgba(18,18,22,0.85)] p-6 shadow-titanium backdrop-blur-[20px]">
+          <summary className="cursor-pointer font-mono text-sm font-bold uppercase tracking-wider text-white outline-none focus-visible:ring-2 focus-visible:ring-white/60">
             {account.id} {account.active ? "" : "(inactive)"}
           </summary>
           <div className="mt-4 flex flex-col gap-4">
             <AccountForm account={account} categories={categories} />
             <form action={deleteAccount}>
               <input type="hidden" name="id" value={account.id} />
-              <button
-                type="submit"
-                className="rounded-control px-4 py-2 text-sm font-medium text-red-400 transition-colors duration-150 ease-brand hover:text-red-300"
-              >
+              <Button type="submit" variant="danger">
                 Delete account
-              </button>
+              </Button>
             </form>
           </div>
         </details>
