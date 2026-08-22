@@ -621,7 +621,7 @@ Triggered on push/PR: `pnpm install`, `pnpm -r exec tsc --noEmit` (G1), `pnpm li
 
 ## 11. Dashboard (`apps/web`)
 
-**Open item — visual design**: iOS-like aesthetic referencing `neuform.ai/skills` — user will provide specifics before this section's UI is built (see the note carried from earlier planning; do not start UI implementation without asking first).
+**Resolved — visual design** (2026-08-23): user mandate supersedes the earlier neuform.ai note — UI/UX + CSS are authored **from scratch**, taking complete inspiration from `mjzd7/dagr`'s "Monochrome Titanium" system (`BRAND.md` v1.0.0). User owns DAGR; its Tri-Node Euclidean DAG logo/favicon are adopted verbatim as the brand mark. Canonical tokens, decisions ledger, and phased plan: `.omo/plans/dashboard-dagr-overhaul.md`.
 
 **Functional spec (unchanged by the visual-design open item)**:
 - Auth: NextAuth Credentials provider, single hardcoded user, password hash from `DASHBOARD_PASSWORD_HASH`.
