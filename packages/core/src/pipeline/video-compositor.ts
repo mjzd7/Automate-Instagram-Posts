@@ -1,6 +1,7 @@
 import ffmpeg from "fluent-ffmpeg";
 import path from "node:path";
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import sharp from "sharp";
 import { renderGlassCard } from "../images/glass-card.js";
 import { renderFittedText } from "../images/text-render.js";
@@ -151,12 +152,56 @@ export async function composeVideoReel(
   
   const coverImagePath = outputFile.replace(/\.mp4$/, "-cover.jpg");
 
+  const vFwdPath = path.join(tempDir, "v_fwd.mp4");
+  const vRevPath = path.join(tempDir, "v_rev.mp4");
+  const loopedBgPath = path.join(tempDir, "looped_bg.mp4");
+
+  console.log(`Pre-processing background video loop...`);
+  const halfDuration = totalVideoDuration / 2;
+  
+  // 1. Trim, scale, and crop forward segment
+  execFileSync("ffmpeg", [
+    "-y",
+    "-ss", "0",
+    "-t", String(halfDuration),
+    "-i", bgVideoPath,
+    "-vf", `scale=${REEL_WIDTH}:${REEL_HEIGHT}:force_original_aspect_ratio=increase,crop=${REEL_WIDTH}:${REEL_HEIGHT}`,
+    "-c:v", "libx264",
+    "-pix_fmt", "yuv420p",
+    "-an",
+    vFwdPath
+  ], { stdio: "ignore" });
+
+  // 2. Reverse forward segment to create backward segment
+  execFileSync("ffmpeg", [
+    "-y",
+    "-i", vFwdPath,
+    "-vf", "reverse",
+    "-c:v", "libx264",
+    "-pix_fmt", "yuv420p",
+    "-an",
+    vRevPath
+  ], { stdio: "ignore" });
+
+  // 3. Concatenate forward and backward segments
+  execFileSync("ffmpeg", [
+    "-y",
+    "-i", vFwdPath,
+    "-i", vRevPath,
+    "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0[v]",
+    "-map", "[v]",
+    "-c:v", "libx264",
+    "-pix_fmt", "yuv420p",
+    "-an",
+    loopedBgPath
+  ], { stdio: "ignore" });
+
   // 5. FFmpeg Assembly
   console.log(`Starting FFmpeg assembly (Duration: ${totalVideoDuration}s, Typing finished at: ${typingDurationSeconds.toFixed(1)}s)...`);
   
   await new Promise<void>((resolve, reject) => {
     let command = ffmpeg()
-      .input(bgVideoPath)
+      .input(loopedBgPath)
       .input(uiPath)
       .input(path.join(framesDir, "frame_%04d.png"))
       .inputOptions(["-framerate 30"])
@@ -176,18 +221,9 @@ export async function composeVideoReel(
       command = command.input(voiceoverPath);
     }
       
-    const halfDuration = totalVideoDuration / 2;
     const filterGraph = [
-      // 1. Scale and crop to fit 9:16 perfectly first (reduces memory consumption for reverse)
-      `[0:v]scale=${REEL_WIDTH}:${REEL_HEIGHT}:force_original_aspect_ratio=increase,crop=${REEL_WIDTH}:${REEL_HEIGHT}[bg_scaled]`,
-
-      // 2. Create a seamless Ping-Pong loop so frame 0 and frame N are identical
-      `[bg_scaled]trim=start=0:end=${halfDuration},setpts=PTS-STARTPTS[v_fwd]`,
-      `[v_fwd]reverse[v_rev]`,
-      `[v_fwd][v_rev]concat=n=2:v=1:a=0[bg_pingpong]`,
-      
-      // 3. Overlay the static UI layer (borders, badges, semi-transparent gradient fill)
-      `[bg_pingpong][1:v]overlay=${cardX}:${cardY}[bg_with_ui]`,
+      // 1. Overlay the static UI layer (borders, badges, semi-transparent gradient fill)
+      `[0:v][1:v]overlay=${cardX}:${cardY}[bg_with_ui]`,
       
       // Create drop shadow for text frames
       `[2:v]split[text_main][text_shadow]`,
