@@ -14,13 +14,20 @@
 | P7 | /pipeline viewer (calendar grid) + builder (generate/regen month) | ✅ | c8a4a4f | buildPipeline action merges via regenerateMonth |
 | P3a-c | ALL six dashboard pages rebuilt on ui.tsx primitives | ✅ | c6bdab3 d2ca524 5cdfee2 | overview gains StatBlock grid + failure Banner + recent table; history pill filter + mono table |
 | P8 | Vercel finalize + freshness badge + ops docs | ⏳ TODO | — | env: DASHBOARD_GITHUB_PAT(fine-grained contents:rw this repo), NEXTAUTH_SECRET, DASHBOARD_PASSWORD_HASH; GH-Pages rejected static-only |
-| P9 | FULL: features.spec.ts (schedules save+tz-reject w/ fixture self-heal, pipeline generate/render/regen id-stability) + CI gate + error/404 | ✅ | (this commit) | playwright 9/9 · vitest 483/483 · core tsc no new errors · extensionless imports in new schedule modules (turbopack literal-resolution gotcha) |
+| P9 | FULL: features.spec.ts (schedules save+tz-reject w/ fixture self-heal, pipeline generate/render/regen id-stability) + CI gate + error/404 | ✅ | (this commit) | playwright 21/21 (full-qa sweep added: auth-fail, edit flows, pause badge, 404, sign-out, preview round-trip, pipeline guardrails) · vitest 483/483 · turbopack extensionless-import gotcha + route-announcer strict-alert gotcha documented in gotchas section |
 | v1.1 backlog | pipeline_status write-back to app.db for live status chips; chip-grid hours UI replacing csv input | ⏳ deferred | — | |
 
 ## Verification state at last commit (c8a4a4f)
 - web tsc clean · eslint clean on ALL touched files
 - repo vitest 483/483 except 1 PRE-EXISTING flake story-compositor 5s-timeout under load (passes isolated)
 - playwright 6/6 (login/auth/redirect/nav/accounts list/add/delete through seam)
+
+- Next route announcer also has role=alert → scope alert assertions with filter({hasText}).
+- GET-form spaces encode as '+' not '%20' — assert URLs tolerantly.
+- toHaveAttribute takes ("name", regex) — regex-as-name silently reads null.
+- Server-action writes can paint after navigation: poll the fixture file (≤3s) before asserting.
+- Revalidation after an edit re-renders <details> closed — reopen summary before interacting again.
+- CategoryForm/AccountForm submit buttons: always titanium Button classes; labels need htmlFor/id.
 
 ## Gotchas learned (do not rediscover)
 - getByLabel needs htmlFor/id pairs (AccountForm fixed; keep the pattern in all new forms).
