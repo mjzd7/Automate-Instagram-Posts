@@ -8,7 +8,27 @@ interface VideoResult {
   duration: number; // in seconds
 }
 
-export async function fetchPexelsVideo(category: string, mode: "dark" | "light" = "dark", quoteText?: string): Promise<VideoResult | null> {
+interface PexelsVideoFile {
+  link: string;
+  width: number;
+  height: number;
+}
+
+interface PexelsVideo {
+  duration: number;
+  video_files: PexelsVideoFile[];
+}
+
+interface PexelsSearchResponse {
+  videos?: PexelsVideo[];
+}
+
+export async function fetchPexelsVideo(
+  category: string,
+  mode: "dark" | "light" = "dark",
+  quoteText?: string,
+  excludeUrls: ReadonlySet<string> = new Set(),
+): Promise<VideoResult | null> {
   const env = loadEnv();
   if (!env.PEXELS_API_KEY) {
     console.warn("PEXELS_API_KEY not set. Skipping Pexels video fetch.");
@@ -50,27 +70,24 @@ export async function fetchPexelsVideo(category: string, mode: "dark" | "light" 
         });
         if (!response.ok) continue;
         
-        const data = await response.json() as any;
+        const data = await response.json() as PexelsSearchResponse;
         if (!data.videos || data.videos.length === 0) continue;
-        
-        // Pick a random video from the top results for variety
-        const video = data.videos[Math.floor(Math.random() * data.videos.length)];
-        
-        // Sort files by width descending to get the absolute highest 4K/HD resolution source
-        const sortedFiles = [...video.video_files]
-          .filter((f: any) => f.height > f.width && (f.width >= 2160 || f.height >= 3840)) // Enforce 4K only (e.g. 2160x3840 or 2160x4096)
-          .sort((a: any, b: any) => b.width - a.width);
-          
-        const file = sortedFiles[0];
-                     
-        if (file) {
+
+        // Excluded links shrink the pool; an emptied pool falls through to
+        // the next query so rejected candidates are never re-drawn.
+        const candidates = data.videos.flatMap((video) => {
+          const best4KPortrait = [...video.video_files]
+            .filter((f) => f.height > f.width && (f.width >= 2160 || f.height >= 3840)) // Enforce 4K only (e.g. 2160x3840 or 2160x4096)
+            .sort((a, b) => b.width - a.width)[0];
+          return best4KPortrait && !excludeUrls.has(best4KPortrait.link)
+            ? [{ url: best4KPortrait.link, width: best4KPortrait.width, height: best4KPortrait.height, duration: video.duration }]
+            : [];
+        });
+
+        const picked = candidates[Math.floor(Math.random() * candidates.length)];
+        if (picked) {
           console.log(`Matched stunning 4K/HD video on query: "${query}"`);
-          return {
-            url: file.link,
-            width: file.width,
-            height: file.height,
-            duration: video.duration
-          };
+          return picked;
         }
       } catch (error) {
         console.error("Failed to fetch Pexels video:", error);

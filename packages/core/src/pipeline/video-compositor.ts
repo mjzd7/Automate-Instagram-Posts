@@ -60,11 +60,15 @@ export async function composeVideoReel(
 
   let video: any = null;
   const bgVideoPath = path.join(tempDir, "bg_video.mp4");
+  // Links already rejected by Vision filters -- fed back to the fetcher so
+  // retries draw fresh candidates and walk down its fallback query ladder
+  // instead of re-testing the same failing videos.
+  const rejectedVideoUrls = new Set<string>();
 
   // Try fetching and validating a video candidate up to 5 times
   for (let attempt = 1; attempt <= 5; attempt++) {
     console.log(`[Content Filter] Fetching Pexels video candidate (Attempt ${attempt}/5)...`);
-    video = await fetchPexelsVideo(category, mode, quoteText);
+    video = await fetchPexelsVideo(category, mode, quoteText, rejectedVideoUrls);
     if (!video) {
       continue;
     }
@@ -105,6 +109,9 @@ export async function composeVideoReel(
             const fs = await import("node:fs/promises");
             await fs.unlink(bgVideoPath);
           } catch {}
+          if (video) {
+            rejectedVideoUrls.add(video.url);
+          }
           video = null;
           continue; // Try next Pexels video
         }
@@ -118,6 +125,9 @@ export async function composeVideoReel(
         const fs = await import("node:fs/promises");
         await fs.unlink(bgVideoPath);
       } catch {}
+      if (video) {
+        rejectedVideoUrls.add(video.url);
+      }
       video = null;
     }
   }
