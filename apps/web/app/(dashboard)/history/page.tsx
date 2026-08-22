@@ -1,8 +1,15 @@
 import { findPostsForAccount, findRecentPosts } from "core/src/db/dashboard-queries";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getAccounts, getDbHandle } from "@/lib/db";
+import { EmptyState, PageHeader, TableShell, TBody, Td, Th } from "@/components/ui";
 
 const HISTORY_LIMIT = 50;
+
+function chipClass(active: boolean): string {
+  return `rounded-lg px-3 py-1.5 font-mono text-xs transition-all duration-200 ease-brand outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
+    active ? "bg-white/5 text-white" : "text-slate-muted hover:text-white"
+  }`;
+}
 
 export default async function HistoryPage({
   searchParams,
@@ -18,71 +25,50 @@ export default async function HistoryPage({
       : await findRecentPosts(db, HISTORY_LIMIT);
 
     return (
-      <div className="mx-auto flex max-w-4xl flex-col gap-6">
-        <h1 className="font-display text-3xl font-light">History</h1>
+      <div className="flex flex-col gap-6">
+        <PageHeader title="History" subtitle={`Last ${HISTORY_LIMIT} posts — as of the last deploy`} />
 
-        <div className="flex flex-wrap gap-2">
-          <a
-            href="/history"
-            className={`rounded-control px-3 py-1.5 text-sm transition-colors duration-150 ease-brand ${
-              !selectedAccount ? "bg-primary text-white" : "text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            All accounts
-          </a>
+        <nav className="flex flex-wrap items-center gap-1 rounded-xl border border-white/10 bg-surface p-1" data-testid="history-filter">
+          <a href="/history" className={chipClass(!selectedAccount)}>All accounts</a>
           {accounts.map((account) => (
             <a
               key={account.id}
               href={`/history?account=${encodeURIComponent(account.id)}`}
-              className={`rounded-control px-3 py-1.5 text-sm transition-colors duration-150 ease-brand ${
-                selectedAccount === account.id
-                  ? "bg-primary text-white"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
+              className={chipClass(selectedAccount === account.id)}
             >
               {account.id}
             </a>
           ))}
-        </div>
+        </nav>
 
-        <section className="shadow-elevated rounded-control border border-white/10 bg-surface p-6">
-          {posts.length === 0 ? (
-            <p className="text-sm text-text-secondary">No posts yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="text-xs text-text-secondary">
-                    <th className="pb-2 pr-4 font-medium">Account</th>
-                    <th className="pb-2 pr-4 font-medium">Template</th>
-                    <th className="pb-2 pr-4 font-medium">Mode</th>
-                    <th className="pb-2 pr-4 font-medium">Status</th>
-                    <th className="pb-2 pr-4 font-medium">When</th>
-                    <th className="pb-2 font-medium">Detail</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {posts.map((post) => (
-                    <tr key={post.id} className="border-t border-white/5">
-                      <td className="py-2 pr-4 text-text-primary">{post.accountId}</td>
-                      <td className="py-2 pr-4 text-text-secondary">{post.templateId}</td>
-                      <td className="py-2 pr-4 text-text-secondary">{post.mode}</td>
-                      <td className="py-2 pr-4">
-                        <StatusBadge status={post.status} />
-                      </td>
-                      <td className="py-2 pr-4 text-text-secondary">
-                        {post.publishedAt ?? post.scheduledFor}
-                      </td>
-                      <td className="py-2 text-text-secondary">
-                        {post.status === "failed" ? (post.errorMessage ?? "unknown error") : (post.igPermalink ?? "")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+        {posts.length === 0 ? (
+          <EmptyState message="No posts yet." />
+        ) : (
+          <TableShell>
+            <thead>
+              <tr>
+                <Th>Account</Th>
+                <Th>Template</Th>
+                <Th>Mode</Th>
+                <Th>Status</Th>
+                <Th>When</Th>
+                <Th right>Detail</Th>
+              </tr>
+            </thead>
+            <TBody>
+              {posts.map((post) => (
+                <tr key={post.id}>
+                  <Td>{post.accountId}</Td>
+                  <Td>{post.templateId}</Td>
+                  <Td>{post.mode}</Td>
+                  <td className="px-4 py-3"><StatusBadge status={post.status} /></td>
+                  <Td>{String(post.publishedAt ?? post.scheduledFor)}</Td>
+                  <Td right>{post.status === "failed" ? (post.errorMessage ?? "unknown error") : (post.igPermalink ?? "")}</Td>
+                </tr>
+              ))}
+            </TBody>
+          </TableShell>
+        )}
       </div>
     );
   } finally {
