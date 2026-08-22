@@ -131,5 +131,29 @@ describe("publishViaComposioReels", () => {
     expect(body1.arguments.video_url).toBe(videoUrl);
     expect(body1.arguments.caption).toBe("Test caption #reels");
     expect(body1.arguments.share_to_feed).toBe(true);
+    expect(body1.arguments.audio_id).toBeUndefined();
+    expect(body1.arguments.cover_url).toBeUndefined();
+  }, 20000);
+
+  it("forwards cover_url and audio_id on the REELS container when provided", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, { data: { id: "reel-container-audio" } }))
+      .mockResolvedValueOnce(jsonResponse(200, { data: { id: "reel-media-audio" } }));
+
+    await publishViaComposioReels({
+      imageUrl: "https://example.com/reel.mp4",
+      caption: "cap",
+      apiKey: "test-composio-key",
+      igUserId: "ig-user-999",
+      fetchImpl,
+      coverUrl: "https://example.com/cover.jpg",
+      audioId: "1784140000999",
+    });
+
+    const [, init1] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const body1 = JSON.parse(init1.body as string);
+    expect(body1.arguments.cover_url).toBe("https://example.com/cover.jpg");
+    expect(body1.arguments.audio_id).toBe("1784140000999");
   }, 20000);
 });

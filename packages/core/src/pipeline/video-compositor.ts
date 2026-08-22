@@ -357,5 +357,5 @@ export async function composeVideoReel(
       });
   });
 
-  return { videoPath: outputFile, coverImagePath };
+  return { videoPath: outputFile, coverImagePath, selectedAudioTrack: audioSelection.track };
 }

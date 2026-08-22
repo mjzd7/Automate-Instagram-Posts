@@ -409,7 +409,6 @@ export async function generateAndPublishBatch(
         random,
         viralAudioIds,
       });
-      usedAudioIds.push(audioSelection.track.audioId);
 
       const dateStr = currentTime.toISOString().slice(0, 10);
       const storyRelativePath = `data/posts/${account.id}/${dateStr}-${postId}-story.mp4`;
@@ -430,12 +429,16 @@ export async function generateAndPublishBatch(
       const coverAbsolutePath = reelResult_composed.coverImagePath;
       console.log(`[Batch] Reel video saved to ${storyRelativePath}`);
 
+      // Composer picks its own track internally -- prefer it so DB + IG attribution match what was mixed in.
+      const composedAudioTrack = reelResult_composed.selectedAudioTrack ?? audioSelection.track;
+      usedAudioIds.push(composedAudioTrack.audioId);
+
       await insertPendingPost(db, {
         id: postId,
         accountId: account.id,
         quoteId: quote.id,
         backgroundId: chosen.id,
-        audioId: audioSelection.track.audioId,
+        audioId: composedAudioTrack.audioId,
         templateId: template.id,
         captionTemplateId,
         mode,
@@ -511,7 +514,14 @@ export async function generateAndPublishBatch(
       }
 
       let reelResult: { mediaId: string; permalink?: string } | undefined;
-      
+
+      // Only real ig_audio IDs are numeric; fallback-catalog placeholders
+      // ("fallback-*") would fail container creation.
+      const igAudioId = /^\d+$/.test(composedAudioTrack.audioId) ? composedAudioTrack.audioId : undefined;
+      if (igAudioId) {
+        console.log(`[Batch] Attributing licensed audio "${composedAudioTrack.title}" (id ${igAudioId}).`);
+      }
+
       const tryComposioReel = async () => {
         console.log(`[Batch] Publishing Reel via Composio API...`);
         const compRes = await publishViaComposioReels({
@@ -521,6 +531,7 @@ export async function generateAndPublishBatch(
           apiKey: env.COMPOSIO_API_KEY!,
           entityId: account.id,
           fetchImpl,
+          audioId: igAudioId,
         });
         return { mediaId: compRes.mediaId, permalink: compRes.permalink };
       };
@@ -529,6 +540,7 @@ export async function generateAndPublishBatch(
         console.log(`[Batch] Publishing Reel via Meta Graph API...`);
         const reelRes = await publishToReels(storyVerifiedVideoUrl, `${caption}\n\n${hashtagComment}`, igCreds!, fetchImpl, sleepImpl, {
           coverUrl: verifiedCoverUrl,
+          audioId: igAudioId,
         });
         return { mediaId: reelRes.mediaId };
       };

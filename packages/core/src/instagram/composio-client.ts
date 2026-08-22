@@ -5,6 +5,12 @@ export interface PublishViaComposioOptions {
   entityId?: string;
   igUserId?: string;
   fetchImpl?: typeof fetch;
+  coverUrl?: string;
+  /**
+   * Numeric audio ID from Meta's ig_audio catalog (see publishToReels).
+   * Fallback-catalog placeholder IDs must be filtered out by the caller.
+   */
+  audioId?: string;
 }
 
 export interface ComposioPublishResult {
@@ -337,6 +343,12 @@ export async function publishViaComposioReels(
     caption,
     share_to_feed: true,
   };
+  if (options.coverUrl) {
+    reelArgs.cover_url = options.coverUrl;
+  }
+  if (options.audioId) {
+    reelArgs.audio_id = options.audioId;
+  }
 
   const createRes = await fetchImpl(
     "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_CREATE_MEDIA_CONTAINER",
