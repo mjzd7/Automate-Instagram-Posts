@@ -8,6 +8,8 @@ import { renderFittedText } from "../images/text-render.js";
 import { generateTypewriterSequence } from "../images/typewriter.ts";
 import { fetchPexelsVideo } from "./video-fetcher";
 import { selectTemplate } from "../images/templates.js";
+import { loadEnv } from "../config/env.js";
+import { imagePassesFilter } from "../content-filter/image-filter.js";
 import { 
   CARD_HORIZONTAL_MARGIN_PX, 
   CARD_PADDING_X_PX, 
@@ -38,17 +40,10 @@ export async function composeVideoReel(
   mode: Darkness = "dark",
   author?: string
 ) {
-  // Merge author into quote text for typewriter if provided
   const fullText = author ? `${quoteText}\n\n— ${author}` : quoteText;
-  
   console.log(`Starting video reel composition for: "${fullText}"`);
   
-  // 1. Fetch Background Video
-  const video = await fetchPexelsVideo(category, mode, quoteText);
-  if (!video) {
-    throw new Error("Could not fetch a background video from Pexels");
-  }
-  console.log(`Fetched video: ${video.url}`);
+  const env = loadEnv();
   
   // 1b. Fetch Audio using official audio-selector (Meta API + Fallback Catalog)
   const audioSelection = selectStoryAudio({
@@ -63,14 +58,73 @@ export async function composeVideoReel(
   const tempDir = path.join(process.cwd(), "scratch", "reel_temp");
   if (!existsSync(tempDir)) mkdirSync(tempDir, { recursive: true });
 
+  let video: any = null;
   const bgVideoPath = path.join(tempDir, "bg_video.mp4");
-  console.log(`Downloading background video from Pexels to: ${bgVideoPath}...`);
-  const videoResponse = await fetch(video.url);
-  if (!videoResponse.ok) {
-    throw new Error(`Failed to download background video from ${video.url}`);
+
+  // Try fetching and validating a video candidate up to 5 times
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    console.log(`[Content Filter] Fetching Pexels video candidate (Attempt ${attempt}/5)...`);
+    video = await fetchPexelsVideo(category, mode, quoteText);
+    if (!video) {
+      continue;
+    }
+    
+    console.log(`[Content Filter] Downloading background video from Pexels to: ${bgVideoPath}...`);
+    try {
+      const videoResponse = await fetch(video.url);
+      if (!videoResponse.ok) {
+        throw new Error(`Failed to download background video from ${video.url}`);
+      }
+      const videoBuffer = Buffer.from(await videoResponse.arrayBuffer());
+      writeFileSync(bgVideoPath, videoBuffer);
+      
+      // Extract a test frame at t=1.0s to run through SafeSearch and Label Blocklists
+      const testFramePath = path.join(tempDir, `test_frame_${attempt}.jpg`);
+      console.log(`[Content Filter] Extracting test frame at t=1s...`);
+      execFileSync("ffmpeg", [
+        "-y",
+        "-ss", "1",
+        "-i", bgVideoPath,
+        "-frames:v", "1",
+        "-q:v", "2",
+        testFramePath
+      ], { stdio: "ignore" });
+      
+      const frameBuffer = await sharp(testFramePath).jpeg().toBuffer();
+      try {
+        const fs = await import("node:fs/promises");
+        await fs.unlink(testFramePath);
+      } catch {}
+
+      if (env.GOOGLE_CLOUD_VISION_API_KEY) {
+        console.log(`[Content Filter] Running Google Vision content filter on video frame...`);
+        const filterResult = await imagePassesFilter(frameBuffer, env.GOOGLE_CLOUD_VISION_API_KEY);
+        if (!filterResult.passes) {
+          console.warn(`[Content Filter] Video candidate failed validation: ${filterResult.rejectionReason}. Rejecting video.`);
+          try {
+            const fs = await import("node:fs/promises");
+            await fs.unlink(bgVideoPath);
+          } catch {}
+          video = null;
+          continue; // Try next Pexels video
+        }
+      }
+      
+      console.log(`[Content Filter] Video candidate passed content filtering.`);
+      break; // Found a good video
+    } catch (err) {
+      console.error(`[Content Filter] Error validating video candidate:`, err);
+      try {
+        const fs = await import("node:fs/promises");
+        await fs.unlink(bgVideoPath);
+      } catch {}
+      video = null;
+    }
   }
-  const videoBuffer = Buffer.from(await videoResponse.arrayBuffer());
-  writeFileSync(bgVideoPath, videoBuffer);
+
+  if (!video) {
+    throw new Error("Could not find a valid background video from Pexels that passes safety filters after 5 attempts.");
+  }
 
   // 1c. Fetch AI Voiceover (Disabled by default)
   let voiceoverPath: string | null = null;
@@ -289,7 +343,7 @@ export async function composeVideoReel(
   console.log(`Extracting cover image at t=${coverSeekTime.toFixed(1)}s (complete quote frame)...`);
   await new Promise<void>((resolve, reject) => {
     ffmpeg(outputFile)
-      .seekInput(coverSeekTime)
+      .seek(coverSeekTime)
       .frames(1)
       .outputOptions(["-q:v 2", "-y"])
       .save(coverImagePath)

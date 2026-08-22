@@ -70,6 +70,18 @@ const TEXT_HEAVY_LABELS = new Set([
   "blackboard", "whiteboard", "chalkboard",
 ]);
 
+/**
+ * Labels indicating romance, couples, or intimacy.
+ * Catches: couples, kissing, hugging, wedding/bride imagery that competes
+ * with the neutral, professional aesthetic.
+ */
+const RELATIONSHIP_LABELS = new Set([
+  "kiss", "kissing", "romance", "romantic", "couple", "love", "lovers",
+  "hug", "hugging", "embrace", "holding hands", "marriage", "wedding",
+  "bride", "groom", "dating", "relationship", "honeymoon", "intercourse",
+  "intimacy", "affection", "coitus", "sensuality", "flirting",
+]);
+
 /** Minimum Vision label confidence to treat a label as a positive detection. */
 const LABEL_CONFIDENCE_THRESHOLD = 0.6;
 
@@ -107,14 +119,18 @@ export interface ImageFilterResult {
  *
  * Rejects if:
  *  - adult / violence / racy is LIKELY or VERY_LIKELY (SafeSearch), OR
- *  - any high-confidence label (≥ 0.6) matches the religious/text blocklists, OR
+ *  - any high-confidence label (>= 0.6) matches the religious/text/relationship blocklists, OR
  *  - any readable text is detected via Vision OCR (TEXT_DETECTION)
  */
 export async function imagePassesFilter(
-  imageUrl: string,
+  imageSource: string | Buffer,
   apiKey: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ImageFilterResult> {
+  const imagePayload = typeof imageSource === "string" && imageSource.startsWith("http")
+    ? { source: { imageUri: imageSource } }
+    : { content: (Buffer.isBuffer(imageSource) ? imageSource : Buffer.from(imageSource, "base64")).toString("base64") };
+
   const res = await fetchImpl(
     `https://vision.googleapis.com/v1/images:annotate?key=${encodeURIComponent(apiKey)}`,
     {
@@ -123,7 +139,7 @@ export async function imagePassesFilter(
       body: JSON.stringify({
         requests: [
           {
-            image: { source: { imageUri: imageUrl } },
+            image: imagePayload,
             features: [
               { type: "SAFE_SEARCH_DETECTION" },
               { type: "LABEL_DETECTION", maxResults: 20 },
@@ -174,7 +190,7 @@ export async function imagePassesFilter(
   const rejectedLabels: string[] = [];
   for (const label of labels) {
     const lc = label.description.toLowerCase();
-    if (RELIGIOUS_LABELS.has(lc) || TEXT_HEAVY_LABELS.has(lc)) {
+    if (RELIGIOUS_LABELS.has(lc) || TEXT_HEAVY_LABELS.has(lc) || RELATIONSHIP_LABELS.has(lc)) {
       rejectedLabels.push(label.description);
     }
   }
