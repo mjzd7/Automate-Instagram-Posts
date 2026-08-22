@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, isNotNull, lt, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, isNotNull, lt, sql, gt } from "drizzle-orm";
 import type { Db } from "../client.js";
 import { posts } from "../schema.js";
 
@@ -7,6 +7,7 @@ export interface NewPost {
   accountId: string;
   quoteId?: string | null;
   backgroundId?: string | null;
+  audioId?: string | null;
   templateId: string;
   captionTemplateId: string;
   mode: "dark" | "light";
@@ -108,3 +109,79 @@ export async function findPrunableImages(db: Db, accountId: string, beforeIso: s
 export async function clearComposedImagePath(db: Db, id: string) {
   await db.update(posts).set({ composedImagePath: null }).where(eq(posts.id, id));
 }
+
+/** Find recent published posts with active media ID for metrics tracking. */
+export async function findRecentPublishedPostsWithMediaId(db: Db, sinceIso: string) {
+  return db
+    .select()
+    .from(posts)
+    .where(
+      and(
+        eq(posts.status, "published"),
+        isNotNull(posts.igMediaId),
+        gte(posts.publishedAt, sinceIso)
+      )
+    );
+}
+
+/** Update view counts for a specific post. */
+export async function updatePostViews(db: Db, id: string, views: number) {
+  await db
+    .update(posts)
+    .set({ views })
+    .where(eq(posts.id, id));
+}
+
+/** Queries for high-performing viral audio IDs (top percentile views) that have not been used recently. */
+export async function findViralAudioIdsForReuse(
+  db: Db,
+  accountId: string,
+  minViewsPercentile = 0.15, // top 15%
+  cooldownDays = 5 // 5 days cooldown
+): Promise<string[]> {
+  const history = await db
+    .select({ audioId: posts.audioId, views: posts.views })
+    .from(posts)
+    .where(
+      and(
+        eq(posts.accountId, accountId),
+        eq(posts.status, "published"),
+        isNotNull(posts.views),
+        isNotNull(posts.audioId),
+        gt(posts.views, 0)
+      )
+    );
+
+  if (history.length === 0) return [];
+
+  // Sort descending to find the views threshold
+  const sortedHistory = [...history].sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+  const thresholdIdx = Math.max(0, Math.floor(sortedHistory.length * minViewsPercentile));
+  const thresholdViews = sortedHistory[thresholdIdx]?.views ?? 0;
+
+  if (thresholdViews <= 0) return [];
+
+  // Filter out recent ones (used in cooldown window)
+  const cooldownCutoff = new Date(Date.now() - cooldownDays * 24 * 60 * 60 * 1000).toISOString();
+  const recentPosts = await db
+    .select({ audioId: posts.audioId })
+    .from(posts)
+    .where(
+      and(
+        eq(posts.accountId, accountId),
+        eq(posts.status, "published"),
+        isNotNull(posts.audioId),
+        gte(posts.publishedAt, cooldownCutoff)
+      )
+    );
+  const recentAudioIds = new Set(recentPosts.map((p) => p.audioId).filter(Boolean));
+
+  // Find candidate audio IDs that meet the views threshold
+  const eligibleCandidates = history.filter(
+    (p) => p.audioId && (p.views ?? 0) >= thresholdViews && !recentAudioIds.has(p.audioId)
+  );
+
+  return [...new Set(eligibleCandidates.map((c) => c.audioId!))];
+}
+
+

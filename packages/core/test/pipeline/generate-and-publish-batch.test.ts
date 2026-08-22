@@ -411,4 +411,80 @@ describe("generateAndPublishBatch", () => {
     expect(publishedPost?.igMediaId).toBe("comp-123");
     expect(publishedPost?.igPermalink).toBe("https://instagram.com/p/C123/");
   }, 60000);
+
+  it("selects and reuses a viral audio track if the 15% audio reuse roll succeeds", async () => {
+    // Seed standard quotes and backgrounds
+    await seedContent(handle.db, 3); // q0, q1, q2
+
+    // Seed a previous highly successful post for meta-track-2
+    await handle.db.insert(posts).values({
+      id: "prev-post-viral",
+      accountId: "acct1",
+      audioId: "meta-track-2",
+      templateId: "bold-modern",
+      captionTemplateId: "default",
+      mode: "dark",
+      status: "published",
+      views: 25000, // highly viral
+      scheduledFor: new Date().toISOString(),
+      publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago (outside 5-day cooldown)
+    } as typeof posts.$inferInsert);
+
+    // Mock fetch with two available tracks, meta-track-2 is viral
+    const fetchImpl = await makeFetchImpl({
+      "graph.facebook.com": (url: string) => {
+        if (url.includes("ig_audio")) {
+          return jsonResponse(200, {
+            audio: [
+              {
+                audio_id: "meta-track-1",
+                title: "Meta Ambient Track",
+                display_artist: "Meta Artist",
+                duration_in_ms: 180000,
+                download_url: "https://example.com/audio.mp3",
+                is_ads_eligible: true,
+              },
+              {
+                audio_id: "meta-track-2",
+                title: "Meta Ambient Track 2",
+                display_artist: "Meta Artist 2",
+                duration_in_ms: 180000,
+                download_url: "https://example.com/audio2.mp3",
+                is_ads_eligible: true,
+              },
+            ],
+          });
+        }
+        if (url.includes("/media_publish")) return jsonResponse(200, { id: "ig-media-1" });
+        if (url.includes("/comments")) return jsonResponse(200, { id: "comment-1" });
+        if (url.includes("fields=status_code")) return jsonResponse(200, { status_code: "FINISHED" });
+        if (url.includes("fields=permalink")) return jsonResponse(200, { permalink: "https://instagram.com/p/x" });
+        return jsonResponse(200, { id: "ig-media-container-1" });
+      },
+    });
+
+    // Mock random to always return 0.05 so the 15% audio reuse roll succeeds
+    const forceAudioReuseRandom = () => 0.05;
+
+    const result = await generateAndPublishBatch({
+      db: handle.db,
+      account: baseAccount,
+      env: baseEnv,
+      repoRoot: scratchDir,
+      githubRepoSlug: "owner/repo",
+      hashtagPools: { motivational: Array.from({ length: 20 }, (_, i) => `#tag${i}`), general: [] },
+      fetchImpl,
+      sleepImpl: noSleep,
+      randomImpl: forceAudioReuseRandom,
+      now: () => new Date("2026-08-07T12:00:00Z"),
+      batchSize: 1, // only generate 1 post
+    });
+
+    expect(result.skippedReason).toBeUndefined();
+    expect(result.items).toHaveLength(1);
+
+    // Verify that the generated post reused audio ID meta-track-2 (the viral sound)
+    const newPost = (await handle.db.select().from(posts).where(eq(posts.id, result.items[0]!.postId)))[0];
+    expect(newPost?.audioId).toBe("meta-track-2");
+  }, 60000);
 });

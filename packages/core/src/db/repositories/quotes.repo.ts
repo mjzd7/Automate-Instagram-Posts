@@ -88,3 +88,4 @@ export async function getRandomFallbackQuote(db: Db) {
   return rows[0];
 }
 
+

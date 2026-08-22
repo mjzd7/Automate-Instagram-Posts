@@ -15,6 +15,7 @@ import {
   insertPendingPost,
   markFailed,
   markPublished,
+  findViralAudioIdsForReuse,
 } from "../db/repositories/posts.repo.js";
 import { recordBackgroundUsage, recordQuoteUsage } from "../db/repositories/usage.repo.js";
 import { selectHashtags } from "../hashtags/selector.js";
@@ -381,6 +382,23 @@ export async function generateAndPublishBatch(
         }
       }
 
+      // 15% probability roll to reuse a high-performing (viral) sound from past posts
+      let viralAudioIds: string[] = [];
+      if (random() < 0.15) {
+        console.log(`[Batch] Audio reuse roll succeeded! Checking for viral audio candidates...`);
+        try {
+          // Dynamic threshold: top 15% views, 5 days cooldown
+          viralAudioIds = await findViralAudioIdsForReuse(db, account.id, 0.15, 5);
+          if (viralAudioIds.length > 0) {
+            console.log(`[Batch] Found ${viralAudioIds.length} viral audio candidates eligible for reuse.`);
+          } else {
+            console.log(`[Batch] No eligible viral audio candidates found.`);
+          }
+        } catch (err) {
+          console.error(`[Batch] Failed to query viral audio candidates:`, err);
+        }
+      }
+
       // Select matched audio track with anti-fatigue rotation across the batch
       const audioSelection = selectStoryAudio({
         category,
@@ -389,6 +407,7 @@ export async function generateAndPublishBatch(
         recentAudioIds: usedAudioIds,
         availableTracks,
         random,
+        viralAudioIds,
       });
       usedAudioIds.push(audioSelection.track.audioId);
 
@@ -416,6 +435,7 @@ export async function generateAndPublishBatch(
         accountId: account.id,
         quoteId: quote.id,
         backgroundId: chosen.id,
+        audioId: audioSelection.track.audioId,
         templateId: template.id,
         captionTemplateId,
         mode,

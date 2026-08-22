@@ -8,7 +8,7 @@ import * as postsRepo from "../../src/db/repositories/posts.repo.js";
 import * as quotesRepo from "../../src/db/repositories/quotes.repo.js";
 import * as settingsRepo from "../../src/db/repositories/settings.repo.js";
 import * as usageRepo from "../../src/db/repositories/usage.repo.js";
-import { categories } from "../../src/db/schema.js";
+import { categories, posts } from "../../src/db/schema.js";
 
 let handle: DbHandle;
 
@@ -109,6 +109,82 @@ describe("quotes repository", () => {
     await quotesRepo.insertQuote(handle.db, { id: "q2", text: "dup", author: "A", categoryId: "motivational" });
     const found = await quotesRepo.findQuoteById(handle.db, "q2");
     expect(found).toBeUndefined();
+  });
+
+  describe("findViralAudioIdsForReuse", () => {
+    it("returns empty when there is no posting history", async () => {
+      const results = await postsRepo.findViralAudioIdsForReuse(handle.db, "acct1", 0.15, 5);
+      expect(results).toHaveLength(0);
+    });
+
+    it("filters and returns high-performing audio IDs that satisfy cooldown", async () => {
+      // Seed posts
+      // Post 1: viral (10000 views) with audio "a1"
+      await handle.db.insert(posts).values({
+        id: "p1",
+        accountId: "acct1",
+        audioId: "a1",
+        templateId: "bold-modern",
+        captionTemplateId: "default",
+        mode: "dark",
+        status: "published",
+        views: 10000,
+        scheduledFor: new Date().toISOString(),
+        publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago (outside cooldown)
+      } as typeof posts.$inferInsert);
+
+      // Post 2: viral (8000 views) with audio "a2"
+      await handle.db.insert(posts).values({
+        id: "p2",
+        accountId: "acct1",
+        audioId: "a2",
+        templateId: "bold-modern",
+        captionTemplateId: "default",
+        mode: "dark",
+        status: "published",
+        views: 8000,
+        scheduledFor: new Date().toISOString(),
+        publishedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(), // 6 days ago (outside cooldown)
+      } as typeof posts.$inferInsert);
+
+      // Post 3: low views (100 views) with audio "a3"
+      await handle.db.insert(posts).values({
+        id: "p3",
+        accountId: "acct1",
+        audioId: "a3",
+        templateId: "bold-modern",
+        captionTemplateId: "default",
+        mode: "dark",
+        status: "published",
+        views: 100,
+        scheduledFor: new Date().toISOString(),
+        publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      } as typeof posts.$inferInsert);
+
+      // Post 4: viral but within 5-day cooldown (9000 views) with audio "a4"
+      await handle.db.insert(posts).values({
+        id: "p4",
+        accountId: "acct1",
+        audioId: "a4",
+        templateId: "bold-modern",
+        captionTemplateId: "default",
+        mode: "dark",
+        status: "published",
+        views: 9000,
+        scheduledFor: new Date().toISOString(),
+        publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago (inside cooldown)
+      } as typeof posts.$inferInsert);
+
+      // Total posts: 4. Percentile: top 50% (0.50) -> threshold views should be 8000.
+      // Audio IDs with views >= 8000: a1, a4, a2.
+      // But a4 was used 2 days ago (inside 5-day cooldown). So only a1 and a2 are eligible.
+      const results = await postsRepo.findViralAudioIdsForReuse(handle.db, "acct1", 0.50, 5);
+      expect(results).toHaveLength(2);
+      expect(results).toContain("a1");
+      expect(results).toContain("a2");
+      expect(results).not.toContain("a3");
+      expect(results).not.toContain("a4");
+    });
   });
 });
 

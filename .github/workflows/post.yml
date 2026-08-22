@@ -13,7 +13,7 @@ on:
       fast:
         description: "Skip organic jitter delay and inter-post gaps (for testing)"
         type: boolean
-        default: false
+        default: true
       single:
         description: "Post only a single Reel instead of a full batch"
         type: boolean
@@ -58,12 +58,6 @@ jobs:
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pnpm install --frozen-lockfile
-      - name: Organic start time jitter
-        if: ${{ !inputs.fast }}
-        run: |
-          JITTER_SEC=$((RANDOM % 60))
-          echo "Applying organic anti-bot timing delay of ${JITTER_SEC} seconds..."
-          sleep $JITTER_SEC
       - run: pnpm --filter core exec tsx scripts/run-post-batch.ts --account ${{ matrix.account_id }} ${{ inputs.force && '--force' || '' }} ${{ inputs.fast && '--fast' || '' }} ${{ inputs.single && '--single' || '' }}
         env:
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}

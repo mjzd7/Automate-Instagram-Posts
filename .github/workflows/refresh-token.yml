@@ -2,7 +2,7 @@ name: refresh-token
 
 on:
   schedule:
-    - cron: "0 3 * * 0" # TOKEN_REFRESH_CRON, plan.md §2.10 -- weekly, Sunday 03:00 UTC
+    - cron: "0 2 * * 0" # TOKEN_REFRESH_CRON, plan.md §2.10 -- weekly, Sunday 02:00 UTC
   workflow_dispatch: {}
 
 permissions:

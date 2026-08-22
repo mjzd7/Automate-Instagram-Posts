@@ -144,6 +144,7 @@ export async function imagePassesFilter(
               { type: "SAFE_SEARCH_DETECTION" },
               { type: "LABEL_DETECTION", maxResults: 20 },
               { type: "TEXT_DETECTION", maxResults: 5 },
+              { type: "FACE_DETECTION", maxResults: 5 },
             ],
           },
         ],
@@ -160,6 +161,7 @@ export async function imagePassesFilter(
       safeSearchAnnotation?: SafeSearchAnnotation;
       labelAnnotations?: LabelAnnotation[];
       textAnnotations?: TextAnnotation[];
+      faceAnnotations?: Array<unknown>;
     }>;
   };
 
@@ -182,10 +184,24 @@ export async function imagePassesFilter(
     };
   }
 
-  // Stage 2: Label blocklist — religious + text-heavy
-  const labels = (response.labelAnnotations ?? []).filter(
-    (l) => l.score >= LABEL_CONFIDENCE_THRESHOLD,
-  );
+  // Stage 1.5: Face Detection — reject background photos/videos containing human faces
+  if (response.faceAnnotations && response.faceAnnotations.length > 0) {
+    return {
+      passes: false,
+      annotation,
+      rejectedLabels: ["face"],
+      rejectionReason: "Failed moderation: human face detected in background image",
+    };
+  }
+
+  // Stage 2: Label blocklist — religious + text-heavy + relationship (0.35 threshold for relationship labels)
+  const labels = (response.labelAnnotations ?? []).filter((l) => {
+    const lc = l.description.toLowerCase();
+    if (RELATIONSHIP_LABELS.has(lc)) {
+      return l.score >= 0.35; // Lower threshold specifically for relationship/romance labels
+    }
+    return l.score >= LABEL_CONFIDENCE_THRESHOLD;
+  });
 
   const rejectedLabels: string[] = [];
   for (const label of labels) {

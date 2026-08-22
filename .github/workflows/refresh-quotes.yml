@@ -3,7 +3,7 @@ name: Refresh Curated Quote Pool (38-Day Cycle)
 on:
   schedule:
     # Runs automatically on the 1st of every month
-    - cron: '0 0 1 * *'
+    - cron: '0 23 1 * *'
   workflow_dispatch:
 
 jobs:

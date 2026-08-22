@@ -33,11 +33,11 @@ export async function fetchPexelsVideo(category: string, mode: "dark" | "light" 
       ? "bright light white minimal" 
       : "dark moody black night";
       
-    // Try combining base query + mode + faceless
+    // Try combining base query + mode + human-free constraints
     const searchQueries = [
-      `${baseQuery} ${modeModifier} faceless`,
-      `${baseQuery} faceless`, // Fallback 1: Drop the lighting constraint if too narrow
-      `${modeModifier} faceless` // Fallback 2: Drop the semantic meaning, rely purely on vibe
+      `${baseQuery} ${modeModifier} no people`,
+      `${baseQuery} minimalist landscape`,
+      `${modeModifier} abstract loop`
     ];
 
     for (const query of searchQueries) {

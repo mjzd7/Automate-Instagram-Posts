@@ -211,6 +211,47 @@ describe("imagePassesFilter", () => {
     expect(featureTypes).toContain("TEXT_DETECTION");
   });
 
+  // ─── Stage 1.5: Face Detection & Relationship Threshold ────────────────
+  it("requests FACE_DETECTION feature in Vision API payload", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(visionResponse({ adult: "UNLIKELY" }));
+    await imagePassesFilter("https://example.com/img.jpg", "key", fetchImpl);
+
+    const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    const featureTypes: string[] = body.requests[0].features.map((f: { type: string }) => f.type);
+    expect(featureTypes).toContain("FACE_DETECTION");
+  });
+
+  it("rejects an image when human faces are detected via faceAnnotations", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(200, {
+        responses: [
+          {
+            safeSearchAnnotation: { adult: "UNLIKELY", violence: "UNLIKELY", racy: "UNLIKELY" },
+            faceAnnotations: [{ boundingPoly: {} }],
+          },
+        ],
+      }),
+    );
+    const result = await imagePassesFilter("https://example.com/face.jpg", "key", fetchImpl);
+    expect(result.passes).toBe(false);
+    expect(result.rejectionReason).toContain("human face detected");
+  });
+
+  it("rejects relationship labels at 0.35 confidence (below the standard 0.6 threshold)", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      visionResponse(
+        { adult: "UNLIKELY", violence: "UNLIKELY", racy: "UNLIKELY" },
+        [
+          { description: "Kissing", score: 0.40 }, // Between 0.35 and 0.60
+        ],
+      ),
+    );
+    const result = await imagePassesFilter("https://example.com/kiss.jpg", "key", fetchImpl);
+    expect(result.passes).toBe(false);
+    expect(result.rejectedLabels).toContain("Kissing");
+  });
+
   // ─── Non-blocking benign labels ──────────────────────────────────────────
   it("passes a clean nature photo with no blocked labels and no text", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(

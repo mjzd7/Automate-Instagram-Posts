@@ -2,7 +2,7 @@ name: Update Trending Hashtags
 
 on:
   schedule:
-    - cron: "30 23 * * *" # Runs at 23:30 UTC every day, which is 5:00 AM IST.
+    - cron: "30 22 * * *" # Runs at 22:30 UTC every day, which is 4:00 AM IST.
   workflow_dispatch:
 
 permissions:

@@ -74,6 +74,7 @@ export const posts = sqliteTable(
     storiesMediaId: text("stories_media_id"),
     status: text("status", { enum: ["pending", "published", "failed"] }).notNull(),
     errorMessage: text("error_message"),
+    views: integer("views").default(0),
     scheduledFor: text("scheduled_for").notNull(),
     publishedAt: text("published_at"),
     createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),

@@ -14,6 +14,7 @@ export interface SelectAudioInput {
   recentAudioIds?: string[];
   availableTracks: MetaAudioTrack[];
   random?: () => number;
+  viralAudioIds?: string[];
 }
 
 /** Fallback royalty-free catalog used when Meta API has no matching tracks */
@@ -84,6 +85,14 @@ export function selectStoryAudio(input: SelectAudioInput): SelectedAudioResult {
   // Step 4: Anti-Fatigue Memory (Filter out recently used tracks)
   const freshTracks = commercialTracks.filter((t) => !recentAudioIds.includes(t.audioId));
   let candidates = freshTracks.length > 0 ? freshTracks : commercialTracks;
+
+  // Step 4.5: Prioritize Viral Audio Reuse
+  if (input.viralAudioIds && input.viralAudioIds.length > 0) {
+    const viralMatch = candidates.filter((t) => input.viralAudioIds!.includes(t.audioId));
+    if (viralMatch.length > 0) {
+      candidates = viralMatch;
+    }
+  }
 
   // Step 5: Granular Sentiment & "Vibe" Shortlisting
   // If dark mode, prioritize minor key/ambient tracks (e.g., stoic/mindset).

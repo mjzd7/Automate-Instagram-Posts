@@ -157,7 +157,7 @@ export async function composeVideoReel(
     Math.round(textResult.fontSize * 0.5) // AUTHOR_LINE_FONT_SIZE_RATIO
   );
 
-  const authorDisplay = author ? `— ${author}` : undefined;
+  const authorDisplay = author ? `— ${author} ` : undefined;
   
   // 4. Generate Typewriter PNG Sequence
   console.log("Generating typewriter frames...");
