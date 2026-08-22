@@ -13,6 +13,12 @@ export const accountSchema = z.object({
   timezone: z.string().min(1),
   postingHoursLocal: z.array(z.number().int().min(0).max(23)).min(1),
   active: z.boolean(),
+  // Optional schedule extensions (dashboard-editable, P4 of the overhaul):
+  // defaulted so pre-overhaul accounts.json files load unchanged.
+  dailyCap: z.number().int().min(0).max(22).optional(),
+  blackoutDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+  paused: z.boolean().optional(),
+  enabledTemplates: z.array(z.string().min(1)).optional(),
 });
 
 const accountsFileSchema = z.array(accountSchema);

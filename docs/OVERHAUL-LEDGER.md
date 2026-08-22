@@ -11,7 +11,7 @@
 | P3a | Overview + Accounts pages rebuild | ⏳ pending | | |
 | P3b | Categories + Templates pages (enabledTemplates editor) | ⏳ pending | | |
 | P3c | Preview + History pages | ⏳ pending | | |
-| P4 | Schedule domain: Account schema optional fields (dailyCap/blackoutDates/paused/enabledTemplates), generator.ts pure fn, property tests (DST etc.) | ⏳ pending | | |
+| P4 | Schedule domain: schema extensions, wall-time.ts Intl conversions, generator.ts pure fn, regenerateMonth contract | ✅ done 2026-08-23 | (this commit) | vitest 483/483 repo-wide incl. 16 schedule tests; eslint+tsc clean on touched files |
 | P5 | Schedules editor UI | ⏳ pending | | |
 | P6 | Pipeline engine wiring: month-file generate/regen actions, runner binding + status→app.db + legacy fallback + kill-switch | ⏳ pending | | |
 | P7 | Pipeline viewer (month calendar) + builder stepper UI | ⏳ pending | | |
