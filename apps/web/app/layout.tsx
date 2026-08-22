@@ -1,32 +1,32 @@
 import type { Metadata } from "next";
-import { Inter, Newsreader } from "next/font/google";
-import { NebulaBackground } from "@/components/NebulaBackground";
+import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const newsreader = Newsreader({
+const geist = Geist({
   subsets: ["latin"],
-  weight: ["300"],
-  variable: "--font-newsreader",
+  variable: "--font-geist",
 });
 
-const inter = Inter({
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  variable: "--font-inter",
+  variable: "--font-geist-mono",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-space-grotesk",
 });
 
 export const metadata: Metadata = {
-  title: "Quote Poster Dashboard",
-  description: "Manage accounts, categories, templates, and posting history.",
+  title: "poster — Quote Poster Dashboard",
+  description: "Manage accounts, categories, templates, schedules, and the posting pipeline.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${inter.variable}`}>
-      <body className="font-sans antialiased">
-        <NebulaBackground />
-        <div className="relative z-[1]">{children}</div>
-      </body>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${spaceGrotesk.variable}`}>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }

@@ -6,7 +6,7 @@
 | Phase | Scope | Status | Commit | Evidence |
 |---|---|---|---|---|
 | P0 | Persist plan, resolve plan.md §11 open item, create ledger | ✅ done 2026-08-23 | `docs(plan): resolve §11 visual item, adopt Monochrome Titanium overhaul plan` | this file + §11 edit |
-| P1 | Playwright scaffold: config :3100, mock-writer seam, auth storageState fixture, seeded fixtures, smoke spec | ⏳ pending | | |
+| P1 | Playwright scaffold: config :3100, mock-writer seam, auth storageState fixture, seeded fixtures, smoke spec | ✅ done 2026-08-23 | `274b1a6` | vitest 467/467 · playwright 6/6 · eslint+tsc clean on touched files (pre-existing core tsc/eslint failures documented) |
 | P2 | Design system core: @theme Monochrome Titanium, next/font trio, 6 primitives, pill Nav (+Schedules/Pipeline), kill Nebula+three, Tri-Node logo/favicon verbatim | ⏳ pending | | |
 | P3a | Overview + Accounts pages rebuild | ⏳ pending | | |
 | P3b | Categories + Templates pages (enabledTemplates editor) | ⏳ pending | | |

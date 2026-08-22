@@ -2,8 +2,8 @@ import { saveAccount } from "@/lib/actions/accounts";
 import type { Account, Category } from "@/lib/schemas";
 
 const inputClass =
-  "w-full border border-white/10 bg-black/20 px-3 py-2 text-sm text-text-primary outline-none focus:border-primary";
-const labelClass = "mb-1 block text-xs font-medium text-text-secondary";
+  "w-full rounded-lg border border-white/15 bg-black px-3.5 py-2.5 font-mono text-sm text-white outline-none transition-colors duration-200 ease-brand focus:border-white focus-visible:ring-2 focus-visible:ring-white/60";
+const labelClass = "mb-1 block font-mono text-[11px] uppercase tracking-wider text-slate-muted";
 
 export function AccountForm({ account, categories }: { account?: Account; categories: Category[] }) {
   return (
@@ -69,7 +69,7 @@ export function AccountForm({ account, categories }: { account?: Account; catego
         <legend className={labelClass}>Category focus</legend>
         <div className="flex flex-wrap gap-3">
           {categories.map((category) => (
-            <label key={category.id} className="flex items-center gap-1.5 text-sm text-text-primary">
+            <label key={category.id} className="flex items-center gap-1.5 text-sm text-platinum">
               <input
                 type="checkbox"
                 name="categoryFocus"
@@ -82,7 +82,7 @@ export function AccountForm({ account, categories }: { account?: Account; catego
         </div>
       </fieldset>
 
-      <label className="flex items-center gap-1.5 text-sm text-text-primary">
+      <label className="flex items-center gap-1.5 text-sm text-platinum">
         <input type="checkbox" name="active" defaultChecked={account?.active ?? true} />
         Active
       </label>

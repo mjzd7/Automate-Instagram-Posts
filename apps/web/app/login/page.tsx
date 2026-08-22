@@ -1,6 +1,7 @@
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
+import { TriNodeMark } from "@/components/TriNodeMark";
 
 async function authenticate(formData: FormData) {
   "use server";
@@ -25,10 +26,14 @@ export default async function LoginPage({
     <main className="flex min-h-screen items-center justify-center p-6">
       <form
         action={authenticate}
-        className="shadow-elevated w-full max-w-sm rounded-control border border-white/10 bg-surface p-8"
+        data-testid="login-form"
+        className="w-full max-w-sm rounded-2xl border border-white/10 bg-[rgba(18,18,22,0.85)] p-8 shadow-titanium backdrop-blur-[20px]"
       >
-        <h1 className="font-display mb-6 text-3xl font-light text-text-primary">Sign in</h1>
-        <label htmlFor="password" className="mb-2 block text-sm font-medium text-text-secondary">
+        <div className="mb-6 flex items-center gap-3">
+          <TriNodeMark size={28} />
+          <h1 className="font-display text-xl font-bold tracking-[-0.03em] lowercase text-white">poster</h1>
+        </div>
+        <label htmlFor="password" className="mb-2 block font-mono text-xs uppercase tracking-wider text-slate-muted">
           Password
         </label>
         <input
@@ -37,12 +42,16 @@ export default async function LoginPage({
           type="password"
           required
           autoFocus
-          className="mb-4 w-full border border-white/10 bg-black/20 px-4 py-2 text-text-primary outline-none focus:border-primary"
+          className="mb-4 w-full rounded-lg border border-white/15 bg-black px-3.5 py-2.5 font-mono text-white outline-none transition-colors duration-200 ease-brand focus:border-white focus-visible:ring-2 focus-visible:ring-white/60"
         />
-        {error && <p className="mb-4 text-sm text-red-400">Incorrect password.</p>}
+        {error && (
+          <p role="alert" className="mb-4 font-mono text-sm text-red-400">
+            Incorrect password.
+          </p>
+        )}
         <button
           type="submit"
-          className="w-full rounded-control bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-150 ease-brand hover:bg-primary/90"
+          className="w-full rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-colors duration-200 ease-brand outline-none hover:bg-platinum focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           Sign in
         </button>

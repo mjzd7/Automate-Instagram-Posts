@@ -4,7 +4,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="relative z-[1]">
       <Nav />
-      <div className="p-6">{children}</div>
+      <main className="mx-auto w-full max-w-7xl space-y-6 p-6">{children}</main>
     </div>
   );
 }

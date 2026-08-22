@@ -10,7 +10,7 @@ export function SignOutButton() {
     >
       <button
         type="submit"
-        className="rounded-control px-4 py-2 text-sm font-medium text-text-secondary transition-colors duration-150 ease-brand hover:text-text-primary"
+        className="rounded-lg px-3 py-1.5 font-mono text-xs font-medium text-slate-muted transition-all duration-200 ease-brand outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white/60"
       >
         Sign out
       </button>
