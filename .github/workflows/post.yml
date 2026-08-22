@@ -51,9 +51,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: federicocarboni/setup-ffmpeg@v3
-        env:
-          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pnpm install --frozen-lockfile
       - name: Organic start time jitter
         if: ${{ !inputs.fast }}
