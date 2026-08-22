@@ -1,7 +1,7 @@
 import { loadEnv } from "../config/env.js";
 import { extractVisualConcepts } from "../matching/visual-concept-extractor.js";
 
-interface VideoResult {
+export interface VideoResult {
   url: string;
   width: number;
   height: number;

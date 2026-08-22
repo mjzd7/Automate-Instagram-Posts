@@ -6,7 +6,8 @@ import sharp from "sharp";
 import { renderGlassCard } from "../images/glass-card.js";
 import { renderFittedText } from "../images/text-render.js";
 import { generateTypewriterSequence } from "../images/typewriter.ts";
-import { fetchPexelsVideo } from "./video-fetcher";
+import { fetchPexelsVideo, type VideoResult } from "./video-fetcher";
+import { fetchPixabayVideo } from "./pixabay-video-fetcher";
 import { selectTemplate } from "../images/templates.js";
 import { loadEnv } from "../config/env.js";
 import { imagePassesFilter } from "../content-filter/image-filter.js";
@@ -65,10 +66,22 @@ export async function composeVideoReel(
   // instead of re-testing the same failing videos.
   const rejectedVideoUrls = new Set<string>();
 
+  // Both sources share one exclusion set -- a Vision-rejected link must never be redrawn from either.
+  const sourceOrder = (process.env.VIDEO_SOURCE_ORDER ?? "").toLowerCase().startsWith("pixabay")
+    ? [fetchPixabayVideo, fetchPexelsVideo]
+    : [fetchPexelsVideo, fetchPixabayVideo];
+  const fetchNextCandidate = async (): Promise<VideoResult | null> => {
+    for (const fetchSource of sourceOrder) {
+      const found = await fetchSource(category, mode, quoteText, rejectedVideoUrls);
+      if (found) return found;
+    }
+    return null;
+  };
+
   // Try fetching and validating a video candidate up to 5 times
   for (let attempt = 1; attempt <= 5; attempt++) {
-    console.log(`[Content Filter] Fetching Pexels video candidate (Attempt ${attempt}/5)...`);
-    video = await fetchPexelsVideo(category, mode, quoteText, rejectedVideoUrls);
+    console.log(`[Content Filter] Fetching background video candidate (Attempt ${attempt}/5)...`);
+    video = await fetchNextCandidate();
     if (!video) {
       continue;
     }

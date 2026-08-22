@@ -18,6 +18,10 @@ on:
         description: "Post only a single Reel instead of a full batch"
         type: boolean
         default: false
+      video_source_order:
+        description: "Background video source order (default pexels-first; 'pixabay-first' forces Pixabay)"
+        type: string
+        default: ""
 
 permissions:
   contents: write # commit-batch.ts pushes data/app.db + data/posts/ changes
@@ -76,3 +80,4 @@ jobs:
           THEY_SAID_SO_KEY: ${{ secrets.THEY_SAID_SO_KEY }}
           GITHUB_REPO_SLUG: ${{ github.repository }}
           GITHUB_BRANCH: ${{ github.ref_name }}
+          VIDEO_SOURCE_ORDER: ${{ inputs.video_source_order }}
