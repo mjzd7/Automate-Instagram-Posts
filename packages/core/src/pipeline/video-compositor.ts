@@ -237,13 +237,17 @@ export async function composeVideoReel(
   const halfDuration = totalVideoDuration / 2;
   
   // 1. Trim, scale, and crop forward segment
+  // Intermediates run near-lossless (CRF 10): four chained encodes must not compound generation loss.
   execFileSync("ffmpeg", [
     "-y",
     "-ss", "0",
     "-t", String(halfDuration),
     "-i", bgVideoPath,
-    "-vf", `scale=${REEL_WIDTH}:${REEL_HEIGHT}:force_original_aspect_ratio=increase,crop=${REEL_WIDTH}:${REEL_HEIGHT}`,
+    "-vf", `scale=${REEL_WIDTH}:${REEL_HEIGHT}:force_original_aspect_ratio=increase:flags=lanczos,crop=${REEL_WIDTH}:${REEL_HEIGHT}`,
+    "-r", "30",
     "-c:v", "libx264",
+    "-preset", "veryfast",
+    "-crf", "10",
     "-pix_fmt", "yuv420p",
     "-an",
     vFwdPath
@@ -255,6 +259,8 @@ export async function composeVideoReel(
     "-i", vFwdPath,
     "-vf", "reverse",
     "-c:v", "libx264",
+    "-preset", "veryfast",
+    "-crf", "10",
     "-pix_fmt", "yuv420p",
     "-an",
     vRevPath
@@ -268,6 +274,8 @@ export async function composeVideoReel(
     "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0[v]",
     "-map", "[v]",
     "-c:v", "libx264",
+    "-preset", "veryfast",
+    "-crf", "10",
     "-pix_fmt", "yuv420p",
     "-an",
     loopedBgPath
@@ -339,14 +347,31 @@ export async function composeVideoReel(
     if (finalAudioMap) {
       command.outputOptions([
         `-map ${finalAudioMap}`,
-        "-c:a aac"
+        "-c:a aac",
+        "-b:a 256k",
+        "-ar 48000",
+        "-ac 2"
       ]);
     }
 
+    // Delivery encode: single high-quality generation that survives IG's
+    // recompression. CRF 17 + High@4.2 + Rec.709 tags + <=20Mbps cap per
+    // Instagram's published specs (1080x1920/30fps/H.264, max 25Mbps).
     command
       .outputOptions([
         "-c:v libx264",
+        "-preset slow",
+        "-crf 17",
+        "-maxrate 16M",
+        "-bufsize 32M",
+        "-profile:v high",
+        "-level:v 4.2",
         "-pix_fmt yuv420p",
+        "-colorspace bt709",
+        "-color_primaries bt709",
+        "-color_trc bt709",
+        "-r 30",
+        "-movflags +faststart",
         `-t ${totalVideoDuration}`,
         "-y"
       ])
