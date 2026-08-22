@@ -1,0 +1,33 @@
+[
+  {
+    "id": "e2e-main",
+    "igUserId": "17841400000000001",
+    "fbPageId": "102900000000001",
+    "threadsUserId": null,
+    "categoryFocus": [
+      "motivational"
+    ],
+    "timezone": "America/New_York",
+    "postingHoursLocal": [
+      10,
+      13,
+      17
+    ],
+    "active": true
+  },
+  {
+    "id": "e2e-stoic",
+    "igUserId": "17841400000000002",
+    "fbPageId": "102900000000002",
+    "threadsUserId": null,
+    "categoryFocus": [
+      "stoic"
+    ],
+    "timezone": "Pacific/Auckland",
+    "postingHoursLocal": [
+      9,
+      21
+    ],
+    "active": true
+  }
+]

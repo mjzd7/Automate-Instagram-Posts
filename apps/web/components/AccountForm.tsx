@@ -24,28 +24,39 @@ export function AccountForm({ account, categories }: { account?: Account; catego
       </div>
 
       <div>
-        <label className={labelClass}>Instagram user id</label>
-        <input name="igUserId" defaultValue={account?.igUserId} required className={inputClass} />
+        <label className={labelClass} htmlFor={`${account?.id ?? "new"}-igUserId`}>
+          Instagram user id
+        </label>
+        <input id={`${account?.id ?? "new"}-igUserId`} name="igUserId" defaultValue={account?.igUserId} required className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Facebook page id</label>
-        <input name="fbPageId" defaultValue={account?.fbPageId} required className={inputClass} />
+        <label className={labelClass} htmlFor={`${account?.id ?? "new"}-fbPageId`}>
+          Facebook page id
+        </label>
+        <input id={`${account?.id ?? "new"}-fbPageId`} name="fbPageId" defaultValue={account?.fbPageId} required className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Threads user id (optional)</label>
-        <input name="threadsUserId" defaultValue={account?.threadsUserId ?? ""} className={inputClass} />
+        <label className={labelClass} htmlFor={`${account?.id ?? "new"}-threadsUserId`}>
+          Threads user id (optional)
+        </label>
+        <input id={`${account?.id ?? "new"}-threadsUserId`} name="threadsUserId" defaultValue={account?.threadsUserId ?? ""} className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Timezone (IANA, e.g. America/New_York)</label>
-        <input name="timezone" defaultValue={account?.timezone} required className={inputClass} />
+        <label className={labelClass} htmlFor={`${account?.id ?? "new"}-timezone`}>
+          Timezone (IANA, e.g. America/New_York)
+        </label>
+        <input id={`${account?.id ?? "new"}-timezone`} name="timezone" defaultValue={account?.timezone} required className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Posting hours local (comma-separated, 0-23)</label>
+        <label className={labelClass} htmlFor={`${account?.id ?? "new"}-postingHoursLocal`}>
+          Posting hours local (comma-separated, 0-23)
+        </label>
         <input
+          id={`${account?.id ?? "new"}-postingHoursLocal`}
           name="postingHoursLocal"
           defaultValue={account?.postingHoursLocal.join(", ")}
           placeholder="10, 13, 17, 20"

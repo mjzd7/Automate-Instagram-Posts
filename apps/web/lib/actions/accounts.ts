@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { getAccounts } from "@/lib/db";
-import { writeJsonFile } from "@/lib/github-content";
 import { accountSchema, type Account } from "@/lib/schemas";
+import { getConfigWriter } from "@/lib/writer";
 
 function parseHours(raw: string): number[] {
   return raw
@@ -39,7 +39,7 @@ export async function saveAccount(formData: FormData) {
     ? accounts.map((account) => (account.id === originalId ? result.data : account))
     : [...accounts, result.data];
 
-  await writeJsonFile(
+  await getConfigWriter().writeJsonFile(
     "data/accounts.json",
     next,
     `dashboard: ${originalId ? "update" : "add"} account ${result.data.id}`,
@@ -51,6 +51,6 @@ export async function deleteAccount(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const accounts = await getAccounts();
   const next = accounts.filter((account) => account.id !== id);
-  await writeJsonFile("data/accounts.json", next, `dashboard: delete account ${id}`);
+  await getConfigWriter().writeJsonFile("data/accounts.json", next, `dashboard: delete account ${id}`);
   redirect("/accounts");
 }

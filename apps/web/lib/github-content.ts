@@ -42,6 +42,11 @@ export async function writeJsonFile(
   client?: ContentsApi,
 ): Promise<void> {
   const { DASHBOARD_GITHUB_PAT, GITHUB_REPO_SLUG, GITHUB_BRANCH } = getDashboardEnv();
+  if (!DASHBOARD_GITHUB_PAT || !GITHUB_REPO_SLUG) {
+    throw new Error(
+      "writeJsonFile: DASHBOARD_GITHUB_PAT and GITHUB_REPO_SLUG are required for GitHub write-back (set them, or use the DASHBOARD_LOCAL_FS e2e writer)",
+    );
+  }
   const [owner, repo] = GITHUB_REPO_SLUG.split("/");
   if (!owner || !repo) {
     throw new Error(`writeJsonFile: GITHUB_REPO_SLUG must be "owner/repo", got "${GITHUB_REPO_SLUG}"`);

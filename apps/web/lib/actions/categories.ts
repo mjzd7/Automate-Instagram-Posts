@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { getCategories } from "@/lib/db";
-import { writeJsonFile } from "@/lib/github-content";
 import { categorySchema, type Category } from "@/lib/schemas";
+import { getConfigWriter } from "@/lib/writer";
 
 export async function saveCategory(formData: FormData) {
   const originalId = String(formData.get("originalId") ?? "");
@@ -27,7 +27,7 @@ export async function saveCategory(formData: FormData) {
     ? categories.map((category) => (category.id === originalId ? result.data : category))
     : [...categories, result.data];
 
-  await writeJsonFile(
+  await getConfigWriter().writeJsonFile(
     "data/categories.json",
     next,
     `dashboard: ${originalId ? "update" : "add"} category ${result.data.id}`,
@@ -39,6 +39,6 @@ export async function deleteCategory(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const categories = await getCategories();
   const next = categories.filter((category) => category.id !== id);
-  await writeJsonFile("data/categories.json", next, `dashboard: delete category ${id}`);
+  await getConfigWriter().writeJsonFile("data/categories.json", next, `dashboard: delete category ${id}`);
   redirect("/categories");
 }

@@ -16,8 +16,10 @@ export function getDashboardEnv() {
   return {
     NEXTAUTH_SECRET: required("NEXTAUTH_SECRET"),
     DASHBOARD_PASSWORD_HASH: required("DASHBOARD_PASSWORD_HASH"),
-    DASHBOARD_GITHUB_PAT: required("DASHBOARD_GITHUB_PAT"),
-    GITHUB_REPO_SLUG: required("GITHUB_REPO_SLUG"),
+    // Validated at point of use (lib/github-content.ts), not here: auth and
+    // read-only pages must boot without GitHub creds (e2e, Vercel reads).
+    DASHBOARD_GITHUB_PAT: process.env.DASHBOARD_GITHUB_PAT,
+    GITHUB_REPO_SLUG: process.env.GITHUB_REPO_SLUG,
     GITHUB_BRANCH: process.env.GITHUB_BRANCH ?? "main",
   };
 }
