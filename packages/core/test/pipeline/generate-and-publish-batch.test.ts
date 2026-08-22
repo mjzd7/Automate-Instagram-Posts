@@ -370,6 +370,9 @@ describe("generateAndPublishBatch", () => {
   }, 60000);
 
   it("publishes via Composio when COMPOSIO_API_KEY is set", async () => {
+    const { igToken } = await import("../../src/db/schema.js");
+    await handle.db.delete(igToken);
+
     await seedContent(handle.db, 2);
     const composioFetch = vi.fn().mockImplementation(async (url: string) => {
       if (url.includes("backend.composio.dev")) {

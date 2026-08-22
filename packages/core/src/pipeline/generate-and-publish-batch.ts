@@ -368,14 +368,12 @@ export async function generateAndPublishBatch(
 
       console.log(`[Batch] Selected quote: "${quote.text.slice(0, 40)}..." by ${quote.author}`);
 
-      // Query Meta Audio API if Instagram credentials are available
       let availableTracks: MetaAudioTrack[] = [];
       if (igCreds?.igUserId && igCreds?.accessToken) {
         try {
           availableTracks = await searchMetaAudioTracks({
             igUserId: igCreds.igUserId,
             accessToken: igCreds.accessToken,
-            query: category,
             fetchImpl,
           });
         } catch {
@@ -515,24 +513,15 @@ export async function generateAndPublishBatch(
         return { mediaId: reelRes.mediaId };
       };
 
-      const isWeekend = currentTime.getDay() === 0 || currentTime.getDay() === 6;
-      // 25% chance on weekends to force Meta Graph API (1 in 4 posts)
-      const forceMetaGraph = isWeekend && random() < 0.25;
-
-      if (env.COMPOSIO_API_KEY && !forceMetaGraph) {
+      if (igCreds) {
+        reelResult = await tryMetaGraphReel();
+      } else if (env.COMPOSIO_API_KEY) {
         try {
           reelResult = await tryComposioReel();
         } catch (err) {
           console.warn(`[Batch] Composio API failed for Reel:`, err);
-          if (igCreds) {
-            console.log(`[Batch] Falling back to Meta Graph API for Reel...`);
-            reelResult = await tryMetaGraphReel();
-          } else {
-            throw err;
-          }
+          throw err;
         }
-      } else if (igCreds) {
-        reelResult = await tryMetaGraphReel();
       } else {
         throw new Error("No publishing credentials available");
       }

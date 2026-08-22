@@ -14,6 +14,7 @@ export async function publishToReels(
   creds: IGCredentials,
   fetchImpl: typeof fetch = fetch,
   sleepImpl?: (ms: number) => Promise<void>,
+  options?: { coverUrl?: string },
 ): Promise<{ mediaId: string }> {
   const mediaBody: Record<string, unknown> = {
     media_type: "REELS",
@@ -21,6 +22,10 @@ export async function publishToReels(
     caption,
     access_token: creds.accessToken,
   };
+
+  if (options?.coverUrl) {
+    mediaBody.cover_url = options.coverUrl;
+  }
 
   const createRes = await fetchImpl(`${GRAPH_API_BASE}/${creds.igUserId}/media`, {
     method: "POST",

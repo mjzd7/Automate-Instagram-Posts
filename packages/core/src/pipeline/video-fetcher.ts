@@ -58,10 +58,10 @@ export async function fetchPexelsVideo(category: string, mode: "dark" | "light" 
         
         // Sort files by width descending to get the absolute highest 4K/HD resolution source
         const sortedFiles = [...video.video_files]
-          .filter((f: any) => f.height > f.width) // Ensure it's portrait
+          .filter((f: any) => f.height > f.width && (f.width >= 2160 || f.height >= 3840)) // Enforce 4K only (e.g. 2160x3840 or 2160x4096)
           .sort((a: any, b: any) => b.width - a.width);
           
-        const file = sortedFiles[0] || video.video_files[0];
+        const file = sortedFiles[0];
                      
         if (file) {
           console.log(`Matched stunning 4K/HD video on query: "${query}"`);
