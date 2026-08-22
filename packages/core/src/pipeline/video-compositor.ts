@@ -169,13 +169,11 @@ export async function composeVideoReel(
       
     const halfDuration = totalVideoDuration / 2;
     const filterGraph = [
-      // 1. Scale and crop to fit 9:16 perfectly first (reduces memory consumption for reverse)
+      // 1. Scale and crop to fit 9:16 perfectly first
       `[0:v]scale=${REEL_WIDTH}:${REEL_HEIGHT}:force_original_aspect_ratio=increase,crop=${REEL_WIDTH}:${REEL_HEIGHT}[bg_scaled]`,
 
-      // 2. Create a seamless Ping-Pong loop so frame 0 and frame N are identical
-      `[bg_scaled]trim=start=0:end=${halfDuration},setpts=PTS-STARTPTS[v_fwd]`,
-      `[v_fwd]reverse[v_rev]`,
-      `[v_fwd][v_rev]concat=n=2:v=1:a=0[bg_pingpong]`,
+      // 2. Play the video forward for the duration (avoiding reverse filter memory SIGSEGV)
+      `[bg_scaled]trim=start=0:end=${totalVideoDuration},setpts=PTS-STARTPTS[bg_pingpong]`,
       
       // 3. Overlay the static UI layer (borders, badges, semi-transparent gradient fill)
       `[bg_pingpong][1:v]overlay=${cardX}:${cardY}[bg_with_ui]`,
