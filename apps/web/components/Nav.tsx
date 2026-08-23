@@ -2,18 +2,7 @@ import Link from "next/link";
 import { NavLink } from "./NavLink";
 import { SignOutButton } from "./SignOutButton";
 import { TriNodeMark } from "./TriNodeMark";
-
-const LINKS = [
-  { href: "/", label: "Overview" },
-  { href: "/accounts", label: "Accounts" },
-  { href: "/categories", label: "Categories" },
-  { href: "/templates", label: "Templates" },
-  { href: "/schedules", label: "Schedules" },
-  { href: "/pipeline", label: "Pipeline" },
-  { href: "/config", label: "Config" },
-  { href: "/history", label: "History" },
-  { href: "/preview", label: "Preview" },
-];
+import { NAV_LINKS as LINKS } from "@/lib/nav-links";
 
 export function Nav() {
   return (
@@ -41,4 +30,3 @@ export function Nav() {
   );
 }
 
-export const NAV_LINKS = LINKS;

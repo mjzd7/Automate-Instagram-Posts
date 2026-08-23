@@ -189,6 +189,46 @@ test.describe("config history + restore", () => {
   });
 });
 
+test.describe("keyboard palette", () => {
+  async function armPalette(page: import("@playwright/test").Page): Promise<boolean> {
+    // Hydration race guard: retry arming until the indicator responds.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await page.goto("/");
+      await page.keyboard.press("g");
+      try {
+        await expect(page.getByTestId("kbd-pending")).toBeVisible({ timeout: 1500 });
+        return true;
+      } catch {
+        /* early press pre-hydration: reload and retry */
+      }
+    }
+    return false;
+  }
+
+  test("g then a navigates to accounts", async ({ page }) => {
+    expect(await armPalette(page)).toBe(true);
+    await page.keyboard.press("a");
+    await expect(page).toHaveURL(/\/accounts$/);
+  });
+
+  test("g alone times out and leaves navigation state clean", async ({ page }) => {
+    expect(await armPalette(page)).toBe(true);
+    await page.waitForTimeout(1400);
+    await expect(page.getByTestId("kbd-pending")).toHaveCount(0);
+    await expect(page).toHaveURL(/:\d+\/$/);
+  });
+
+  test("typing inside inputs never arms the palette", async ({ page }) => {
+    await page.goto("/accounts");
+    const addForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Add account" }) });
+    const idInput = addForm.getByLabel("Account id (slug)");
+    await idInput.click();
+    await idInput.pressSequentially("ga");
+    await expect(page.getByTestId("kbd-pending")).toHaveCount(0);
+    await expect(idInput).toHaveValue("ga");
+  });
+});
+
 test.describe("runner dispatch", () => {
   test("run-now records a local dispatch and surfaces it in recent runs", async ({ page }) => {
     await page.goto("/");

@@ -20,29 +20,17 @@ test.afterAll(async () => {
 
 test.describe("schedules editor", () => {
   test("renders per-account cards and saves tweaked schedule through the seam", async ({ page }) => {
-    await page.goto("/schedules");
-    await expect(page.getByText("e2e-main")).toBeVisible();
-
-    let request: import("@playwright/test").Request | undefined;
-    page.on("request", (r) => {
-      if (r.method() === "POST" && r.url().includes("/schedules")) request = r;
-    });
-    const hours = page.getByTestId("e2e-main-hours");
-    await expect(hours).toHaveValue(/10/);
-    await hours.fill("7, 19");
-    await page.getByTestId("e2e-main-cap").fill("1");
-    await page.getByTestId("e2e-main-blackouts").fill("2026-12-25");
-    await page.getByTestId("e2e-main-timezone").fill("Europe/Berlin");
     // Hydration race guard: an early click no-ops (no server action yet).
     // Retry the whole fill+save round-trip until the seam reflects it.
     for (let attempt = 0; attempt < 3; attempt += 1) {
       await page.goto("/schedules");
       await expect(page.getByText("e2e-main")).toBeVisible();
-      await page.getByTestId("e2e-main-hour-10").uncheck();
-      await page.getByTestId("e2e-main-hour-13").uncheck();
-      await page.getByTestId("e2e-main-hour-17").uncheck();
-      await page.getByTestId("e2e-main-hour-7").check();
-      await page.getByTestId("e2e-main-hour-19").check();
+      // sr-only checkboxes aren't hit-testable; their wrapping labels are.
+      const chip = (h: number) => page.locator(`label:has(> [data-testid="e2e-main-hour-${h}"])`);
+      for (const h of [10, 13, 17]) await chip(h).click();
+      for (const h of [7, 19]) {
+        if (!(await page.getByTestId(`e2e-main-hour-${h}`).isChecked())) await chip(h).click();
+      }
       await page.getByTestId("e2e-main-cap").fill("1");
       await page.getByTestId("e2e-main-blackouts").fill("2026-12-25");
       await page.getByTestId("e2e-main-timezone").fill("Europe/Berlin");
