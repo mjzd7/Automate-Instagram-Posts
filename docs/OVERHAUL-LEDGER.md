@@ -18,7 +18,8 @@
 | v1.1 | pipeline_status write-back (settings-table backed) + viewer merge | ✅ | (this commit) | runner zips due×results→settings sentinel row; /pipeline merges live statuses onto chips; no migration (avoids user WIP files); hydration-race e2e guard pattern added |
 | v1.2a | chip-grid 24h hours picker replacing csv input | ✅ | (this commit) | specs updated to chip clicks |
 | v1.2b | run-now dispatch + recent-runs card (Runner seam w/ DASHBOARD_ACTIONS_PAT graceful hint; local-fs e2e seam) | ✅ | (this commit) | post.yml force/fast inputs untouched; account scoping = runner's pipeline gating |
-| v1.3 backlog | config-restore UI; analytics page (IG Insights); DAGR A2A/MCP exposure of pipeline state | ⏳ deferred | — | |
+| v1.3a | Config page: per-file revision list (Contents API) + schema-guarded Restore-as-new-commit through writer seam; local-fs twin for e2e | ✅ | (this commit) | allow-list: accounts/categories.json only; zod gate refuses pre-schema revisions |
+| v1.3 backlog | analytics page (IG Insights); DAGR A2A/MCP exposure of pipeline state | ⏳ deferred | — | needs IG read_insights perms / MCP design call respectively |
 
 ## Verification state at last commit (c8a4a4f)
 - web tsc clean · eslint clean on ALL touched files
