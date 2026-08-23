@@ -162,6 +162,16 @@ test.describe("pipeline guardrails", () => {
   });
 });
 
+test.describe("runner dispatch", () => {
+  test("run-now records a local dispatch and surfaces it in recent runs", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("run-now").click();
+    await expect(page).toHaveURL(/dispatched=1/);
+    await expect(page.getByText("post.yml dispatched")).toBeVisible();
+    await expect(page.locator("table").getByText("queued").first()).toBeVisible();
+  });
+});
+
 test.describe("history filtering", () => {
   test("empty history shows placeholder and account filter updates the URL", async ({ page }) => {
     await page.goto("/history");

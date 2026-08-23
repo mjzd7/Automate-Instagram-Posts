@@ -2,10 +2,26 @@ import { countPublishedSince, findFailedSince, findRecentPosts } from "core/src/
 import { StatusBadge } from "@/components/StatusBadge";
 import { getAccounts, getDbHandle } from "@/lib/db";
 import { PageHeader, StatBlock, TableShell, TBody, Th, Td, EmptyState, Banner, TitaniumCard } from "@/components/ui";
+import { RunNowForm } from "@/components/RunNowCard";
+import { RunnerUnavailableError, getRunner } from "@/lib/runner";
 
-export default async function OverviewPage() {
+
+export default async function OverviewPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ dispatched?: string }>;
+}) {
+  const params = (await searchParams) ?? {};
   const accounts = await getAccounts();
   const { db, close } = await getDbHandle();
+
+  let recentRuns: Array<{ id: number; status: string; conclusion: string | null; createdAt: string; htmlUrl: string }> = [];
+  let runnerHint: string | null = null;
+  try {
+    recentRuns = await getRunner().listRecentRuns();
+  } catch (error) {
+    if (error instanceof RunnerUnavailableError) runnerHint = error.message;
+  }
 
   try {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -33,6 +49,15 @@ export default async function OverviewPage() {
           </Banner>
         )}
 
+        {params.dispatched && <Banner variant="info">post.yml dispatched — check Recent runs below.</Banner>}
+
+        <TitaniumCard className="p-5" >
+          <div className="mb-3 flex items-center justify-between">
+            <p className="font-mono text-xs uppercase tracking-wider text-slate-muted">Runner</p>
+          </div>
+          <RunNowForm />
+        </TitaniumCard>
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4" data-testid="overview-stats">
           <StatBlock label="Published today" value={totalToday} detail={`cap ${accountCounts.length * 22}`} barPercent={accountCounts.length > 0 ? (totalToday / (accountCounts.length * 22)) * 100 : 0} />
           <StatBlock label="Accounts active" value={accounts.filter((a) => a.active).length} />
@@ -55,6 +80,36 @@ export default async function OverviewPage() {
             </ul>
           )}
         </TitaniumCard>
+
+        <div>
+          <p className="mb-3 font-mono text-xs uppercase tracking-wider text-slate-muted">Recent workflow runs</p>
+          {recentRuns.length === 0 ? (
+            <EmptyState message={runnerHint ?? "No workflow runs recorded yet."} />
+          ) : (
+            <TableShell>
+              <thead>
+                <tr>
+                  <Th>Created</Th>
+                  <Th>Status</Th>
+                  <Th right>Conclusion</Th>
+                </tr>
+              </thead>
+              <TBody>
+                {recentRuns.map((run) => (
+                  <tr key={run.id}>
+                    <Td>{new Date(run.createdAt).toISOString()}</Td>
+                    <Td>{run.status}</Td>
+                    <td className="px-4 py-3 text-right font-mono text-xs">
+                      <a href={run.htmlUrl} target="_blank" rel="noreferrer" className="text-platinum underline decoration-white/30 hover:text-white">
+                        {run.conclusion ?? run.status}
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </TBody>
+            </TableShell>
+          )}
+        </div>
 
         <div>
           <p className="mb-3 font-mono text-xs uppercase tracking-wider text-slate-muted">Recent posts</p>

@@ -34,16 +34,32 @@ export default async function SchedulesPage({ searchParams }: { searchParams: Pr
                   className="w-full rounded-lg border border-white/15 bg-black px-3.5 py-2.5 font-mono text-sm text-white outline-none transition-colors duration-200 ease-brand focus:border-white"
                 />
               </label>
-              <label className="flex flex-col gap-1">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-slate-muted">Hours (csv 0-23)</span>
-                <input
-                  name="postingHoursLocal"
-                  defaultValue={account.postingHoursLocal.join(", ")}
-                  required
-                  data-testid={`${account.id}-hours`}
-                  className="w-full rounded-lg border border-white/15 bg-black px-3.5 py-2.5 font-mono text-sm text-white outline-none transition-colors duration-200 ease-brand focus:border-white"
-                />
-              </label>
+              <div className="flex flex-col gap-1">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-slate-muted">Posting hours</span>
+                <div className="grid grid-cols-8 gap-1" data-testid={`${account.id}-hours-grid`}>
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <label
+                      key={h}
+                      title={`${String(h).padStart(2, "0")}:00`}
+                      className={`cursor-pointer rounded-md border px-1 py-1 text-center font-mono text-[11px] transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
+                        account.postingHoursLocal.includes(h)
+                          ? "border-white bg-white text-black"
+                          : "border-white/10 text-slate-muted hover:border-white/30 hover:text-white"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        name="hour"
+                        value={h}
+                        defaultChecked={account.postingHoursLocal.includes(h)}
+                        data-testid={`${account.id}-hour-${h}`}
+                        className="sr-only"
+                      />
+                      {String(h).padStart(2, "0")}
+                    </label>
+                  ))}
+                </div>
+              </div>
               <label className="flex flex-col gap-1">
                 <span className="font-mono text-[11px] uppercase tracking-wider text-slate-muted">Daily cap</span>
                 <input

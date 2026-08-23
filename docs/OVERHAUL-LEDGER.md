@@ -16,7 +16,9 @@
 | P8 | Vercel finalize + freshness badge + ops docs | ⏳ TODO | — | env: DASHBOARD_GITHUB_PAT(fine-grained contents:rw this repo), NEXTAUTH_SECRET, DASHBOARD_PASSWORD_HASH; GH-Pages rejected static-only |
 | P9 | FULL: features.spec.ts (schedules save+tz-reject w/ fixture self-heal, pipeline generate/render/regen id-stability) + CI gate + error/404 | ✅ | (this commit) | playwright 21/21 (full-qa sweep added: auth-fail, edit flows, pause badge, 404, sign-out, preview round-trip, pipeline guardrails) · vitest 483/483 · turbopack extensionless-import gotcha + route-announcer strict-alert gotcha documented in gotchas section |
 | v1.1 | pipeline_status write-back (settings-table backed) + viewer merge | ✅ | (this commit) | runner zips due×results→settings sentinel row; /pipeline merges live statuses onto chips; no migration (avoids user WIP files); hydration-race e2e guard pattern added |
-| v1.2 backlog | chip-grid hours UI replacing csv input (cosmetic); dispatch-from-dashboard (needs actions:write PAT); config-restore UI | ⏳ deferred | — | |
+| v1.2a | chip-grid 24h hours picker replacing csv input | ✅ | (this commit) | specs updated to chip clicks |
+| v1.2b | run-now dispatch + recent-runs card (Runner seam w/ DASHBOARD_ACTIONS_PAT graceful hint; local-fs e2e seam) | ✅ | (this commit) | post.yml force/fast inputs untouched; account scoping = runner's pipeline gating |
+| v1.3 backlog | config-restore UI; analytics page (IG Insights); DAGR A2A/MCP exposure of pipeline state | ⏳ deferred | — | |
 
 ## Verification state at last commit (c8a4a4f)
 - web tsc clean · eslint clean on ALL touched files

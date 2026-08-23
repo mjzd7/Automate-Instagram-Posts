@@ -38,7 +38,11 @@ test.describe("schedules editor", () => {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       await page.goto("/schedules");
       await expect(page.getByText("e2e-main")).toBeVisible();
-      await page.getByTestId("e2e-main-hours").fill("7, 19");
+      await page.getByTestId("e2e-main-hour-10").uncheck();
+      await page.getByTestId("e2e-main-hour-13").uncheck();
+      await page.getByTestId("e2e-main-hour-17").uncheck();
+      await page.getByTestId("e2e-main-hour-7").check();
+      await page.getByTestId("e2e-main-hour-19").check();
       await page.getByTestId("e2e-main-cap").fill("1");
       await page.getByTestId("e2e-main-blackouts").fill("2026-12-25");
       await page.getByTestId("e2e-main-timezone").fill("Europe/Berlin");

@@ -192,3 +192,10 @@ Pausing an account on the dashboard's Schedules page sets `paused` in
 `data/accounts.json`; `run-post-batch.ts` exits before any posting for that
 account (a manual `--force` run overrides). This works whether or not a
 month pipeline file exists.
+
+### Run-now dispatch (optional)
+
+To trigger `post.yml` from the dashboard's Runner card, add a second
+fine-grained PAT with **Actions: write** on this repository as
+`DASHBOARD_ACTIONS_PAT` in the Vercel project env. Without it the card shows
+a setup hint and everything else keeps working.

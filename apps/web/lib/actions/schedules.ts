@@ -7,14 +7,6 @@ import { getAccounts } from "@/lib/db";
 import type { Account } from "@/lib/schemas";
 import { getConfigWriter } from "@/lib/writer";
 
-function csvToNumbers(raw: string): number[] {
-  return raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0)
-    .map(Number);
-}
-
 function csvToStrings(raw: string): string[] {
   return raw
     .split(",")
@@ -32,7 +24,7 @@ export async function saveSchedule(formData: FormData): Promise<void> {
   if (!isValidTimeZone(timezone)) {
     redirect(`/schedules?error=${encodeURIComponent(`${accountId}: invalid IANA timezone "${timezone}"`)}`);
   }
-  const postingHoursLocal = csvToNumbers(String(formData.get("postingHoursLocal") ?? ""));
+  const postingHoursLocal = formData.getAll("hour").map(Number).sort((a, b) => a - b);
   const capRaw = String(formData.get("dailyCap") ?? "").trim();
 
   const updated: Account = {
