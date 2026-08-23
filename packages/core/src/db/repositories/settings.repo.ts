@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import type { Db } from "../client.js";
-import { settings } from "../schema.js";
+import type { Db } from "../client";
+import { settings } from "../schema";
 
 export async function getSetting(db: Db, accountId: string, key: string): Promise<string | undefined> {
   const rows = await db

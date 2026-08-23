@@ -1,6 +1,9 @@
 import { EmptyState, PageHeader, TitaniumCard } from "@/components/ui";
 import { buildPipeline } from "@/lib/actions/pipeline";
 import { loadPipelineFile } from "@/lib/pipeline-files";
+import { getDbHandle } from "@/lib/db";
+import { getSetting } from "core/src/db/repositories/settings.repo";
+import { parseStatuses, PIPELINE_STATUS_ACCOUNT, statusKey } from "core/src/schedule/status-merge";
 import type { PipelineEntry } from "core/src/schedule/generator";
 import { SubmitButton } from "@/components/SubmitButton";
 
@@ -26,10 +29,24 @@ export default async function PipelinePage({
   const month = /^\d{4}-\d{2}$/.test(params.month ?? "") ? (params.month as string) : nextMonthIso();
   const file = await loadPipelineFile(month);
 
+  // Live statuses recorded by the GHA runner (settings-backed), merged over
+  // the planned file so chips reflect execution without JSON write races.
+  let liveStatuses: Partial<Record<string, "published" | "failed" | "skipped">> = {};
+  if (file) {
+    const { db, close: closeDb } = await getDbHandle();
+    try {
+      liveStatuses = parseStatuses(await getSetting(db, PIPELINE_STATUS_ACCOUNT, statusKey(month)));
+    } finally {
+      closeDb();
+    }
+  }
+
   const byDate = new Map<string, PipelineEntry[]>();
   for (const entry of file?.entries ?? []) {
-    const list = byDate.get(entry.date) ?? [];
-    list.push(entry);
+        const override = liveStatuses[entry.id];
+    const effective: PipelineEntry = { ...entry, status: override ?? entry.status };
+    const list = byDate.get(effective.date) ?? [];
+    list.push(effective);
     byDate.set(entry.date, list);
   }
   const days = [...byDate.keys()].sort();

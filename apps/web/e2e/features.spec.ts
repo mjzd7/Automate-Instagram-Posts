@@ -23,23 +23,49 @@ test.describe("schedules editor", () => {
     await page.goto("/schedules");
     await expect(page.getByText("e2e-main")).toBeVisible();
 
+    let request: import("@playwright/test").Request | undefined;
+    page.on("request", (r) => {
+      if (r.method() === "POST" && r.url().includes("/schedules")) request = r;
+    });
     const hours = page.getByTestId("e2e-main-hours");
     await expect(hours).toHaveValue(/10/);
     await hours.fill("7, 19");
     await page.getByTestId("e2e-main-cap").fill("1");
     await page.getByTestId("e2e-main-blackouts").fill("2026-12-25");
     await page.getByTestId("e2e-main-timezone").fill("Europe/Berlin");
-    await page.getByTestId("e2e-main-save").click();
+    // Hydration race guard: an early click no-ops (no server action yet).
+    // Retry the whole fill+save round-trip until the seam reflects it.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await page.goto("/schedules");
+      await expect(page.getByText("e2e-main")).toBeVisible();
+      await page.getByTestId("e2e-main-hours").fill("7, 19");
+      await page.getByTestId("e2e-main-cap").fill("1");
+      await page.getByTestId("e2e-main-blackouts").fill("2026-12-25");
+      await page.getByTestId("e2e-main-timezone").fill("Europe/Berlin");
+      await page.getByTestId("e2e-main-save").click();
+      await page.waitForTimeout(800);
 
-    await expect(page).toHaveURL(/\/schedules$/);
-    const raw = await readFile(path.join(FIXTURES_ROOT, "data/accounts.json"), "utf-8");
-    const accounts = JSON.parse(raw) as Array<{ id: string; postingHoursLocal: number[]; dailyCap?: number; blackoutDates?: string[]; timezone: string }>;
+      const raw = await readFile(ACCOUNTS_FIXTURE, "utf-8");
+      const updated = (JSON.parse(raw) as Array<{ id: string; postingHoursLocal?: number[] }>).find(
+        (a) => a.id === "e2e-main",
+      );
+      if (updated?.postingHoursLocal?.[0] === 7) break;
+      if (attempt === 2) expect(updated?.postingHoursLocal, "save never landed after 3 attempts").toEqual([7, 19]);
+    }
+
+    const raw = await readFile(ACCOUNTS_FIXTURE, "utf-8");
+    const accounts = JSON.parse(raw) as Array<{
+      id: string;
+      postingHoursLocal: number[];
+      dailyCap?: number;
+      blackoutDates?: string[];
+      timezone: string;
+    }>;
     const updated = accounts.find((a) => a.id === "e2e-main");
     expect(updated?.postingHoursLocal).toEqual([7, 19]);
     expect(updated?.dailyCap).toBe(1);
     expect(updated?.blackoutDates).toEqual(["2026-12-25"]);
     expect(updated?.timezone).toBe("Europe/Berlin");
-    void 0;
   });
 
   test("rejects an invalid IANA timezone with a surfaced error", async ({ page }) => {

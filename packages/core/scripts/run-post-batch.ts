@@ -6,8 +6,10 @@ import { loadEnv } from "../src/config/env.js";
 import { openDb } from "../src/db/client.js";
 import { commitBatch } from "../src/git/commit-batch.js";
 import { generateAndPublishBatch, HASHTAG_CATEGORIES_PATH } from "../src/pipeline/generate-and-publish-batch.js";
+import { getSetting, setSetting } from "../src/db/repositories/settings.repo.js";
 import { dueEntries } from "../src/schedule/due";
-import type { PipelineFile } from "../src/schedule/generator";
+import type { PipelineEntry, PipelineFile } from "../src/schedule/generator";
+import { mergeStatuses, parseStatuses, PIPELINE_STATUS_ACCOUNT, statusKey, zipStatuses } from "../src/schedule/status-merge";
 
 // packages/core/scripts/ -> packages/core/ -> packages/ -> repo root. Computed
 // from this file's own location (not process.cwd()) so the script behaves
@@ -81,6 +83,7 @@ async function main(): Promise<void> {
   // governs this account -- execute exactly its due planned slots and skip
   // otherwise. Absent file -> legacy ad-hoc behaviour. --force bypasses.
   let effectiveBatchSize = batchSize;
+  let pipelineDue: PipelineEntry[] | null = null;
   const now = new Date();
   const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   if (!force) {
@@ -89,6 +92,7 @@ async function main(): Promise<void> {
         await readFile(`${repoRoot}/data/pipeline/${month}.json`, "utf-8"),
       ) as PipelineFile;
       const due = dueEntries(raw, accountId, now, account.timezone);
+      pipelineDue = due;
       console.log(`run-post-batch: pipeline ${month} governs ${accountId} (${due.length} due)`);
       if (due.length === 0) {
         console.log(`run-post-batch: nothing due in pipeline for ${accountId}; exiting`);
@@ -115,6 +119,22 @@ async function main(): Promise<void> {
       batchSize: effectiveBatchSize,
       noDelay: true,
     });
+
+    // Persist observed terminal statuses so the dashboard viewer reflects
+    // reality (settings-table backed; no migration, no JSON write races).
+    if (!dryRun && pipelineDue !== null) {
+      const observed = zipStatuses(pipelineDue, result.items);
+      if (Object.keys(observed).length > 0) {
+        const stored = parseStatuses(await getSetting(dbHandle.db, PIPELINE_STATUS_ACCOUNT, statusKey(month)));
+        await setSetting(
+          dbHandle.db,
+          PIPELINE_STATUS_ACCOUNT,
+          statusKey(month),
+          JSON.stringify(mergeStatuses(stored, observed)),
+        );
+        console.log(`run-post-batch: recorded ${Object.keys(observed).length} pipeline status(es)`);
+      }
+    }
 
     if (result.skippedReason) {
       console.log(`run-post-batch: skipped (${result.skippedReason})`);

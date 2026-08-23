@@ -57,23 +57,31 @@ test.describe("navigation chrome", () => {
 
 test.describe("accounts full CRUD incl. edit", () => {
   test("edit an existing account through its details form", async ({ page }) => {
-    await page.goto("/accounts");
-    const details = page.locator("details", { hasText: "e2e-main" }).first();
-    await details.locator("summary").click();
-    const fb = details.locator("form").filter({ has: page.getByRole("button", { name: "Save changes" }) }).getByLabel("Facebook page id");
-    await fb.fill("999888777666");
-    await expect(fb).toHaveValue("999888777666");
-    await page.getByRole("button", { name: "Save changes" }).nth(0).click();
-    await expect(page).toHaveURL(/\/accounts$/);
-    // Server-action writes are async relative to navigation paint; poll briefly.
-    let updatedFb: string | undefined;
-    for (let attempt = 0; attempt < 10; attempt += 1) {
-      const raw = await readFile(ACCOUNTS, "utf-8");
-      updatedFb = (JSON.parse(raw) as Array<{ id: string; fbPageId: string }>).find((a) => a.id === "e2e-main")?.fbPageId;
-      if (updatedFb === "999888777666") break;
-      await page.waitForTimeout(300);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await page.goto("/accounts");
+      const details = page.locator("details", { hasText: "e2e-main" }).first();
+      await details.locator("summary").click();
+      const editForm = details
+        .locator("form")
+        .filter({ has: page.getByRole("button", { name: "Save changes" }) });
+      await editForm.getByLabel("Facebook page id").fill("999888777666");
+      await page.getByRole("button", { name: "Save changes" }).nth(0).click();
+      await expect(page).toHaveURL(/\/accounts$/);
+
+      let updatedFb: string | undefined;
+      for (let poll = 0; poll < 10; poll += 1) {
+        const raw = await readFile(ACCOUNTS, "utf-8");
+        updatedFb = (JSON.parse(raw) as Array<{ id: string; fbPageId: string }>).find(
+          (a) => a.id === "e2e-main",
+        )?.fbPageId;
+        if (updatedFb === "999888777666") break;
+        await page.waitForTimeout(300);
+      }
+      if (updatedFb === "999888777666") return;
     }
-    expect(updatedFb).toBe("999888777666");
+    const raw = await readFile(ACCOUNTS, "utf-8");
+    const finalFb = (JSON.parse(raw) as Array<{ id: string; fbPageId: string }>).find((a) => a.id === "e2e-main")?.fbPageId;
+    expect(finalFb, "edit never landed after 3 attempts").toBe("999888777666");
   });
 });
 

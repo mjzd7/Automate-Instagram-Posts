@@ -15,7 +15,8 @@
 | P3a-c | ALL six dashboard pages rebuilt on ui.tsx primitives | ✅ | c6bdab3 d2ca524 5cdfee2 | overview gains StatBlock grid + failure Banner + recent table; history pill filter + mono table |
 | P8 | Vercel finalize + freshness badge + ops docs | ⏳ TODO | — | env: DASHBOARD_GITHUB_PAT(fine-grained contents:rw this repo), NEXTAUTH_SECRET, DASHBOARD_PASSWORD_HASH; GH-Pages rejected static-only |
 | P9 | FULL: features.spec.ts (schedules save+tz-reject w/ fixture self-heal, pipeline generate/render/regen id-stability) + CI gate + error/404 | ✅ | (this commit) | playwright 21/21 (full-qa sweep added: auth-fail, edit flows, pause badge, 404, sign-out, preview round-trip, pipeline guardrails) · vitest 483/483 · turbopack extensionless-import gotcha + route-announcer strict-alert gotcha documented in gotchas section |
-| v1.1 backlog | pipeline_status write-back to app.db for live status chips; chip-grid hours UI replacing csv input | ⏳ deferred | — | |
+| v1.1 | pipeline_status write-back (settings-table backed) + viewer merge | ✅ | (this commit) | runner zips due×results→settings sentinel row; /pipeline merges live statuses onto chips; no migration (avoids user WIP files); hydration-race e2e guard pattern added |
+| v1.2 backlog | chip-grid hours UI replacing csv input (cosmetic); dispatch-from-dashboard (needs actions:write PAT); config-restore UI | ⏳ deferred | — | |
 
 ## Verification state at last commit (c8a4a4f)
 - web tsc clean · eslint clean on ALL touched files
