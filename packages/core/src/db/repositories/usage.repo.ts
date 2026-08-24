@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
-import type { Db } from "../client.js";
-import { backgroundUsage, embeddingCache, quoteUsage, quotes } from "../schema.js";
+import type { Db } from "../client";
+import { backgroundUsage, embeddingCache, quoteUsage, quotes } from "../schema";
 
 export async function recordQuoteUsage(db: Db, accountId: string, quoteId: string, postId: string) {
   await db.insert(quoteUsage).values({ accountId, quoteId, postId });

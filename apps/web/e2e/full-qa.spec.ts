@@ -189,6 +189,19 @@ test.describe("config history + restore", () => {
   });
 });
 
+test.describe("analytics", () => {
+  test("account chips render and unconfigured env surfaces the enable checklist", async ({ page }) => {
+    await page.goto("/analytics");
+    await expect(page.getByRole("heading", { name: "Analytics" })).toBeVisible();
+    await expect(page.getByTestId("analytics-filter")).toBeVisible();
+    await expect(page.getByText("Enable checklist")).toBeVisible();
+    await expect(page.getByText(/TOKEN_ENCRYPTION_KEY/).first()).toBeVisible();
+    await page.getByTestId("analytics-filter").getByText("e2e-stoic").click();
+    await expect(page).toHaveURL(/account=e2e-stoic/);
+    await expect(page.getByRole("heading", { name: "Analytics" })).toBeVisible();
+  });
+});
+
 test.describe("keyboard palette", () => {
   async function armPalette(page: import("@playwright/test").Page): Promise<boolean> {
     // Hydration race guard: retry arming until the indicator responds.

@@ -1,6 +1,6 @@
 import { and, eq, notInArray, sql } from "drizzle-orm";
-import type { Db } from "../client.js";
-import { quoteUsage, quotes } from "../schema.js";
+import type { Db } from "../client";
+import { quoteUsage, quotes } from "../schema";
 
 export interface NewQuote {
   id: string;

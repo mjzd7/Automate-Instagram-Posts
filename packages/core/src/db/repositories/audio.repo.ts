@@ -1,6 +1,6 @@
 import { and, desc, eq, gte } from "drizzle-orm";
-import type { Db } from "../client.js";
-import { audioUsage } from "../schema.js";
+import type { Db } from "../client";
+import { audioUsage } from "../schema";
 
 /**
  * Log the use of a specific audio track for a post to maintain history

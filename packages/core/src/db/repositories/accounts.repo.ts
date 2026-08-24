@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import type { Account } from "../../config/accounts.js";
-import type { Db } from "../client.js";
-import { accounts } from "../schema.js";
+import type { Account } from "../../config/accounts";
+import type { Db } from "../client";
+import { accounts } from "../schema";
 
 /**
  * Idempotent upsert from data/accounts.json into the accounts table

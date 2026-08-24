@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import type { Db } from "../client.js";
-import { embeddingCache } from "../schema.js";
+import type { Db } from "../client";
+import { embeddingCache } from "../schema";
 
 export async function getCachedEmbedding(db: Db, textHash: string) {
   const rows = await db

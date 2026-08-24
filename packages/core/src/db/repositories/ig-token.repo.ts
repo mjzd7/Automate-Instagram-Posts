@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import type { Db } from "../client.js";
-import { igToken } from "../schema.js";
+import type { Db } from "../client";
+import { igToken } from "../schema";
 
 export async function getToken(db: Db, accountId: string) {
   const rows = await db.select().from(igToken).where(eq(igToken.accountId, accountId)).limit(1);

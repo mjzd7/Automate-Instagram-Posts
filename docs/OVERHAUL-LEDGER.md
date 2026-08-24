@@ -21,7 +21,8 @@
 | v1.3a | Config page: per-file revision list (Contents API) + schema-guarded Restore-as-new-commit through writer seam; local-fs twin for e2e | ✅ | (this commit) | allow-list: accounts/categories.json only; zod gate refuses pre-schema revisions |
 | polish | (dashboard)/loading.tsx titanium skeleton + g-palette keyboard nav (lib/nav-links.ts shared constants — client/server boundary lesson) | ✅ | (this commit) | 3 e2e cases incl. input-isolation + hydration-safe arming helper |
 | v2-MCP | stdio MCP server `poster_get_pipeline` (zero-dep JSON-RPC, live-status merge, DATA_DIR-aware) | ✅ | (this commit) | register snippet in SETUP.md; CWD=repo root required |
-| v-backlog | analytics page (IG Insights perms needed); optional swap to @modelcontextprotocol/sdk if tool surface grows | ⏳ deferred | — | |
+| v1.4 | Analytics page: core insights client (field-level metrics, typed) + /analytics w/ account chips, stat blocks, per-post table, enable-checklist degradation; db-wide .js-specifier normalization (turbopack cascade lesson) | ✅ | (this commit) | live once IG read perms granted + token re-auth; TOKEN_ENCRYPTION_KEY required in env |
+| v-backlog | reach/impressions via read_insights per-media calls when perms land | ⏳ deferred | — | |
 
 ## Verification state at last commit (c8a4a4f)
 - web tsc clean · eslint clean on ALL touched files

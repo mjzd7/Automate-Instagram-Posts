@@ -1,6 +1,6 @@
 import { and, eq, notInArray, sql } from "drizzle-orm";
-import type { Db } from "../client.js";
-import { backgroundUsage, backgrounds } from "../schema.js";
+import type { Db } from "../client";
+import { backgroundUsage, backgrounds } from "../schema";
 
 export interface NewBackground {
   id: string;

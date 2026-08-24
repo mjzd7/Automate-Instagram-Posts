@@ -1,6 +1,6 @@
 import { and, count, desc, eq, gte, isNotNull, lt, sql, gt } from "drizzle-orm";
-import type { Db } from "../client.js";
-import { posts } from "../schema.js";
+import type { Db } from "../client";
+import { posts } from "../schema";
 
 export interface NewPost {
   id: string;
