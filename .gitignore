@@ -8,3 +8,4 @@ dist/
 .firecrawl/
 .DS_Store
 .vercel
+.env*

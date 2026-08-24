@@ -8,7 +8,11 @@ const nextConfig: NextConfig = {
   // Runtime fs reads of the runner-committed data files must ship inside
   // every serverless bundle -- import tracing cannot see them.
   outputFileTracingIncludes: {
-    "/**": ["../../data/**"],
+    "/**": [
+      "../../data/app.db",
+      "../../data/*.json",
+      "../../data/pipeline/**",
+    ],
   },
   // Next 16 auto-writes its own AGENTS.md/CLAUDE.md into this directory on
   // every `next dev` run. This repo already has a deliberate root-level
