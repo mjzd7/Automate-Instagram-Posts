@@ -1,10 +1,21 @@
 import path from "node:path";
+import { existsSync } from "node:fs";
 
 /**
- * apps/web -> repo root. Uses process.cwd() rather than the CLI scripts'
- * import.meta.url trick (packages/core/scripts/*.ts) -- Next.js guarantees
- * process.cwd() is the app directory it was started from (dev, build, and
- * Vercel with root directory set to apps/web per docs/SETUP.md), whereas
- * import.meta.url can resolve to a bundled/virtual path under Turbopack.
+ * Locates the repo root without assuming CWD: Vercel serverless bundles
+ * place files differently than dev/build, so walk upward until a directory
+ * containing data/accounts.json is found. REPO_ROOT env wins if provided.
  */
-export const repoRoot = path.resolve(process.cwd(), "..", "..");
+function findRepoRoot(): string {
+  const candidates = [
+    process.cwd(),
+    path.resolve(process.cwd(), ".."),
+    path.resolve(process.cwd(), "..", ".."),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(path.join(candidate, "data", "accounts.json"))) return candidate;
+  }
+  return candidates[candidates.length - 1]!;
+}
+
+export const repoRoot = process.env.REPO_ROOT ?? findRepoRoot();
