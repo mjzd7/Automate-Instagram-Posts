@@ -25,6 +25,15 @@ export const categories = sqliteTable("categories", {
   active: integer("active", { mode: "boolean" }).notNull().default(true),
 });
 
+// Series runtime state for docs/PLAN-multi-series.md §4.1 (definitions in
+// data/series.json). counter increments ONLY on approved+published posts —
+// rejected drafts must never burn an episode number.
+export const series = sqliteTable("series", {
+  id: text("id").primaryKey(),
+  counter: integer("counter").notNull().default(0),
+  lastPostedAt: text("last_posted_at"),
+});
+
 export const quotes = sqliteTable(
   "quotes",
   {
@@ -74,6 +83,8 @@ export const posts = sqliteTable(
     storiesMediaId: text("stories_media_id"),
     status: text("status", { enum: ["pending", "published", "failed"] }).notNull(),
     errorMessage: text("error_message"),
+    seriesId: text("series_id"),
+    archetype: text("archetype"),
     views: integer("views").default(0),
     scheduledFor: text("scheduled_for").notNull(),
     publishedAt: text("published_at"),
