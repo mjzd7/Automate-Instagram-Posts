@@ -199,3 +199,35 @@ To trigger `post.yml` from the dashboard's Runner card, add a second
 fine-grained PAT with **Actions: write** on this repository as
 `DASHBOARD_ACTIONS_PAT` in the Vercel project env. Without it the card shows
 a setup hint and everything else keeps working.
+
+### MCP tool: poster_get_pipeline
+
+`packages/core/src/mcp/server.ts` is a dependency-free stdio MCP server that
+exposes the built pipeline to any coding agent:
+
+- `poster_get_pipeline` `{ month?: "YYYY-MM" }` → entries with account/date/
+  hour/template/category, LIVE statuses merged from the runner's settings
+  write-back, seed/generation metadata, and paused/inactive account lists.
+  Freshness = the runner's last git push.
+
+Register it (CWD must be the repo root — path resolution is CWD-relative):
+
+```jsonc
+// opencode.json / claude_desktop_config.json etc.
+{
+  "mcp": {
+    "poster": {
+      "type": "local",
+      "command": ["pnpm", "--filter", "core", "exec", "tsx", "src/mcp/server.ts"],
+      "options": { "cwd": "/absolute/path/to/Automate-Instagram-Posts" }
+    }
+  }
+}
+```
+
+Smoke-test by hand:
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | \
+  pnpm --filter core exec tsx src/mcp/server.ts
+```

@@ -19,7 +19,9 @@
 | v1.2a | chip-grid 24h hours picker replacing csv input | ✅ | (this commit) | specs updated to chip clicks |
 | v1.2b | run-now dispatch + recent-runs card (Runner seam w/ DASHBOARD_ACTIONS_PAT graceful hint; local-fs e2e seam) | ✅ | (this commit) | post.yml force/fast inputs untouched; account scoping = runner's pipeline gating |
 | v1.3a | Config page: per-file revision list (Contents API) + schema-guarded Restore-as-new-commit through writer seam; local-fs twin for e2e | ✅ | (this commit) | allow-list: accounts/categories.json only; zod gate refuses pre-schema revisions |
-| v1.3 backlog | analytics page (IG Insights); DAGR A2A/MCP exposure of pipeline state | ⏳ deferred | — | needs IG read_insights perms / MCP design call respectively |
+| polish | (dashboard)/loading.tsx titanium skeleton + g-palette keyboard nav (lib/nav-links.ts shared constants — client/server boundary lesson) | ✅ | (this commit) | 3 e2e cases incl. input-isolation + hydration-safe arming helper |
+| v2-MCP | stdio MCP server `poster_get_pipeline` (zero-dep JSON-RPC, live-status merge, DATA_DIR-aware) | ✅ | (this commit) | register snippet in SETUP.md; CWD=repo root required |
+| v-backlog | analytics page (IG Insights perms needed); optional swap to @modelcontextprotocol/sdk if tool surface grows | ⏳ deferred | — | |
 
 ## Verification state at last commit (c8a4a4f)
 - web tsc clean · eslint clean on ALL touched files
