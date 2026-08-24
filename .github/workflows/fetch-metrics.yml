@@ -1,0 +1,37 @@
+name: fetch-metrics
+
+on:
+  schedule:
+    - cron: "23 4 * * *" # Daily 04:23 UTC (09:53 IST); off the hour to dodge post.yml's hourly slot
+  workflow_dispatch:
+
+permissions:
+  contents: write # commits refreshed view counts back into data/app.db
+
+jobs:
+  fetch-metrics:
+    concurrency:
+      group: db-lock # serializes data/app.db writers (post.yml, update-trending.yml)
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Sync per-post view counts
+        run: pnpm --filter core exec tsx scripts/fetch-metrics.ts
+        env:
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
+          GOOGLE_CLOUD_VISION_API_KEY: ${{ secrets.GOOGLE_CLOUD_VISION_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/app.db
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(metrics): sync per-post view counts into data/app.db" && git push)
