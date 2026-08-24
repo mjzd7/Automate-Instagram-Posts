@@ -38,10 +38,13 @@ export default async function AnalyticsPage({
     }
   }
 
+  const totalReach = overview ? Object.values(overview.reach).reduce<number>((sum, v) => sum + (v ?? 0), 0) : 0;
+  const anyReach = overview ? Object.values(overview.reach).some((v) => typeof v === "number") : false;
   const summary = overview
     ? {
         followers: overview.followersCount,
         mediaCount: overview.mediaCount,
+        totalReach: anyReach ? totalReach : null,
         ...(() => {
           const posts = overview.posts;
           const totalLikes = posts.reduce((s2, p2) => s2 + p2.likeCount, 0);
@@ -84,13 +87,14 @@ export default async function AnalyticsPage({
 
       {!selected && !hint && <EmptyState message="No accounts configured yet." />}
 
-      {selected && summary && (
+      {selected && summary && overview && (
         <>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4" data-testid="analytics-stats">
             <StatBlock label="Followers" value={summary.followers ?? "—"} />
             <StatBlock label="Media total" value={summary.mediaCount ?? "—"} />
             <StatBlock label="Avg likes (last)" value={summary.avgLikes} detail={`${overview!.posts.length} posts`} />
             <StatBlock label="Avg comments" value={summary.avgComments} />
+            <StatBlock label="Reach (recent)" value={summary.totalReach ?? "needs read_insights"} />
           </div>
 
           {overview!.posts.length === 0 ? (
@@ -103,6 +107,7 @@ export default async function AnalyticsPage({
                   <Th>Type</Th>
                   <Th right>Likes</Th>
                   <Th right>Comments</Th>
+                  <Th right>Reach</Th>
                   <Th right>Link</Th>
                 </tr>
               </thead>
@@ -113,6 +118,7 @@ export default async function AnalyticsPage({
                     <Td>{post.mediaProductType ?? post.mediaType}</Td>
                     <Td right>{post.likeCount}</Td>
                     <Td right>{post.commentsCount}</Td>
+                    <Td right>{overview.reach[post.id] ?? "—"}</Td>
                     <td className="px-4 py-3 text-right font-mono text-xs">
                       {post.permalink ? (
                         <a href={post.permalink} target="_blank" rel="noreferrer" className="text-platinum underline decoration-white/30 hover:text-white">

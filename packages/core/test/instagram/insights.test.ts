@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fetchAccountOverview, summarizePosts } from "../../src/instagram/insights.js";
+import { fetchAccountOverview, fetchReachForPosts, summarizePosts } from "../../src/instagram/insights.js";
 
 function jsonFetch(payloads: Array<Record<string, unknown>>): typeof fetch {
   let call = 0;
@@ -32,6 +32,26 @@ describe("fetchAccountOverview", () => {
       json: async () => ({ error: { message: "(#3) App must have read_insights" } }),
     })) as unknown as typeof fetch;
     await expect(fetchAccountOverview("tok", "id", failing)).rejects.toThrow(/read_insights/);
+  });
+});
+
+describe("fetchReachForPosts", () => {
+  it("maps successful insight rows and nulls out failures", async () => {
+    const responses = [
+      { data: [{ name: "reach", values: [{ value: 4321 }] }] },
+      { error: { message: "(#3) read_insights required" } },
+    ];
+    let call = 0;
+    const fetchImpl = vi.fn(async () => {
+      const payload = responses[Math.min(call++, responses.length - 1)];
+      return { ok: !("error" in payload), status: payload.error ? 403 : 200, json: async () => payload };
+    }) as unknown as typeof fetch;
+    const map = await fetchReachForPosts("tok", [{ id: "m1" }, { id: "m2" }], fetchImpl);
+    expect(map).toEqual({ m1: 4321, m2: null });
+  });
+
+  it("returns an empty map for no posts", async () => {
+    expect(await fetchReachForPosts("tok", [])).toEqual({});
   });
 });
 

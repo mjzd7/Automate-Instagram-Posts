@@ -17,6 +17,35 @@ export interface MediaRow {
   reach?: number;
 }
 
+export type ReachMap = Record<string, number | null>;
+
+/**
+ * Per-media reach requires instagram_business_read_insights. Each media is
+ * fetched independently and failures resolve to null (never reject the
+ * whole batch): metric sets differ by type and older posts can be
+ * out-of-window, so partial coverage is normal.
+ */
+export async function fetchReachForPosts(
+  accessToken: string,
+  posts: Pick<MediaRow, "id">[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<ReachMap> {
+  const entries = await Promise.all(
+    posts.map(async (post): Promise<[string, number | null]> => {
+      try {
+        const body = await graphGet(`${post.id}/insights`, { metric: "reach", access_token: accessToken }, fetchImpl);
+        const rows = (body.data ?? []) as Array<{ name: string; values?: Array<{ value?: number }> }>;
+        const reachRow = rows.find((r) => r.name === "reach");
+        const value = reachRow?.values?.[0]?.value;
+        return [post.id, typeof value === "number" ? value : null];
+      } catch {
+        return [post.id, null];
+      }
+    }),
+  );
+  return Object.fromEntries(entries);
+}
+
 export interface AccountOverview {
   followersCount: number | null;
   mediaCount: number | null;
