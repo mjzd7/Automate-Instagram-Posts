@@ -3,7 +3,7 @@
     "id": "main",
     "igUserId": "17841403077482207",
     "fbPageId": "1224671520737123",
-    "threadsUserId": null,
+    "threadsUserId": "success.for.sure",
     "categoryFocus": [
       "success",
       "business",
@@ -18,7 +18,12 @@
       "motivational"
     ],
     "timezone": "Asia/Kolkata",
-    "postingHoursLocal": [9, 12, 16, 19],
+    "postingHoursLocal": [
+      9,
+      12,
+      16,
+      19
+    ],
     "active": true
   }
 ]
