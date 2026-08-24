@@ -51,11 +51,12 @@ async function main() {
         console.log(`[Metrics] Syncing views for post ${post.id} (IG Media ID: ${post.igMediaId})...`);
 
         try {
-          // Meta API reels insights endpoint (metric=plays)
-          const url = `https://graph.facebook.com/v22.0/${post.igMediaId}/insights?metric=plays&access_token=${token}`;
+          // `plays` was deprecated by Meta — HTTP 400 on v22+; unified metric is `views`
+          const url = `https://graph.facebook.com/v22.0/${post.igMediaId}/insights?metric=views&access_token=${token}`;
           const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
           if (!res.ok) {
-            console.warn(`[Metrics] Meta Graph API returned HTTP ${res.status} for post ${post.id}.`);
+            const errBody = await res.text().catch(() => "");
+            console.warn("[Metrics] Meta Graph API returned HTTP %s for post %s: %s", res.status, post.id, errBody.slice(0, 200));
             continue;
           }
 
@@ -66,8 +67,8 @@ async function main() {
             }>;
           };
 
-          const playsMetric = json.data?.find((d) => d.name === "plays");
-          const views = playsMetric?.values?.[0]?.value ?? 0;
+          const viewsMetric = json.data?.find((d) => d.name === "views");
+          const views = viewsMetric?.values?.[0]?.value ?? 0;
 
           console.log(`[Metrics] Post ${post.id} has ${views} views. Saving to DB.`);
           await updatePostViews(dbHandle.db, post.id, views);
