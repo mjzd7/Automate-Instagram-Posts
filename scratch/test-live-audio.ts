@@ -22,7 +22,8 @@ async function run() {
       return;
     }
 
-    const key = process.env.ENCRYPTION_KEY || process.env.META_APP_SECRET || "0d4b2758b548a873d868ed69f42cc80b";
+    const key = process.env.ENCRYPTION_KEY || process.env.META_APP_SECRET;
+if (!key) throw new Error("ENCRYPTION_KEY or META_APP_SECRET env required (no hardcoded fallback)");
     const accessToken = decryptToken(tokenRow.accessTokenEncrypted, key);
     
     console.log(`Testing Meta Audio API for account ${account.id} (igUserId: ${account.igUserId})...`);

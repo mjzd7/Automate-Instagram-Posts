@@ -24,8 +24,13 @@ function parseArg(flag: string): string | undefined {
 }
 
 async function main() {
-  let appId = parseArg("--app-id") || process.env.META_APP_ID || "1986389562040690";
-  let appSecret = parseArg("--app-secret") || process.env.META_APP_SECRET || "0d4b2758b548a873d868ed69f42cc80b";
+  let appId = parseArg("--app-id") || process.env.META_APP_ID;
+  let appSecret = parseArg("--app-secret") || process.env.META_APP_SECRET;
+  if (!appId || !appSecret) {
+    throw new Error(
+      "setup-ig-account: --app-id and --app-secret (or META_APP_ID / META_APP_SECRET env) are required. No defaults are baked in — app credentials must never live in source.",
+    );
+  }
   let shortToken = parseArg("--token") || process.env.META_SHORT_TOKEN;
   let accountId = parseArg("--account-id") || "main";
   let timezone = parseArg("--timezone") || "America/New_York";
