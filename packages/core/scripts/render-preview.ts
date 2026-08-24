@@ -26,6 +26,7 @@ async function main(): Promise<void> {
   const mode = arg("mode") as Darkness | undefined;
   const quote = arg("quote");
   const author = arg("author");
+  const backgroundUrl = arg("background-url");
 
   if (!templateId || !mode || !quote) {
     throw new Error("render-preview: --template, --mode, and --quote are required");
@@ -35,12 +36,22 @@ async function main(): Promise<void> {
   }
 
   const template = findTemplate(templateId);
-  const color = mode === "dark" ? DARK_SOLID : LIGHT_SOLID;
-  const backgroundBuffer = await sharp({
-    create: { width: 1080, height: 1350, channels: 3, background: color },
-  })
-    .jpeg()
-    .toBuffer();
+  let backgroundBuffer: Buffer;
+  if (backgroundUrl) {
+    // complete-post preview: real background, not a stand-in solid
+    const res = await fetch(backgroundUrl, { signal: AbortSignal.timeout(20000) });
+    if (!res.ok) {
+      throw new Error(`render-preview: background fetch failed HTTP ${res.status}`);
+    }
+    backgroundBuffer = Buffer.from(await res.arrayBuffer());
+  } else {
+    const color = mode === "dark" ? DARK_SOLID : LIGHT_SOLID;
+    backgroundBuffer = await sharp({
+      create: { width: 1080, height: 1350, channels: 3, background: color },
+    })
+      .jpeg()
+      .toBuffer();
+  }
 
   const suitability = await scoreSuitability(backgroundBuffer);
   const jpeg = await composeImage({ backgroundBuffer, quoteText: quote, author, template, mode, suitability });

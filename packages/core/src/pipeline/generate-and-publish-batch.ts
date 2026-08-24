@@ -17,7 +17,7 @@ import {
   markPublished,
   findViralAudioIdsForReuse,
 } from "../db/repositories/posts.repo.js";
-import { recordBackgroundUsage, recordQuoteUsage } from "../db/repositories/usage.repo.js";
+import { findRecentUsedBackgroundDescriptions, recordBackgroundUsage, recordQuoteUsage } from "../db/repositories/usage.repo.js";
 import { selectHashtags } from "../hashtags/selector.js";
 import { getCandidateBackgrounds } from "../images/background-provider.js";
 import type { Darkness } from "../images/darkness-classifier.js";
@@ -324,6 +324,7 @@ export async function generateAndPublishBatch(
         quote.text,
         candidates.map((c) => ({ id: c.id, description: c.description })),
         embeddingsConfig,
+        { recentDescriptions: await findRecentUsedBackgroundDescriptions(db, account.id, 10) },
       );
       let chosen = candidates.find((c) => c.id === match.backgroundId)!;
       let backgroundBuffer: Buffer | undefined;

@@ -1,12 +1,20 @@
 import { decryptToken } from "core/src/crypto/token-encryption";
-import { fetchAccountOverview, fetchReachForPosts, type AccountOverview, type ReachMap } from "core/src/instagram/insights";
+import {
+  fetchAccountInsights,
+  fetchAccountOverview,
+  fetchPostMetrics,
+  type AccountInsights,
+  type AccountOverview,
+  type PostMetrics,
+} from "core/src/instagram/insights";
 import { getToken } from "core/src/db/repositories/ig-token.repo";
 import { getAccounts, getDbHandle } from "@/lib/db";
 
 export class AnalyticsUnavailableError extends Error {}
 
 export interface AnalyticsBundle extends AccountOverview {
-  reach: ReachMap;
+  metrics: Record<string, PostMetrics>;
+  accountInsights: AccountInsights | null;
 }
 
 /**
@@ -30,15 +38,18 @@ export async function getAccountAnalytics(
     const tokenRow = await getToken(db, accountId);
     if (!tokenRow) throw new AnalyticsUnavailableError(`no stored IG token for "${accountId}"`);
     const accessToken = decryptToken(tokenRow.accessTokenEncrypted, key);
-    const overview = await fetchAccountOverview(accessToken, account.igUserId, fetchImpl);
-    // Best-effort tier: read_insights-gated; nulls render as em-dashes.
-    let reach: ReachMap = {};
+    const [overview, accountInsights] = await Promise.all([
+      fetchAccountOverview(accessToken, account.igUserId, fetchImpl),
+      fetchAccountInsights(accessToken, account.igUserId, fetchImpl).catch(() => null),
+    ]);
+    // Best-effort tier: insights-gated; nulls render as em-dashes.
+    let metrics: Record<string, PostMetrics> = {};
     try {
-      reach = await fetchReachForPosts(accessToken, overview.posts, fetchImpl);
+      metrics = await fetchPostMetrics(accessToken, overview.posts, fetchImpl);
     } catch {
-      reach = {};
+      metrics = {};
     }
-    return { ...overview, reach };
+    return { ...overview, metrics, accountInsights };
   } finally {
     close();
   }

@@ -38,13 +38,19 @@ export default async function AnalyticsPage({
     }
   }
 
-  const totalReach = overview ? Object.values(overview.reach).reduce<number>((sum, v) => sum + (v ?? 0), 0) : 0;
-  const anyReach = overview ? Object.values(overview.reach).some((v) => typeof v === "number") : false;
+  const totalReach = overview ? Object.values(overview.metrics).reduce<number>((sum, v) => sum + (v.reach ?? 0), 0) : 0;
+  const totalSaves = overview ? Object.values(overview.metrics).reduce<number>((sum, v) => sum + (v.saved ?? 0), 0) : 0;
+  const anySaves = overview ? Object.values(overview.metrics).some((v) => typeof v.saved === "number") : false;
+  const anyReach = overview ? Object.values(overview.metrics).some((v) => typeof v.reach === "number") : false;
   const summary = overview
     ? {
         followers: overview.followersCount,
         mediaCount: overview.mediaCount,
         totalReach: anyReach ? totalReach : null,
+        totalSaves: anySaves ? totalSaves : null,
+        profileViews: overview.accountInsights?.profileViews ?? null,
+        websiteClicks: overview.accountInsights?.websiteClicks ?? null,
+        followerDelta28d: overview.accountInsights?.followerDelta28d ?? null,
         ...(() => {
           const posts = overview.posts;
           const totalLikes = posts.reduce((s2, p2) => s2 + p2.likeCount, 0);
@@ -91,9 +97,13 @@ export default async function AnalyticsPage({
         <>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4" data-testid="analytics-stats">
             <StatBlock label="Followers" value={summary.followers ?? "—"} />
+            <StatBlock label="Net followers (28d)" value={summary.followerDelta28d ?? "—"} />
+            <StatBlock label="Profile views (day)" value={summary.profileViews ?? "—"} />
+            <StatBlock label="Site clicks (day)" value={summary.websiteClicks ?? "—"} />
             <StatBlock label="Media total" value={summary.mediaCount ?? "—"} />
             <StatBlock label="Avg likes (last)" value={summary.avgLikes} detail={`${overview!.posts.length} posts`} />
             <StatBlock label="Avg comments" value={summary.avgComments} />
+            <StatBlock label="Saves (recent)" value={summary.totalSaves ?? "—"} />
             <StatBlock label="Reach (recent)" value={summary.totalReach ?? "needs read_insights"} />
           </div>
 
@@ -109,6 +119,8 @@ export default async function AnalyticsPage({
                   <Th right>Likes</Th>
                   <Th right>Comments</Th>
                   <Th right>Reach</Th>
+                  <Th right>Saves</Th>
+                  <Th right>Shares</Th>
                   <Th right>Link</Th>
                 </tr>
               </thead>
@@ -143,7 +155,9 @@ export default async function AnalyticsPage({
                       <Td>{post.mediaProductType ?? post.mediaType}</Td>
                       <Td right>{post.likeCount}</Td>
                       <Td right>{post.commentsCount}</Td>
-                      <Td right>{overview.reach[post.id] ?? "—"}</Td>
+                      <Td right>{overview.metrics[post.id]?.reach ?? "—"}</Td>
+                      <Td right>{overview.metrics[post.id]?.saved ?? "—"}</Td>
+                      <Td right>{overview.metrics[post.id]?.shares ?? "—"}</Td>
                       <td className="px-4 py-3 text-right font-mono text-xs">
                         {post.permalink ? (
                           <a href={post.permalink} target="_blank" rel="noreferrer" className="text-platinum underline decoration-white/30 hover:text-white">

@@ -12,7 +12,8 @@ export async function fetchPixabayPhoto(
   apiKey: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<PixabayPhoto> {
-  const url = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(query)}&image_type=photo&orientation=vertical&per_page=15`;
+  const page = 1 + Math.floor(Math.random() * 3);
+  const url = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(query)}&image_type=photo&orientation=vertical&per_page=15&page=${page}`;
   const response = await fetchImpl(url, { signal: AbortSignal.timeout(8000) });
 
   if (!response.ok) {

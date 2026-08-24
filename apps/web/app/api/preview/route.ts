@@ -1,9 +1,8 @@
 import { execFile } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
 import { promisify } from "node:util";
-import { join } from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
 import { repoRoot } from "@/lib/repo-paths";
+import { resolveTsxCli } from "@/lib/tsx-cli";
 
 const execFileAsync = promisify(execFile);
 
@@ -15,22 +14,6 @@ const execFileAsync = promisify(execFile);
  * (not a shell string) avoids command injection from user-supplied quote
  * text -- same pattern as git/commit-batch.ts.
  */
-
-/**
- * Locates tsx's CLI entry inside the pnpm store without relying on
- * node_modules/.bin symlinks, which don't survive serverless bundle
- * tracing. Returns null when the store layout isn't present.
- */
-function resolveTsxCli(): string | null {
-  const store = join(repoRoot, "node_modules", ".pnpm");
-  if (!existsSync(store)) return null;
-  for (const entry of readdirSync(store)) {
-    if (!entry.startsWith("tsx@")) continue;
-    const candidate = join(store, entry, "node_modules", "tsx", "dist", "cli.mjs");
-    if (existsSync(candidate)) return candidate;
-  }
-  return null;
-}
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = request.nextUrl;
@@ -45,6 +28,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const scriptArgs = ["scripts/render-preview.ts", "--template", template, "--mode", mode, "--quote", quote];
   if (author) scriptArgs.push("--author", author);
+  const backgroundUrl = searchParams.get("background-url");
+  if (backgroundUrl) scriptArgs.push("--background-url", backgroundUrl);
 
   // Prefer the store-resolved tsx CLI (works in traced serverless bundles);
   // fall back to npx for non-pnpm layouts where the store doesn't exist.

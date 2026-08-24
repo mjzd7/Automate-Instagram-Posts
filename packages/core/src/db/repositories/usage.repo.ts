@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import type { Db } from "../client";
-import { backgroundUsage, embeddingCache, quoteUsage, quotes } from "../schema";
+import { backgroundUsage, backgrounds, embeddingCache, quoteUsage, quotes } from "../schema";
 
 export async function recordQuoteUsage(db: Db, accountId: string, quoteId: string, postId: string) {
   await db.insert(quoteUsage).values({ accountId, quoteId, postId });
@@ -39,4 +39,16 @@ export async function findRecentQuoteEmbeddings(db: Db, accountId: string, limit
     .where(eq(quoteUsage.accountId, accountId))
     .orderBy(desc(quoteUsage.usedAt))
     .limit(limit);
+}
+
+/** Descriptions of the account's most recently used backgrounds -- diversity-guard lookback for background matching. */
+export async function findRecentUsedBackgroundDescriptions(db: Db, accountId: string, limit: number) {
+  const rows = await db
+    .select({ description: backgrounds.description })
+    .from(backgroundUsage)
+    .innerJoin(backgrounds, eq(backgroundUsage.backgroundId, backgrounds.id))
+    .where(eq(backgroundUsage.accountId, accountId))
+    .orderBy(desc(backgroundUsage.usedAt))
+    .limit(limit);
+  return rows.map((r) => r.description ?? "").filter(Boolean);
 }

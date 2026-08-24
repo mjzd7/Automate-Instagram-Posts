@@ -118,12 +118,16 @@ export async function getEmbedding(text: string, config: EmbeddingsClientConfig)
     if (!apiKey) continue;
     try {
       const vector = await run(text, apiKey, fetchImpl);
-      await cacheEmbedding(config.db, {
-        textHash,
-        inputText: text,
-        vector: JSON.stringify(vector),
-        provider,
-      });
+      try {
+        await cacheEmbedding(config.db, {
+          textHash,
+          inputText: text,
+          vector: JSON.stringify(vector),
+          provider,
+        });
+      } catch {
+        // cache is an optimization -- a read-only FS (Vercel) must not fail the embed
+      }
       return { vector, provider };
     } catch (error) {
       errors.push(`${provider}: ${error instanceof Error ? error.message : String(error)}`);

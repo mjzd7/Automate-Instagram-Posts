@@ -12,7 +12,9 @@ export async function fetchPexelsPhoto(
   apiKey: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<PexelsPhoto> {
-  const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=15&orientation=portrait`;
+  // Random page 1-3 widens sampling beyond each query's first page
+  const page = 1 + Math.floor(Math.random() * 3);
+  const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=15&orientation=portrait&page=${page}`;
   const response = await fetchImpl(url, {
     headers: { Authorization: apiKey },
     signal: AbortSignal.timeout(8000),

@@ -12,6 +12,8 @@ export interface BackgroundCandidate {
   sourceUrl: string;
   description: string;
   darkness: Darkness;
+  /** Where the candidate came from: "curated", "unsplash", "pexels", or "pixabay". */
+  source?: string;
 }
 
 export interface BackgroundProviderConfig {
@@ -24,6 +26,12 @@ export interface BackgroundProviderConfig {
   fetchImpl?: typeof fetch;
   idGenerator?: () => string;
   targetDarkness?: Darkness;
+  /**
+   * When false, candidates are gathered and scored without writing to the
+   * backgrounds table -- lets read-only environments (Vercel's FS) run the
+   * same selection flow for preview/explain surfaces.
+   */
+  persist?: boolean;
 }
 
 const defaultIdGenerator = () => crypto.randomUUID();
@@ -58,12 +66,12 @@ export async function getCandidateBackgrounds(
       const imageRes = await fetchImpl(bg.sourceUrl);
       const buffer = Buffer.from(await imageRes.arrayBuffer());
       darkness = await classifyDarkness(buffer);
-      await updateDarkness(db, bg.id, darkness);
+      if (config.persist !== false) await updateDarkness(db, bg.id, darkness);
     }
     if (config.targetDarkness && darkness !== config.targetDarkness) continue;
     seenUrls.add(bg.sourceUrl);
     seenIds.add(bg.id);
-    results.push({ id: bg.id, sourceUrl: bg.sourceUrl, description: bg.description ?? "", darkness });
+    results.push({ id: bg.id, sourceUrl: bg.sourceUrl, description: bg.description ?? "", darkness, source: "curated" });
   }
 
   // 2. Extract LLM Visual Search Queries if quote text is provided
@@ -71,7 +79,24 @@ export async function getCandidateBackgrounds(
     ? await extractVisualConcepts(config.quoteText, categoryId, config.geminiApiKey, fetchImpl)
     : [categoryId];
 
-  const fallbackQueries = [categoryId, "minimalist nature", "landscape photography", "modern architecture", "dark abstract", "wallpaper"];
+  // Rotate a broad subject pool per call -- without it, every post in a niche
+  // (e.g. motivational) clusters onto the same dark-nature aesthetic.
+  const SUBJECT_POOL = [
+    "ocean waves",
+    "desert dunes",
+    "city nights",
+    "modern architecture",
+    "space and stars",
+    "minimal interior",
+    "fire and embers",
+    "ice and frost",
+    "misty mountains",
+    "rain on glass",
+    "golden fields",
+    "neon streets",
+  ];
+  const rotatedSubjects = [...SUBJECT_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
+  const fallbackQueries = [...rotatedSubjects, categoryId];
   const visualQueries = [...new Set([...baseQueries, ...fallbackQueries])];
 
   let attempts = 0;
@@ -138,20 +163,22 @@ export async function getCandidateBackgrounds(
     if (config.targetDarkness && darkness !== config.targetDarkness) return;
 
     const id = idGenerator();
-    await insertBackground(db, {
-      id,
-      source,
-      externalId: photo.id,
-      sourceUrl: photo.url,
-      description: photo.description || query,
-      attribution: photo.attribution ?? source,
-      categoryId,
-    });
-    await updateDarkness(db, id, darkness);
+    if (config.persist !== false) {
+      await insertBackground(db, {
+        id,
+        source,
+        externalId: photo.id,
+        sourceUrl: photo.url,
+        description: photo.description || query,
+        attribution: photo.attribution ?? source,
+        categoryId,
+      });
+      await updateDarkness(db, id, darkness);
+    }
 
     seenUrls.add(photo.url);
     seenIds.add(photo.id);
-    results.push({ id, sourceUrl: photo.url, description: photo.description || query, darkness });
+    results.push({ id, sourceUrl: photo.url, description: photo.description || query, darkness, source });
   }
 
   return results;
