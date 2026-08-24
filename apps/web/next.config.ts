@@ -13,6 +13,31 @@ const nextConfig: NextConfig = {
       "../../data/*.json",
       "../../data/pipeline/**",
     ],
+    // /api/preview renders template samples by execFile'ing tsx against
+    // scripts/render-preview.ts -- a child process the import tracer cannot
+    // see. Without these the route 500s on Vercel (works locally, where the
+    // full repo is on disk): the script, the core TS sources it imports, the
+    // bundled font files, and the tsx/esbuild/sharp runtimes must all be
+    // traced in. Globs are deliberately file-targeted -- recursive store
+    // globs like ".pnpm/esbuild@*/**" make Turbopack panic trying to emit
+    // nested package directories as files.
+    "/api/preview": [
+      "../../packages/core/scripts/render-preview.ts",
+      "../../packages/core/src/**",
+      "../../node_modules/.pnpm/tsx@*/node_modules/tsx/dist/**",
+      "../../node_modules/.pnpm/tsx@*/node_modules/tsx/package.json",
+      "../../node_modules/.pnpm/esbuild@*/node_modules/esbuild/bin/esbuild",
+      "../../node_modules/.pnpm/esbuild@*/node_modules/esbuild/lib/**",
+      "../../node_modules/.pnpm/esbuild@*/node_modules/esbuild/package.json",
+      "../../node_modules/.pnpm/@esbuild+*/node_modules/@esbuild/*/bin/esbuild",
+      "../../node_modules/.pnpm/@esbuild+*/node_modules/@esbuild/*/package.json",
+      "../../node_modules/.pnpm/sharp@*/node_modules/sharp/lib/**",
+      "../../node_modules/.pnpm/sharp@*/node_modules/sharp/src/**",
+      "../../node_modules/.pnpm/sharp@*/node_modules/sharp/vendor/**",
+      "../../node_modules/.pnpm/sharp@*/node_modules/sharp/package.json",
+      "../../node_modules/.pnpm/@img+*/node_modules/@img/*/lib/*.node",
+      "../../node_modules/.pnpm/@img+*/node_modules/@img/*/package.json",
+    ],
   },
   // Next 16 auto-writes its own AGENTS.md/CLAUDE.md into this directory on
   // every `next dev` run. This repo already has a deliberate root-level

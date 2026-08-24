@@ -103,6 +103,7 @@ export default async function AnalyticsPage({
             <TableShell>
               <thead>
                 <tr>
+                  <Th>Preview</Th>
                   <Th>Posted</Th>
                   <Th>Type</Th>
                   <Th right>Likes</Th>
@@ -112,24 +113,49 @@ export default async function AnalyticsPage({
                 </tr>
               </thead>
               <TBody>
-                {overview!.posts.map((post) => (
-                  <tr key={post.id}>
-                    <Td>{new Date(post.timestamp).toISOString().slice(0, 16).replace("T", " ")}</Td>
-                    <Td>{post.mediaProductType ?? post.mediaType}</Td>
-                    <Td right>{post.likeCount}</Td>
-                    <Td right>{post.commentsCount}</Td>
-                    <Td right>{overview.reach[post.id] ?? "—"}</Td>
-                    <td className="px-4 py-3 text-right font-mono text-xs">
-                      {post.permalink ? (
-                        <a href={post.permalink} target="_blank" rel="noreferrer" className="text-platinum underline decoration-white/30 hover:text-white">
-                          open ↗
-                        </a>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {overview!.posts.map((post) => {
+                  const previewSrc = post.thumbnailUrl ?? post.mediaUrl;
+                  const previewImg = previewSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- remote IG CDN URLs, no next/image optimization wanted
+                    <img
+                      src={previewSrc}
+                      alt={post.caption?.slice(0, 80) ?? `post ${post.id}`}
+                      className="h-40 w-32 rounded-md border border-white/10 object-cover"
+                      loading="lazy"
+                    />
+                  ) : null;
+                  return (
+                    <tr key={post.id}>
+                      <Td>
+                        {previewImg ? (
+                          post.permalink ? (
+                            <a href={post.permalink} target="_blank" rel="noreferrer" title="Open post" className="inline-block transition-opacity hover:opacity-80">
+                              {previewImg}
+                            </a>
+                          ) : (
+                            previewImg
+                          )
+                        ) : (
+                          "—"
+                        )}
+                      </Td>
+                      <Td>{new Date(post.timestamp).toISOString().slice(0, 16).replace("T", " ")}</Td>
+                      <Td>{post.mediaProductType ?? post.mediaType}</Td>
+                      <Td right>{post.likeCount}</Td>
+                      <Td right>{post.commentsCount}</Td>
+                      <Td right>{overview.reach[post.id] ?? "—"}</Td>
+                      <td className="px-4 py-3 text-right font-mono text-xs">
+                        {post.permalink ? (
+                          <a href={post.permalink} target="_blank" rel="noreferrer" className="text-platinum underline decoration-white/30 hover:text-white">
+                            open ↗
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </TBody>
             </TableShell>
           )}

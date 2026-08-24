@@ -1,6 +1,21 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type NextRequest, NextResponse } from "next/server";
+import { repoRoot } from "@/lib/repo-paths";
+
+const CONTENT_TYPES: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".mp4": "video/mp4",
+  ".mov": "video/quicktime",
+};
+
+function contentTypeFor(path: string): string {
+  const ext = path.slice(path.lastIndexOf(".")).toLowerCase();
+  return CONTENT_TYPES[ext] ?? "application/octet-stream";
+}
 
 export async function GET(
   _req: NextRequest,
@@ -18,15 +33,15 @@ export async function GET(
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const repoRoot = process.cwd();
     const filePath = join(repoRoot, "data", "posts", relativePath);
+    const contentType = contentTypeFor(relativePath);
 
     try {
       const buffer = await readFile(filePath);
       return new NextResponse(buffer, {
         status: 200,
         headers: {
-          "Content-Type": "image/jpeg",
+          "Content-Type": contentType,
           "Cache-Control": "public, max-age=31536000, immutable",
           "Access-Control-Allow-Origin": "*",
         },
@@ -46,7 +61,7 @@ export async function GET(
             return new NextResponse(arrayBuffer, {
               status: 200,
               headers: {
-                "Content-Type": "image/jpeg",
+                "Content-Type": contentType,
                 "Cache-Control": "public, max-age=31536000, immutable",
                 "Access-Control-Allow-Origin": "*",
               },

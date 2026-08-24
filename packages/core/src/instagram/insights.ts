@@ -15,6 +15,8 @@ export interface MediaRow {
   likeCount: number;
   commentsCount: number;
   reach?: number;
+  mediaUrl?: string;
+  thumbnailUrl?: string;
 }
 
 export type ReachMap = Record<string, number | null>;
@@ -86,11 +88,13 @@ export async function fetchAccountOverview(
     timestamp: string;
     like_count?: number;
     comments_count?: number;
+    media_url?: string;
+    thumbnail_url?: string;
   };
   const mediaBody = await graphGet(
     `${igUserId}/media`,
     {
-      fields: "id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count",
+      fields: "id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count,media_url,thumbnail_url",
       limit: String(postLimit),
       access_token: accessToken,
     },
@@ -107,6 +111,8 @@ export async function fetchAccountOverview(
     timestamp: m.timestamp,
     likeCount: m.like_count ?? 0,
     commentsCount: m.comments_count ?? 0,
+    mediaUrl: m.media_url,
+    thumbnailUrl: m.thumbnail_url,
   }));
 
   const followers = typeof profile.followers_count === "number" ? profile.followers_count : null;

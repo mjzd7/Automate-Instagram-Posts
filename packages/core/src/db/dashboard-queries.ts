@@ -1,6 +1,6 @@
-import { and, count, desc, eq, gte, sql } from "drizzle-orm";
+import { and, count, desc, eq, getTableColumns, gte, sql } from "drizzle-orm";
 import type { Db } from "./client";
-import { posts } from "./schema";
+import { posts, quotes } from "./schema";
 
 /**
  * Read-only query re-implementations for apps/web, mirroring
@@ -28,9 +28,10 @@ export async function countPublishedSince(db: Db, accountId: string, sinceIso: s
 
 export async function findRecentPosts(db: Db, limit: number) {
   return db
-    .select()
+    .select({ ...getTableColumns(posts), quoteText: quotes.text, quoteAuthor: quotes.author })
     .from(posts)
-    .orderBy(desc(posts.createdAt), sql`rowid desc`)
+    .leftJoin(quotes, eq(posts.quoteId, quotes.id))
+    .orderBy(desc(posts.createdAt), sql`posts.rowid desc`)
     .limit(limit);
 }
 
@@ -45,9 +46,10 @@ export async function findFailedSince(db: Db, sinceIso: string) {
 /** Most recent posts (any status) for one account -- dashboard History page account filter. */
 export async function findPostsForAccount(db: Db, accountId: string, limit: number) {
   return db
-    .select()
+    .select({ ...getTableColumns(posts), quoteText: quotes.text, quoteAuthor: quotes.author })
     .from(posts)
+    .leftJoin(quotes, eq(posts.quoteId, quotes.id))
     .where(eq(posts.accountId, accountId))
-    .orderBy(desc(posts.createdAt), sql`rowid desc`)
+    .orderBy(desc(posts.createdAt), sql`posts.rowid desc`)
     .limit(limit);
 }
