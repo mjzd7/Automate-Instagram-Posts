@@ -1,0 +1,1087 @@
+{
+  "month": "2026-09",
+  "seed": "2026-09:ea90e208",
+  "generatedAt": "2026-08-24T17:51:11.372Z",
+  "entries": [
+    {
+      "id": "main:2026-09-01:9",
+      "accountId": "main",
+      "date": "2026-09-01",
+      "hour": 9,
+      "templateId": "general-poppins",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-01:12",
+      "accountId": "main",
+      "date": "2026-09-01",
+      "hour": 12,
+      "templateId": "general-poppins",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-01:16",
+      "accountId": "main",
+      "date": "2026-09-01",
+      "hour": 16,
+      "templateId": "general-poppins",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-01:19",
+      "accountId": "main",
+      "date": "2026-09-01",
+      "hour": 19,
+      "templateId": "general-poppins",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-02:9",
+      "accountId": "main",
+      "date": "2026-09-02",
+      "hour": 9,
+      "templateId": "general-cormorant",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-02:12",
+      "accountId": "main",
+      "date": "2026-09-02",
+      "hour": 12,
+      "templateId": "general-cormorant",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-02:16",
+      "accountId": "main",
+      "date": "2026-09-02",
+      "hour": 16,
+      "templateId": "general-cormorant",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-02:19",
+      "accountId": "main",
+      "date": "2026-09-02",
+      "hour": 19,
+      "templateId": "general-cormorant",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-03:9",
+      "accountId": "main",
+      "date": "2026-09-03",
+      "hour": 9,
+      "templateId": "bold-modern",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-03:12",
+      "accountId": "main",
+      "date": "2026-09-03",
+      "hour": 12,
+      "templateId": "bold-modern",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-03:16",
+      "accountId": "main",
+      "date": "2026-09-03",
+      "hour": 16,
+      "templateId": "bold-modern",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-03:19",
+      "accountId": "main",
+      "date": "2026-09-03",
+      "hour": 19,
+      "templateId": "bold-modern",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-04:9",
+      "accountId": "main",
+      "date": "2026-09-04",
+      "hour": 9,
+      "templateId": "editorial-elegant",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-04:12",
+      "accountId": "main",
+      "date": "2026-09-04",
+      "hour": 12,
+      "templateId": "editorial-elegant",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-04:16",
+      "accountId": "main",
+      "date": "2026-09-04",
+      "hour": 16,
+      "templateId": "editorial-elegant",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-04:19",
+      "accountId": "main",
+      "date": "2026-09-04",
+      "hour": 19,
+      "templateId": "editorial-elegant",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-05:9",
+      "accountId": "main",
+      "date": "2026-09-05",
+      "hour": 9,
+      "templateId": "soft-curvy",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-05:12",
+      "accountId": "main",
+      "date": "2026-09-05",
+      "hour": 12,
+      "templateId": "soft-curvy",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-05:16",
+      "accountId": "main",
+      "date": "2026-09-05",
+      "hour": 16,
+      "templateId": "soft-curvy",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-05:19",
+      "accountId": "main",
+      "date": "2026-09-05",
+      "hour": 19,
+      "templateId": "soft-curvy",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-06:9",
+      "accountId": "main",
+      "date": "2026-09-06",
+      "hour": 9,
+      "templateId": "authentic-personal",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-06:12",
+      "accountId": "main",
+      "date": "2026-09-06",
+      "hour": 12,
+      "templateId": "authentic-personal",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-06:16",
+      "accountId": "main",
+      "date": "2026-09-06",
+      "hour": 16,
+      "templateId": "authentic-personal",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-06:19",
+      "accountId": "main",
+      "date": "2026-09-06",
+      "hour": 19,
+      "templateId": "authentic-personal",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-07:9",
+      "accountId": "main",
+      "date": "2026-09-07",
+      "hour": 9,
+      "templateId": "corporate-clean",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-07:12",
+      "accountId": "main",
+      "date": "2026-09-07",
+      "hour": 12,
+      "templateId": "corporate-clean",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-07:16",
+      "accountId": "main",
+      "date": "2026-09-07",
+      "hour": 16,
+      "templateId": "corporate-clean",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-07:19",
+      "accountId": "main",
+      "date": "2026-09-07",
+      "hour": 19,
+      "templateId": "corporate-clean",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-08:9",
+      "accountId": "main",
+      "date": "2026-09-08",
+      "hour": 9,
+      "templateId": "classic-wisdom",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-08:12",
+      "accountId": "main",
+      "date": "2026-09-08",
+      "hour": 12,
+      "templateId": "classic-wisdom",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-08:16",
+      "accountId": "main",
+      "date": "2026-09-08",
+      "hour": 16,
+      "templateId": "classic-wisdom",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-08:19",
+      "accountId": "main",
+      "date": "2026-09-08",
+      "hour": 19,
+      "templateId": "classic-wisdom",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-09:9",
+      "accountId": "main",
+      "date": "2026-09-09",
+      "hour": 9,
+      "templateId": "calm-mindful",
+      "categoryId": "resilience",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-09:12",
+      "accountId": "main",
+      "date": "2026-09-09",
+      "hour": 12,
+      "templateId": "calm-mindful",
+      "categoryId": "resilience",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-09:16",
+      "accountId": "main",
+      "date": "2026-09-09",
+      "hour": 16,
+      "templateId": "calm-mindful",
+      "categoryId": "resilience",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-09:19",
+      "accountId": "main",
+      "date": "2026-09-09",
+      "hour": 19,
+      "templateId": "calm-mindful",
+      "categoryId": "resilience",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-10:9",
+      "accountId": "main",
+      "date": "2026-09-10",
+      "hour": 9,
+      "templateId": "bold-resilience",
+      "categoryId": "wisdom",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-10:12",
+      "accountId": "main",
+      "date": "2026-09-10",
+      "hour": 12,
+      "templateId": "bold-resilience",
+      "categoryId": "wisdom",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-10:16",
+      "accountId": "main",
+      "date": "2026-09-10",
+      "hour": 16,
+      "templateId": "bold-resilience",
+      "categoryId": "wisdom",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-10:19",
+      "accountId": "main",
+      "date": "2026-09-10",
+      "hour": 19,
+      "templateId": "bold-resilience",
+      "categoryId": "wisdom",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-11:9",
+      "accountId": "main",
+      "date": "2026-09-11",
+      "hour": 9,
+      "templateId": "general-poppins",
+      "categoryId": "motivational",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-11:12",
+      "accountId": "main",
+      "date": "2026-09-11",
+      "hour": 12,
+      "templateId": "general-poppins",
+      "categoryId": "motivational",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-11:16",
+      "accountId": "main",
+      "date": "2026-09-11",
+      "hour": 16,
+      "templateId": "general-poppins",
+      "categoryId": "motivational",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-11:19",
+      "accountId": "main",
+      "date": "2026-09-11",
+      "hour": 19,
+      "templateId": "general-poppins",
+      "categoryId": "motivational",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-12:9",
+      "accountId": "main",
+      "date": "2026-09-12",
+      "hour": 9,
+      "templateId": "general-cormorant",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-12:12",
+      "accountId": "main",
+      "date": "2026-09-12",
+      "hour": 12,
+      "templateId": "general-cormorant",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-12:16",
+      "accountId": "main",
+      "date": "2026-09-12",
+      "hour": 16,
+      "templateId": "general-cormorant",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-12:19",
+      "accountId": "main",
+      "date": "2026-09-12",
+      "hour": 19,
+      "templateId": "general-cormorant",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-13:9",
+      "accountId": "main",
+      "date": "2026-09-13",
+      "hour": 9,
+      "templateId": "bold-modern",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-13:12",
+      "accountId": "main",
+      "date": "2026-09-13",
+      "hour": 12,
+      "templateId": "bold-modern",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-13:16",
+      "accountId": "main",
+      "date": "2026-09-13",
+      "hour": 16,
+      "templateId": "bold-modern",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-13:19",
+      "accountId": "main",
+      "date": "2026-09-13",
+      "hour": 19,
+      "templateId": "bold-modern",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-14:9",
+      "accountId": "main",
+      "date": "2026-09-14",
+      "hour": 9,
+      "templateId": "editorial-elegant",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-14:12",
+      "accountId": "main",
+      "date": "2026-09-14",
+      "hour": 12,
+      "templateId": "editorial-elegant",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-14:16",
+      "accountId": "main",
+      "date": "2026-09-14",
+      "hour": 16,
+      "templateId": "editorial-elegant",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-14:19",
+      "accountId": "main",
+      "date": "2026-09-14",
+      "hour": 19,
+      "templateId": "editorial-elegant",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-15:9",
+      "accountId": "main",
+      "date": "2026-09-15",
+      "hour": 9,
+      "templateId": "soft-curvy",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-15:12",
+      "accountId": "main",
+      "date": "2026-09-15",
+      "hour": 12,
+      "templateId": "soft-curvy",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-15:16",
+      "accountId": "main",
+      "date": "2026-09-15",
+      "hour": 16,
+      "templateId": "soft-curvy",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-15:19",
+      "accountId": "main",
+      "date": "2026-09-15",
+      "hour": 19,
+      "templateId": "soft-curvy",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-16:9",
+      "accountId": "main",
+      "date": "2026-09-16",
+      "hour": 9,
+      "templateId": "authentic-personal",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-16:12",
+      "accountId": "main",
+      "date": "2026-09-16",
+      "hour": 12,
+      "templateId": "authentic-personal",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-16:16",
+      "accountId": "main",
+      "date": "2026-09-16",
+      "hour": 16,
+      "templateId": "authentic-personal",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-16:19",
+      "accountId": "main",
+      "date": "2026-09-16",
+      "hour": 19,
+      "templateId": "authentic-personal",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-17:9",
+      "accountId": "main",
+      "date": "2026-09-17",
+      "hour": 9,
+      "templateId": "corporate-clean",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-17:12",
+      "accountId": "main",
+      "date": "2026-09-17",
+      "hour": 12,
+      "templateId": "corporate-clean",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-17:16",
+      "accountId": "main",
+      "date": "2026-09-17",
+      "hour": 16,
+      "templateId": "corporate-clean",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-17:19",
+      "accountId": "main",
+      "date": "2026-09-17",
+      "hour": 19,
+      "templateId": "corporate-clean",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-18:9",
+      "accountId": "main",
+      "date": "2026-09-18",
+      "hour": 9,
+      "templateId": "classic-wisdom",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-18:12",
+      "accountId": "main",
+      "date": "2026-09-18",
+      "hour": 12,
+      "templateId": "classic-wisdom",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-18:16",
+      "accountId": "main",
+      "date": "2026-09-18",
+      "hour": 16,
+      "templateId": "classic-wisdom",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-18:19",
+      "accountId": "main",
+      "date": "2026-09-18",
+      "hour": 19,
+      "templateId": "classic-wisdom",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-19:9",
+      "accountId": "main",
+      "date": "2026-09-19",
+      "hour": 9,
+      "templateId": "calm-mindful",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-19:12",
+      "accountId": "main",
+      "date": "2026-09-19",
+      "hour": 12,
+      "templateId": "calm-mindful",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-19:16",
+      "accountId": "main",
+      "date": "2026-09-19",
+      "hour": 16,
+      "templateId": "calm-mindful",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-19:19",
+      "accountId": "main",
+      "date": "2026-09-19",
+      "hour": 19,
+      "templateId": "calm-mindful",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-20:9",
+      "accountId": "main",
+      "date": "2026-09-20",
+      "hour": 9,
+      "templateId": "bold-resilience",
+      "categoryId": "resilience",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-20:12",
+      "accountId": "main",
+      "date": "2026-09-20",
+      "hour": 12,
+      "templateId": "bold-resilience",
+      "categoryId": "resilience",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-20:16",
+      "accountId": "main",
+      "date": "2026-09-20",
+      "hour": 16,
+      "templateId": "bold-resilience",
+      "categoryId": "resilience",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-20:19",
+      "accountId": "main",
+      "date": "2026-09-20",
+      "hour": 19,
+      "templateId": "bold-resilience",
+      "categoryId": "resilience",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-21:9",
+      "accountId": "main",
+      "date": "2026-09-21",
+      "hour": 9,
+      "templateId": "general-poppins",
+      "categoryId": "wisdom",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-21:12",
+      "accountId": "main",
+      "date": "2026-09-21",
+      "hour": 12,
+      "templateId": "general-poppins",
+      "categoryId": "wisdom",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-21:16",
+      "accountId": "main",
+      "date": "2026-09-21",
+      "hour": 16,
+      "templateId": "general-poppins",
+      "categoryId": "wisdom",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-21:19",
+      "accountId": "main",
+      "date": "2026-09-21",
+      "hour": 19,
+      "templateId": "general-poppins",
+      "categoryId": "wisdom",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-22:9",
+      "accountId": "main",
+      "date": "2026-09-22",
+      "hour": 9,
+      "templateId": "general-cormorant",
+      "categoryId": "motivational",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-22:12",
+      "accountId": "main",
+      "date": "2026-09-22",
+      "hour": 12,
+      "templateId": "general-cormorant",
+      "categoryId": "motivational",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-22:16",
+      "accountId": "main",
+      "date": "2026-09-22",
+      "hour": 16,
+      "templateId": "general-cormorant",
+      "categoryId": "motivational",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-22:19",
+      "accountId": "main",
+      "date": "2026-09-22",
+      "hour": 19,
+      "templateId": "general-cormorant",
+      "categoryId": "motivational",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-23:9",
+      "accountId": "main",
+      "date": "2026-09-23",
+      "hour": 9,
+      "templateId": "bold-modern",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-23:12",
+      "accountId": "main",
+      "date": "2026-09-23",
+      "hour": 12,
+      "templateId": "bold-modern",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-23:16",
+      "accountId": "main",
+      "date": "2026-09-23",
+      "hour": 16,
+      "templateId": "bold-modern",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-23:19",
+      "accountId": "main",
+      "date": "2026-09-23",
+      "hour": 19,
+      "templateId": "bold-modern",
+      "categoryId": "success",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-24:9",
+      "accountId": "main",
+      "date": "2026-09-24",
+      "hour": 9,
+      "templateId": "editorial-elegant",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-24:12",
+      "accountId": "main",
+      "date": "2026-09-24",
+      "hour": 12,
+      "templateId": "editorial-elegant",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-24:16",
+      "accountId": "main",
+      "date": "2026-09-24",
+      "hour": 16,
+      "templateId": "editorial-elegant",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-24:19",
+      "accountId": "main",
+      "date": "2026-09-24",
+      "hour": 19,
+      "templateId": "editorial-elegant",
+      "categoryId": "business",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-25:9",
+      "accountId": "main",
+      "date": "2026-09-25",
+      "hour": 9,
+      "templateId": "soft-curvy",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-25:12",
+      "accountId": "main",
+      "date": "2026-09-25",
+      "hour": 12,
+      "templateId": "soft-curvy",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-25:16",
+      "accountId": "main",
+      "date": "2026-09-25",
+      "hour": 16,
+      "templateId": "soft-curvy",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-25:19",
+      "accountId": "main",
+      "date": "2026-09-25",
+      "hour": 19,
+      "templateId": "soft-curvy",
+      "categoryId": "entrepreneurship",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-26:9",
+      "accountId": "main",
+      "date": "2026-09-26",
+      "hour": 9,
+      "templateId": "authentic-personal",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-26:12",
+      "accountId": "main",
+      "date": "2026-09-26",
+      "hour": 12,
+      "templateId": "authentic-personal",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-26:16",
+      "accountId": "main",
+      "date": "2026-09-26",
+      "hour": 16,
+      "templateId": "authentic-personal",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-26:19",
+      "accountId": "main",
+      "date": "2026-09-26",
+      "hour": 19,
+      "templateId": "authentic-personal",
+      "categoryId": "stoic",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-27:9",
+      "accountId": "main",
+      "date": "2026-09-27",
+      "hour": 9,
+      "templateId": "corporate-clean",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-27:12",
+      "accountId": "main",
+      "date": "2026-09-27",
+      "hour": 12,
+      "templateId": "corporate-clean",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-27:16",
+      "accountId": "main",
+      "date": "2026-09-27",
+      "hour": 16,
+      "templateId": "corporate-clean",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-27:19",
+      "accountId": "main",
+      "date": "2026-09-27",
+      "hour": 19,
+      "templateId": "corporate-clean",
+      "categoryId": "discipline",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-28:9",
+      "accountId": "main",
+      "date": "2026-09-28",
+      "hour": 9,
+      "templateId": "classic-wisdom",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-28:12",
+      "accountId": "main",
+      "date": "2026-09-28",
+      "hour": 12,
+      "templateId": "classic-wisdom",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-28:16",
+      "accountId": "main",
+      "date": "2026-09-28",
+      "hour": 16,
+      "templateId": "classic-wisdom",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-28:19",
+      "accountId": "main",
+      "date": "2026-09-28",
+      "hour": 19,
+      "templateId": "classic-wisdom",
+      "categoryId": "leadership",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-29:9",
+      "accountId": "main",
+      "date": "2026-09-29",
+      "hour": 9,
+      "templateId": "calm-mindful",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-29:12",
+      "accountId": "main",
+      "date": "2026-09-29",
+      "hour": 12,
+      "templateId": "calm-mindful",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-29:16",
+      "accountId": "main",
+      "date": "2026-09-29",
+      "hour": 16,
+      "templateId": "calm-mindful",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-29:19",
+      "accountId": "main",
+      "date": "2026-09-29",
+      "hour": 19,
+      "templateId": "calm-mindful",
+      "categoryId": "wealth",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-30:9",
+      "accountId": "main",
+      "date": "2026-09-30",
+      "hour": 9,
+      "templateId": "bold-resilience",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-30:12",
+      "accountId": "main",
+      "date": "2026-09-30",
+      "hour": 12,
+      "templateId": "bold-resilience",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-30:16",
+      "accountId": "main",
+      "date": "2026-09-30",
+      "hour": 16,
+      "templateId": "bold-resilience",
+      "categoryId": "mindset",
+      "status": "planned"
+    },
+    {
+      "id": "main:2026-09-30:19",
+      "accountId": "main",
+      "date": "2026-09-30",
+      "hour": 19,
+      "templateId": "bold-resilience",
+      "categoryId": "mindset",
+      "status": "planned"
+    }
+  ]
+}
