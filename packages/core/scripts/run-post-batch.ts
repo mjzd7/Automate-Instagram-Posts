@@ -79,33 +79,35 @@ async function main(): Promise<void> {
     console.warn("run-post-batch: No trending-hashtags.json found, skipping trending injection.");
   }
 
-  // Binding-lite contract: when a current-month pipeline file exists it
-  // governs this account -- execute exactly its due planned slots and skip
-  // otherwise. Absent file -> legacy ad-hoc behaviour. --force bypasses.
-  let effectiveBatchSize = batchSize;
-  let pipelineDue: PipelineEntry[] | null = null;
-  const now = new Date();
-  const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  if (!force) {
-    try {
-      const raw = JSON.parse(
-        await readFile(`${repoRoot}/data/pipeline/${month}.json`, "utf-8"),
-      ) as PipelineFile;
-      const due = dueEntries(raw, accountId, now, account.timezone);
-      pipelineDue = due;
-      console.log(`run-post-batch: pipeline ${month} governs ${accountId} (${due.length} due)`);
-      if (due.length === 0) {
-        console.log(`run-post-batch: nothing due in pipeline for ${accountId}; exiting`);
-        return;
-      }
-      effectiveBatchSize = batchSize ?? due.length;
-    } catch {
-      console.log(`run-post-batch: no pipeline file for ${month}; legacy ad-hoc mode`);
-    }
-  }
-
   const dbHandle = await openDb(`file:${repoRoot}/data/app.db`);
   try {
+    // Binding-lite contract: when a current-month pipeline file exists it
+    // governs this account -- execute exactly its due planned slots and skip
+    // otherwise. Absent file -> legacy ad-hoc behaviour. --force bypasses.
+    let effectiveBatchSize = batchSize;
+    let pipelineDue: PipelineEntry[] | null = null;
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    if (!force) {
+      try {
+        const raw = JSON.parse(
+          await readFile(`${repoRoot}/data/pipeline/${month}.json`, "utf-8"),
+        ) as PipelineFile;
+        const liveStatuses = parseStatuses(
+          await getSetting(dbHandle.db, PIPELINE_STATUS_ACCOUNT, statusKey(month)),
+        );
+        const due = dueEntries(raw, accountId, now, account.timezone, liveStatuses);
+        pipelineDue = due;
+        console.log(`run-post-batch: pipeline ${month} governs ${accountId} (${due.length} due)`);
+        if (due.length === 0) {
+          console.log(`run-post-batch: nothing due in pipeline for ${accountId}; exiting`);
+          return;
+        }
+        effectiveBatchSize = batchSize ?? due.length;
+      } catch {
+        console.log(`run-post-batch: no pipeline file for ${month}; legacy ad-hoc mode`);
+      }
+    }
     const result = await generateAndPublishBatch({
       db: dbHandle.db,
       account,

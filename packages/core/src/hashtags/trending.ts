@@ -20,7 +20,10 @@ export async function fetchTrendingHashtags(geo: string = "IN"): Promise<string[
       agent = new HttpsProxyAgent(process.env.PROXY_URL);
     }
     
-    const resString = await googleTrends.relatedQueries({ keyword, geo, agent });
+    const queryOptions = { keyword, geo, ...(agent ? { agent } : {}) } as unknown as Parameters<
+      typeof googleTrends.relatedQueries
+    >[0];
+    const resString = await googleTrends.relatedQueries(queryOptions);
     const res = JSON.parse(resString) as RelatedQueriesObject;
     
     // rankedList[0] contains "Top" queries, rankedList[1] contains "Rising" queries

@@ -43,8 +43,9 @@ describe("fetchReachForPosts", () => {
     ];
     let call = 0;
     const fetchImpl = vi.fn(async () => {
-      const payload = responses[Math.min(call++, responses.length - 1)];
-      return { ok: !("error" in payload), status: payload.error ? 403 : 200, json: async () => payload };
+      const payload = responses[Math.min(call++, responses.length - 1)] ?? {};
+      const isError = "error" in payload;
+      return { ok: !isError, status: isError ? 403 : 200, json: async () => payload };
     }) as unknown as typeof fetch;
     const map = await fetchReachForPosts("tok", [{ id: "m1" }, { id: "m2" }], fetchImpl);
     expect(map).toEqual({ m1: 4321, m2: null });

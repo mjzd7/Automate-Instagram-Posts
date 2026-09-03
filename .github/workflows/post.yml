@@ -2,8 +2,7 @@ name: post
 
 on:
   schedule:
-    - cron: "0 * * * *" # WORKFLOW_CRON, plan.md §2.6 -- hourly; each account's job
-    # no-ops if the current UTC hour isn't in its postingHoursLocal (account-local time).
+    - cron: "*/30 * * * *" # Every 30 minutes; aligns with half-hour timezone offsets (e.g. IST UTC+5:30) and catches delayed runs
   workflow_dispatch:
     inputs:
       force:
