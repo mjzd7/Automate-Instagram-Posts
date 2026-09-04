@@ -237,8 +237,7 @@ export async function composeVideoReel(
   console.log(`Pre-processing background video loop...`);
   const halfDuration = totalVideoDuration / 2;
   
-  // 1. Trim, scale, and crop forward segment
-  // Intermediates run near-lossless (CRF 10): four chained encodes must not compound generation loss.
+  // 1. Trim, scale, and crop forward segment (Lossless CRF 0 intermediate)
   execFileSync("ffmpeg", [
     "-y",
     "-ss", "0",
@@ -247,27 +246,27 @@ export async function composeVideoReel(
     "-vf", `scale=${REEL_WIDTH}:${REEL_HEIGHT}:force_original_aspect_ratio=increase:flags=lanczos,crop=${REEL_WIDTH}:${REEL_HEIGHT}`,
     "-r", "30",
     "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-crf", "10",
+    "-preset", "ultrafast",
+    "-crf", "0",
     "-pix_fmt", "yuv420p",
     "-an",
     vFwdPath
   ], { stdio: "ignore" });
 
-  // 2. Reverse forward segment to create backward segment
+  // 2. Reverse forward segment to create backward segment (Lossless CRF 0)
   execFileSync("ffmpeg", [
     "-y",
     "-i", vFwdPath,
     "-vf", "reverse",
     "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-crf", "10",
+    "-preset", "ultrafast",
+    "-crf", "0",
     "-pix_fmt", "yuv420p",
     "-an",
     vRevPath
   ], { stdio: "ignore" });
 
-  // 3. Concatenate forward and backward segments
+  // 3. Concatenate forward and backward segments (Lossless CRF 0)
   execFileSync("ffmpeg", [
     "-y",
     "-i", vFwdPath,
@@ -275,8 +274,8 @@ export async function composeVideoReel(
     "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0[v]",
     "-map", "[v]",
     "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-crf", "10",
+    "-preset", "ultrafast",
+    "-crf", "0",
     "-pix_fmt", "yuv420p",
     "-an",
     loopedBgPath
@@ -355,16 +354,16 @@ export async function composeVideoReel(
       ]);
     }
 
-    // Delivery encode: single high-quality generation that survives IG's
-    // recompression. CRF 17 + High@4.2 + Rec.709 tags + <=20Mbps cap per
+    // Delivery encode: single pristine high-quality generation that survives IG's
+    // recompression. CRF 14 + High@4.2 + Rec.709 tags + <=24Mbps cap per
     // Instagram's published specs (1080x1920/30fps/H.264, max 25Mbps).
     command
       .outputOptions([
         "-c:v libx264",
         "-preset slow",
-        "-crf 17",
-        "-maxrate 16M",
-        "-bufsize 32M",
+        "-crf 14",
+        "-maxrate 24M",
+        "-bufsize 48M",
         "-profile:v high",
         "-level:v 4.2",
         "-pix_fmt yuv420p",

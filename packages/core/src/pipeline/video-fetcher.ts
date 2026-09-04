@@ -40,8 +40,19 @@ export async function fetchPexelsVideo(
     ? await extractVisualConcepts(quoteText, category, env.GEMINI_API_KEY)
     : [category];
 
-  // 2. Append hardcoded fallback queries just in case LLM returns narrow results
-  const fallbackQueries = [category, "minimalist nature", "landscape cinematic", "modern architecture", "dark abstract", "cinematic atmosphere"];
+  // 2. Append diverse fallback queries just in case LLM returns narrow results
+  const fallbackQueries = [
+    category,
+    "minimalist nature",
+    "landscape cinematic",
+    "modern architecture",
+    "dark abstract",
+    "cinematic atmosphere",
+    "calm ocean waves",
+    "foggy forest mountain",
+    "rainy city street",
+    "minimal luxury interior",
+  ];
   const visualQueries = [...new Set([...baseQueries, ...fallbackQueries])];
 
   console.log(`Extracted semantic video concepts for "${category}":`, baseQueries);
@@ -62,7 +73,8 @@ export async function fetchPexelsVideo(
 
     for (const query of searchQueries) {
       console.log(`Querying Pexels Videos: "${query}"`);
-      const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&orientation=portrait&size=large&per_page=15`;
+      const page = Math.floor(Math.random() * 4) + 1;
+      const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&orientation=portrait&size=large&per_page=15&page=${page}`;
       
       try {
         const response = await fetch(url, {
@@ -76,17 +88,17 @@ export async function fetchPexelsVideo(
         // Excluded links shrink the pool; an emptied pool falls through to
         // the next query so rejected candidates are never re-drawn.
         const candidates = data.videos.flatMap((video) => {
-          const best4KPortrait = [...video.video_files]
-            .filter((f) => f.height > f.width && (f.width >= 2160 || f.height >= 3840)) // Enforce 4K only (e.g. 2160x3840 or 2160x4096)
-            .sort((a, b) => b.width - a.width)[0];
-          return best4KPortrait && !excludeUrls.has(best4KPortrait.link)
-            ? [{ url: best4KPortrait.link, width: best4KPortrait.width, height: best4KPortrait.height, duration: video.duration }]
+          const bestPortrait = [...video.video_files]
+            .filter((f) => f.height > f.width && f.height >= 1920 && f.width >= 1080)
+            .sort((a, b) => (b.width * b.height) - (a.width * a.height))[0];
+          return bestPortrait && !excludeUrls.has(bestPortrait.link)
+            ? [{ url: bestPortrait.link, width: bestPortrait.width, height: bestPortrait.height, duration: video.duration }]
             : [];
         });
 
         const picked = candidates[Math.floor(Math.random() * candidates.length)];
         if (picked) {
-          console.log(`Matched stunning 4K/HD video on query: "${query}"`);
+          console.log(`Matched stunning video on query: "${query}"`);
           return picked;
         }
       } catch (error) {

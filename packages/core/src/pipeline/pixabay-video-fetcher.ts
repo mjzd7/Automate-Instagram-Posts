@@ -17,8 +17,8 @@ interface PixabaySearchResponse {
   hits?: PixabayHit[];
 }
 
-// Pixabay caps portrait files well below 4K; prefer quality in this order.
-const FORMAT_PREFERENCE = ["large", "medium", "small", "tiny"] as const;
+// Pixabay caps portrait files well below 4K; large is full HD (1080x1920).
+const FORMAT_PREFERENCE = ["large", "medium"] as const;
 
 /**
  * Free fallback video source (Pixabay Videos API) with the same contract as
@@ -40,7 +40,18 @@ export async function fetchPixabayVideo(
   const baseQueries = quoteText
     ? await extractVisualConcepts(quoteText, category, env.GEMINI_API_KEY)
     : [category];
-  const fallbackQueries = [category, "minimalist nature", "landscape cinematic", "modern architecture", "dark abstract", "cinematic atmosphere"];
+  const fallbackQueries = [
+    category,
+    "minimalist nature",
+    "landscape cinematic",
+    "modern architecture",
+    "dark abstract",
+    "cinematic atmosphere",
+    "calm ocean waves",
+    "foggy forest mountain",
+    "rainy city street",
+    "minimal luxury interior",
+  ];
   const visualQueries = [...new Set([...baseQueries, ...fallbackQueries])];
 
   for (const baseQuery of visualQueries) {
@@ -53,12 +64,14 @@ export async function fetchPixabayVideo(
 
     for (const query of searchQueries) {
       console.log(`Querying Pixabay Videos: "${query}"`);
+      const page = Math.floor(Math.random() * 4) + 1;
       const url = new URL("https://pixabay.com/api/videos/");
       url.searchParams.set("key", env.PIXABAY_API_KEY);
       url.searchParams.set("q", query);
       url.searchParams.set("orientation", "vertical");
       url.searchParams.set("safesearch", "true");
       url.searchParams.set("per_page", "15");
+      url.searchParams.set("page", String(page));
 
       try {
         const response = await fetch(url.toString(), { signal: AbortSignal.timeout(10000) });
@@ -72,7 +85,7 @@ export async function fetchPixabayVideo(
         const candidates = data.hits.flatMap((hit) => {
           for (const size of FORMAT_PREFERENCE) {
             const format = hit.videos?.[size];
-            if (format?.url && !excludeUrls.has(format.url)) {
+            if (format?.url && format.height >= 1920 && format.width >= 1080 && !excludeUrls.has(format.url)) {
               return [{ url: format.url, width: format.width, height: format.height, duration: hit.duration }];
             }
           }
