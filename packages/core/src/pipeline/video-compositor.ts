@@ -39,7 +39,8 @@ export async function composeVideoReel(
   availableTracks: any[] = [], // Pass MetaAudioTrack[] when called from a context with IG token
   enableVoiceover: boolean = false,
   mode: Darkness = "dark",
-  author?: string
+  author?: string,
+  recentVideoUrls: string[] = []
 ) {
   const fullText = author ? `${quoteText}\n\n— ${author}` : quoteText;
   console.log(`Starting video reel composition for: "${fullText}"`);
@@ -61,10 +62,10 @@ export async function composeVideoReel(
 
   let video: any = null;
   const bgVideoPath = path.join(tempDir, "bg_video.mp4");
-  // Links already rejected by Vision filters -- fed back to the fetcher so
-  // retries draw fresh candidates and walk down its fallback query ladder
-  // instead of re-testing the same failing videos.
-  const rejectedVideoUrls = new Set<string>();
+  // Links already rejected by Vision filters or recently used in past posts --
+  // fed back to the fetcher so retries draw fresh candidates and walk down
+  // its fallback query ladder instead of repeating recent videos.
+  const rejectedVideoUrls = new Set<string>(recentVideoUrls);
 
   // Both sources share one exclusion set -- a Vision-rejected link must never be redrawn from either.
   const sourceOrder = (process.env.VIDEO_SOURCE_ORDER ?? "").toLowerCase().startsWith("pixabay")
@@ -88,7 +89,7 @@ export async function composeVideoReel(
     
     console.log(`[Content Filter] Downloading background video from Pexels to: ${bgVideoPath}...`);
     try {
-      const videoResponse = await fetch(video.url);
+      const videoResponse = await fetch(video.url, { signal: AbortSignal.timeout(30000) });
       if (!videoResponse.ok) {
         throw new Error(`Failed to download background video from ${video.url}`);
       }
@@ -405,5 +406,10 @@ export async function composeVideoReel(
       });
   });
 
-  return { videoPath: outputFile, coverImagePath, selectedAudioTrack: audioSelection.track };
+  return {
+    videoPath: outputFile,
+    coverImagePath,
+    selectedAudioTrack: audioSelection.track,
+    selectedVideoUrl: (video?.url as string) || undefined,
+  };
 }
