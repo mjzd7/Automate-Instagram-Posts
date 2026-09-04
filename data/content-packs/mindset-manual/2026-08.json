@@ -1,0 +1,40 @@
+[
+  {
+    "id": "mindset-manual-2026-08-001",
+    "seriesId": "mindset-manual",
+    "archetype": null,
+    "text": "Hydrate, set core priorities, and secure an early win.",
+    "framework": {
+      "title": "The 3-2-1 Morning",
+      "steps": [
+        "Drink three full glasses of water.",
+        "Write down two non-negotiable daily priorities.",
+        "Execute one high-impact task for thirty minutes."
+      ]
+    },
+    "captionQuestion": null,
+    "utilityLine": "Test this routine tomorrow morning.",
+    "ctaTag": null,
+    "status": "draft",
+    "generatedAt": "2026-08-22T10:00:09.386Z"
+  },
+  {
+    "id": "mindset-manual-2026-08-002",
+    "seriesId": "mindset-manual",
+    "archetype": null,
+    "text": "Clear distractions, set clear targets, and execute one uninterrupted block of focus.",
+    "framework": {
+      "title": "The 3-2-1 Tunnel Method",
+      "steps": [
+        "Eliminate three primary digital distractions",
+        "Define two non-negotiable output goals",
+        "Execute one ninety minute focus session"
+      ]
+    },
+    "captionQuestion": null,
+    "utilityLine": "Try it today before starting your main project.",
+    "ctaTag": null,
+    "status": "draft",
+    "generatedAt": "2026-08-22T13:06:54.189Z"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "hook-lab-2026-08-001",
+    "seriesId": "hook-lab",
+    "archetype": "controversy",
+    "text": "Your 5 AM routine is just procrastination in a fancy suit.",
+    "framework": null,
+    "captionQuestion": null,
+    "utilityLine": null,
+    "ctaTag": null,
+    "status": "draft",
+    "generatedAt": "2026-08-22T09:59:26.516Z"
+  },
+  {
+    "id": "hook-lab-2026-08-002",
+    "seriesId": "hook-lab",
+    "archetype": "stat",
+    "text": "Only 1 in 100 people master this silent habit before 30.",
+    "framework": null,
+    "captionQuestion": null,
+    "utilityLine": null,
+    "ctaTag": null,
+    "status": "draft",
+    "generatedAt": "2026-08-22T13:08:20.743Z"
+  }
+]

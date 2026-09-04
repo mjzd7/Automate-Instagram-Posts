@@ -1,21 +1,39 @@
-version: 1
-rules:
+version: "1"
+project_name: "Automate-Instagram-Posts"
+
+# DAGR architecture boundaries.
+#
+# SCHEMA NOTE (2026-08-22): the previous version of this file used the schema
+#   { rules: [ { source:, disallow:, reason: } ] }
+# which dagr v0.1.0 silently parses as ZERO active rules (unknown keys ignored).
+# Correct schema per crates/dagr-guard/src/rules.rs:
+#   boundaries[].from / cannot_import[] / message
+#
+# MATCHER SEMANTICS (crates/dagr-guard/src/checker.rs):
+#   - `from` is glob-matched against the workspace-relative file path.
+#   - `cannot_import` entries are matched against the RAW import string as written
+#     in source (relative imports are NOT resolved to workspace paths), via glob
+#     OR starts_with(pattern.trim_end_matches("/**")).
+#   => Patterns must be written in this repo's actual import dialect:
+#      core modules use relative imports ("../db/..."), web api uses "@/..." aliases.
+
+boundaries:
   - name: "Presentation & Pure Logic Layer Isolation"
-    source: "packages/core/src/content-filter/**"
-    disallow:
-      - "packages/core/src/db/**"
-      - "apps/web/**"
-    reason: "Content filtering logic must remain pure and free from direct DB / UI dependencies."
+    from: "packages/core/src/content-filter/**"
+    cannot_import:
+      - "../db/"
+      - "../../../apps/web/"
+    message: "Content filtering logic must remain pure and free from direct DB / UI dependencies."
 
   - name: "Crypto Package Isolation"
-    source: "packages/core/src/crypto/**"
-    disallow:
-      - "apps/web/**"
-      - "packages/core/src/db/**"
-    reason: "Cryptographic token encryption must not depend on database or UI layers."
+    from: "packages/core/src/crypto/**"
+    cannot_import:
+      - "../db/"
+      - "../../../apps/web/"
+    message: "Cryptographic token encryption must not depend on database or UI layers."
 
   - name: "App API Boundary"
-    source: "apps/web/app/api/**"
-    disallow:
-      - "packages/core/scripts/**"
-    reason: "Next.js API routes must not import one-off migration scripts."
+    from: "apps/web/app/api/**"
+    cannot_import:
+      - "../../../../packages/core/scripts/"
+    message: "Next.js API routes must not import one-off migration scripts."

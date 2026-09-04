@@ -1,0 +1,80 @@
+[
+  {
+    "id": "mindset-manual",
+    "name": "Mindset Manual",
+    "templateIds": ["framework-carousel", "framework-mini"],
+    "captionPromptRef": "captions/mindset-manual.txt",
+    "hashtagCategory": "mindset",
+    "slots": [
+      { "dayOfWeek": 3, "slot": "am" },
+      { "dayOfWeek": 0, "slot": "pm" }
+    ],
+    "maxPerDay": 1,
+    "active": true
+  },
+  {
+    "id": "hook-lab",
+    "name": "Hook Lab",
+    "templateIds": ["hook-cover"],
+    "captionPromptRef": "captions/hook-lab.txt",
+    "hashtagCategory": "motivational",
+    "slots": [
+      { "dayOfWeek": 1, "slot": "am" },
+      { "dayOfWeek": 3, "slot": "pm" },
+      { "dayOfWeek": 5, "slot": "am" }
+    ],
+    "maxPerDay": 1,
+    "active": true
+  },
+  {
+    "id": "confession-cards",
+    "name": "Confession Cards",
+    "templateIds": ["confession-card", "identity-badge"],
+    "captionPromptRef": "captions/confession-cards.txt",
+    "hashtagCategory": "mindset",
+    "slots": [
+      { "dayOfWeek": 1, "slot": "pm" },
+      { "dayOfWeek": 2, "slot": "am" },
+      { "dayOfWeek": 4, "slot": "am" },
+      { "dayOfWeek": 6, "slot": "pm" }
+    ],
+    "maxPerDay": 1,
+    "active": true
+  },
+  {
+    "id": "villain-roasts",
+    "name": "Villain Roasts",
+    "templateIds": ["roast-footer"],
+    "captionPromptRef": "captions/villain-roasts.txt",
+    "hashtagCategory": "discipline",
+    "slots": [{ "dayOfWeek": 4, "slot": "pm" }],
+    "maxPerDay": 1,
+    "active": true
+  },
+  {
+    "id": "fill-the-blank",
+    "name": "Fill the Blank",
+    "templateIds": ["gap-line"],
+    "captionPromptRef": "captions/fill-the-blank.txt",
+    "hashtagCategory": "mindset",
+    "slots": [
+      { "dayOfWeek": 2, "slot": "pm" },
+      { "dayOfWeek": 6, "slot": "am" }
+    ],
+    "maxPerDay": 1,
+    "active": true
+  },
+  {
+    "id": "season-reset",
+    "name": "Season Reset",
+    "templateIds": ["hook-cover"],
+    "captionPromptRef": "captions/season-reset.txt",
+    "hashtagCategory": "mindset",
+    "slots": [
+      { "dayOfWeek": 5, "slot": "pm" },
+      { "dayOfWeek": 0, "slot": "am" }
+    ],
+    "maxPerDay": 1,
+    "active": true
+  }
+]
