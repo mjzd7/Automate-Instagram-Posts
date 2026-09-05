@@ -1,0 +1,78 @@
+[
+  {
+    "id": "mindset-manual-2026-09-002",
+    "seriesId": "mindset-manual",
+    "archetype": null,
+    "text": "Deep work requires ruthless elimination of distractions. This framework structures your peak cognitive hours into a singular, high-yield execution engine.",
+    "framework": {
+      "title": "The 1-4-1 Flow",
+      "steps": [
+        "Select one singular priority task",
+        "Work uninterrupted for four blocks",
+        "Review output in one minute"
+      ]
+    },
+    "captionQuestion": null,
+    "utilityLine": "Try your first focus block today.",
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:25:07.259Z"
+  },
+  {
+    "id": "mindset-manual-2026-09-003",
+    "seriesId": "mindset-manual",
+    "archetype": null,
+    "text": "Stop the spiral, extract the data, and pivot instantly.",
+    "framework": {
+      "title": "The 3-Step Bounce",
+      "steps": [
+        "Acknowledge the setback without harsh judgment",
+        "Extract one objective lesson from the failure",
+        "Execute a tiny corrective action immediately"
+      ]
+    },
+    "captionQuestion": null,
+    "utilityLine": "Try applying this to your latest roadblock today.",
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:25:07.259Z"
+  },
+  {
+    "id": "mindset-manual-2026-09-004",
+    "seriesId": "mindset-manual",
+    "archetype": null,
+    "text": "Protect your energy by mastering the art of the clean refusal. Stop over-explaining and start reclaiming your time with firm, polite boundaries.",
+    "framework": {
+      "title": "The 3-Step No",
+      "steps": [
+        "Pause before answering any new request",
+        "State your refusal with clear kindness",
+        "Offer no false excuses or over-explaining"
+      ]
+    },
+    "captionQuestion": null,
+    "utilityLine": "Try using this on the next incoming favor.",
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:25:07.259Z"
+  },
+  {
+    "id": "mindset-manual-2026-09-005",
+    "seriesId": "mindset-manual",
+    "archetype": null,
+    "text": "Optimize your output by systematically eliminating energy leaks, guarding your peak focus windows, and intentionally scheduling daily recovery before burnout hits.",
+    "framework": {
+      "title": "The 3-2-1 Energy",
+      "steps": [
+        "Audit 3 daily drainers immediately",
+        "Protect 2 deep focus blocks",
+        "Schedule 1 true restoration hour"
+      ]
+    },
+    "captionQuestion": null,
+    "utilityLine": "Try mapping your energy zones today.",
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:25:07.259Z"
+  }
+]

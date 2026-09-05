@@ -52,7 +52,20 @@ export async function commitBatch(options: CommitBatchOptions): Promise<CommitBa
   try {
     await run(["push", "origin", branch], cwd);
   } catch {
-    await run(["pull", "--rebase", "origin", branch], cwd);
+    try {
+      await run(["pull", "--rebase", "--autostash", "origin", branch], cwd);
+    } catch {
+      try {
+        await run(["checkout", "--theirs", "data/app.db"], cwd);
+        await run(["add", "data/app.db"], cwd);
+        await run(["rebase", "--continue"], cwd);
+      } catch {
+        try {
+          await run(["rebase", "--abort"], cwd);
+        } catch {}
+        throw new Error("commitBatch: git pull --rebase failed");
+      }
+    }
     await run(["push", "origin", branch], cwd);
   }
 

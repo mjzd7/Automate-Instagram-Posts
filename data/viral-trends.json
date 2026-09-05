@@ -1,0 +1,85 @@
+{
+  "lastUpdated": "2026-09-05",
+  "niches": ["wealth", "mindset", "stoicism", "discipline", "entrepreneurship"],
+  "highRetentionFormulas": [
+    {
+      "type": "two-phase-reveal",
+      "idealDurationSec": 6.5,
+      "targetWordCount": 26,
+      "hookStructure": "Phase 1 (0-2s): Provocative statement / unspoken truth -> Phase 2 (2-6.5s): Counter-intuitive resolution",
+      "examples": [
+        {
+          "phase1": "The most dangerous addiction in your 20s isn't alcohol or drugs...",
+          "phase2": "...it's the comfort of a predictable routine with unmotivated peers."
+        },
+        {
+          "phase1": "Most people aren't burnt out from doing too much...",
+          "phase2": "...they are burnt out from doing too little of what actually matters."
+        },
+        {
+          "phase1": "The biggest trap of ambitious people...",
+          "phase2": "...is confusing movement with progress. Action without direction is just friction."
+        }
+      ]
+    },
+    {
+      "type": "asymmetric-wealth-rule",
+      "idealDurationSec": 7.0,
+      "targetWordCount": 28,
+      "hookStructure": "Concrete contrast between how top 1% operate vs middle 90%",
+      "examples": [
+        {
+          "phase1": "The middle class trades time for money...",
+          "phase2": "...the wealthy trade money to buy back time, then invest that time into asymmetric assets."
+        },
+        {
+          "phase1": "You don't need more capital to start...",
+          "phase2": "...you need more leverage. Code, media, and capital-efficient systems create unfair advantages."
+        }
+      ]
+    },
+    {
+      "type": "save-worthy-framework",
+      "idealDurationSec": null,
+      "targetWordCount": 35,
+      "format": "step-list-framework",
+      "examples": [
+        {
+          "title": "The 3-3-3 Deep Work Rule",
+          "steps": [
+            "3 hours on your #1 high-leverage project",
+            "3 urgent administrative micro-tasks",
+            "3 maintenance habits (exercise, reading, planning)"
+          ],
+          "utilityLine": "Try this framework tomorrow morning before checking email."
+        },
+        {
+          "title": "The 48-Hour Decision Rule",
+          "steps": [
+            "Write the decision on paper",
+            "List the irreversible downside",
+            "If downside is survivable, execute within 48h"
+          ],
+          "utilityLine": "Save this for your next career or business pivot."
+        }
+      ]
+    }
+  ],
+  "viralDMTriggers": [
+    "Send this to your accountability partner.",
+    "Send this to the friend building a business in silence.",
+    "Send this to someone who needs to hear this today.",
+    "Save this for Monday at 6:00 AM.",
+    "Bookmark this framework for your next quarterly review."
+  ],
+  "topKeywordsSEO": [
+    "wealth mindset",
+    "financial discipline",
+    "asymmetric returns",
+    "stoic principles",
+    "focus routine",
+    "high performance habits",
+    "self mastery",
+    "building in private"
+  ]
+}

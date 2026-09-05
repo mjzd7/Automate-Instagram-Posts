@@ -100,12 +100,26 @@ export const TEMPLATES: readonly Template[] = [
 
 const GENERAL_TEMPLATE_IDS = TEMPLATES.filter((t) => t.categories.length === 0).map((t) => t.id);
 
+const SERIES_TEMPLATE_FALLBACKS: Record<string, string> = {
+  "hook-cover": "bold-modern",
+  "framework-carousel": "general-cormorant",
+  "framework-mini": "general-playfair",
+  "confession-card": "editorial-elegant",
+  "identity-badge": "corporate-clean",
+  "roast-footer": "street-bold",
+  "gap-line": "minimal-zen",
+};
+
 export function findTemplate(id: string): Template {
   const template = TEMPLATES.find((t) => t.id === id);
-  if (!template) {
-    throw new Error(`Unknown template id "${id}". Known ids: ${TEMPLATES.map((t) => t.id).join(", ")}`);
+  if (template) return template;
+  const fallbackId = SERIES_TEMPLATE_FALLBACKS[id];
+  if (fallbackId) {
+    const fallbackTemplate = TEMPLATES.find((t) => t.id === fallbackId);
+    if (fallbackTemplate) return fallbackTemplate;
   }
-  return template;
+  const known = TEMPLATES.map((t) => t.id).join(", ");
+  throw new Error(`Unknown template "${id}". Known templates: ${known}`);
 }
 
 /**

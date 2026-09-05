@@ -1,0 +1,25 @@
+[
+  {
+    "id": "e2e-alpha",
+    "name": "E2E Alpha",
+    "templateIds": ["hook-cover"],
+    "captionPromptRef": "captions/e2e-alpha.txt",
+    "hashtagCategory": "mindset",
+    "slots": [
+      { "dayOfWeek": 3, "slot": "am" },
+      { "dayOfWeek": 0, "slot": "pm" }
+    ],
+    "maxPerDay": 1,
+    "active": true
+  },
+  {
+    "id": "e2e-beta",
+    "name": "E2E Beta",
+    "templateIds": ["gap-line"],
+    "captionPromptRef": "captions/e2e-beta.txt",
+    "hashtagCategory": "discipline",
+    "slots": [{ "dayOfWeek": 5, "slot": "pm" }],
+    "maxPerDay": 1,
+    "active": false
+  }
+]

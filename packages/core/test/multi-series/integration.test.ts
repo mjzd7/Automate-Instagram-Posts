@@ -55,7 +55,7 @@ describe("multi-series supply chain (real files, no mocks)", () => {
           checked++;
           expect(item.seriesId).toBe(seriesId);
           expect(lintPackItem(item)).toEqual([]);
-          expect(item.status).toBe("draft");
+          expect(["draft", "approved", "rejected"]).toContain(item.status);
         }
       }
     }

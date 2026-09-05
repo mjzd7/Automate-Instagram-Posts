@@ -17,7 +17,8 @@ import {
   markPublished,
   findViralAudioIdsForReuse,
 } from "../db/repositories/posts.repo.js";
-import { findRecentUsedBackgroundDescriptions, recordBackgroundUsage, recordQuoteUsage } from "../db/repositories/usage.repo.js";
+import { findRecentUsedBackgroundDescriptions, findRecentUsedBackgroundSourceUrls, recordBackgroundUsage, recordQuoteUsage } from "../db/repositories/usage.repo.js";
+import { insertBackground } from "../db/repositories/backgrounds.repo.js";
 import { selectHashtags } from "../hashtags/selector.js";
 import { getCandidateBackgrounds } from "../images/background-provider.js";
 import type { Darkness } from "../images/darkness-classifier.js";
@@ -260,6 +261,7 @@ export async function generateAndPublishBatch(
   const recentTemplateIds: string[] = recentPublished.map((p) => p.templateId);
   let lastMode: Darkness = (recentPublished[0]?.mode as Darkness) ?? "dark";
   const usedAudioIds: string[] = [];
+  const recentVideoUrls = await findRecentUsedBackgroundSourceUrls(db, account.id, 50);
 
   const totalPostsToGenerate = options.batchSize ?? BATCH_SIZE;
 
@@ -423,7 +425,8 @@ export async function generateAndPublishBatch(
         availableTracks,
         false, // Voiceovers off by default
         mode,
-        quote.author ?? undefined
+        quote.author ?? undefined,
+        recentVideoUrls
       );
 
       const coverRelativePath = storyRelativePath.replace(/\.mp4$/, "-cover.jpg");
@@ -434,11 +437,24 @@ export async function generateAndPublishBatch(
       const composedAudioTrack = reelResult_composed.selectedAudioTrack ?? audioSelection.track;
       usedAudioIds.push(composedAudioTrack.audioId);
 
+      let effectiveBackgroundId = chosen.id;
+      if (reelResult_composed.selectedVideoUrl) {
+        effectiveBackgroundId = `vid-${postId}`;
+        await insertBackground(db, {
+          id: effectiveBackgroundId,
+          source: "video-bg",
+          sourceUrl: reelResult_composed.selectedVideoUrl,
+          categoryId: category,
+          darkness: mode,
+        });
+        recentVideoUrls.push(reelResult_composed.selectedVideoUrl);
+      }
+
       await insertPendingPost(db, {
         id: postId,
         accountId: account.id,
         quoteId: quote.id,
-        backgroundId: chosen.id,
+        backgroundId: effectiveBackgroundId,
         audioId: composedAudioTrack.audioId,
         templateId: template.id,
         captionTemplateId,
@@ -447,7 +463,7 @@ export async function generateAndPublishBatch(
       });
 
       await recordQuoteUsage(db, account.id, quote.id, postId);
-      await recordBackgroundUsage(db, account.id, chosen.id, postId);
+      await recordBackgroundUsage(db, account.id, effectiveBackgroundId, postId);
 
       if (dryRun) {
         items.push({ status: "composed", postId, composedImagePath: storyRelativePath });

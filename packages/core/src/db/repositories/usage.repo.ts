@@ -52,3 +52,16 @@ export async function findRecentUsedBackgroundDescriptions(db: Db, accountId: st
     .limit(limit);
   return rows.map((r) => r.description ?? "").filter(Boolean);
 }
+
+/** Source URLs of the account's most recently used backgrounds/videos -- lookback for video deduplication across reels. */
+export async function findRecentUsedBackgroundSourceUrls(db: Db, accountId: string, limit: number): Promise<string[]> {
+  const rows = await db
+    .select({ sourceUrl: backgrounds.sourceUrl })
+    .from(backgroundUsage)
+    .innerJoin(backgrounds, eq(backgroundUsage.backgroundId, backgrounds.id))
+    .where(eq(backgroundUsage.accountId, accountId))
+    .orderBy(desc(backgroundUsage.usedAt))
+    .limit(limit);
+  return rows.map((r) => r.sourceUrl).filter(Boolean);
+}
+

@@ -10,6 +10,7 @@ export interface NewBackground {
   description?: string | null;
   attribution?: string | null;
   categoryId?: string | null;
+  darkness?: "dark" | "light" | null;
 }
 
 export async function findUnusedForAccount(

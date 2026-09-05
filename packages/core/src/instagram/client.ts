@@ -154,6 +154,80 @@ export async function publishToFeed(
   return { mediaId, permalink };
 }
 
+export async function createCarouselItemContainer(
+  imageUrl: string,
+  creds: IGCredentials,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ creationId: string }> {
+  const body = await graphFetch(`${GRAPH_API_BASE}/${creds.igUserId}/media`, fetchImpl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image_url: imageUrl, is_carousel_item: true, access_token: creds.accessToken }),
+  });
+  if (typeof body.id !== "string") {
+    throw new Error("createCarouselItemContainer: response missing id");
+  }
+  return { creationId: body.id };
+}
+
+export async function createCarouselContainer(
+  childrenIds: string[],
+  caption: string,
+  creds: IGCredentials,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ creationId: string }> {
+  const body = await graphFetch(`${GRAPH_API_BASE}/${creds.igUserId}/media`, fetchImpl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      media_type: "CAROUSEL",
+      children: childrenIds,
+      caption,
+      access_token: creds.accessToken,
+    }),
+  });
+  if (typeof body.id !== "string") {
+    throw new Error("createCarouselContainer: response missing id");
+  }
+  return { creationId: body.id };
+}
+
+export async function publishCarouselToFeed(
+  imageUrls: string[],
+  caption: string,
+  hashtagComment: string | undefined,
+  creds: IGCredentials,
+  fetchImpl: typeof fetch = fetch,
+  sleepImpl?: (ms: number) => Promise<void>,
+): Promise<FeedPublishResult> {
+  if (imageUrls.length < 2 || imageUrls.length > 10) {
+    throw new Error(`publishCarouselToFeed: carousel must contain between 2 and 10 items (got ${imageUrls.length})`);
+  }
+
+  const childrenIds: string[] = [];
+  for (const url of imageUrls) {
+    const { creationId } = await createCarouselItemContainer(url, creds, fetchImpl);
+    await waitForContainerReady(creationId, creds, fetchImpl, sleepImpl);
+    childrenIds.push(creationId);
+  }
+
+  const { creationId: carouselCreationId } = await createCarouselContainer(childrenIds, caption, creds, fetchImpl);
+  await waitForContainerReady(carouselCreationId, creds, fetchImpl, sleepImpl);
+
+  const { mediaId } = await publishContainer(carouselCreationId, creds, fetchImpl);
+  const { permalink } = await fetchPermalink(mediaId, creds, fetchImpl);
+
+  if (hashtagComment?.trim()) {
+    try {
+      await postFirstComment(mediaId, hashtagComment, creds, fetchImpl);
+    } catch (error) {
+      console.warn(`[Batch] postFirstComment failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  return { mediaId, permalink };
+}
+
 export interface TokenRefreshResult {
   accessToken: string;
   expiresInSeconds: number;

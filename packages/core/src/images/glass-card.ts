@@ -7,6 +7,7 @@ export interface GlassCardOptions {
   mode: Darkness;
   categoryName?: string;
   scrimOpacity?: number;
+  showQuotes?: boolean;
 }
 
 /**
@@ -26,7 +27,7 @@ export interface GlassCardOptions {
  *   #11 — Light-mode card border opacity raised; outer glow added for contrast
  */
 export async function renderGlassCard(options: GlassCardOptions): Promise<Buffer> {
-  const { width, height, mode } = options;
+  const { width, height, mode, showQuotes = true } = options;
 
   const isDark = mode === "dark";
 
@@ -150,6 +151,9 @@ export async function renderGlassCard(options: GlassCardOptions): Promise<Buffer
     >${brandTitle}</text>
   </g>
 
+  ${
+    showQuotes
+      ? `
   <!-- Opening quote mark anchored near top of text zone -->
   <text
     x="${openMarkX}"
@@ -171,6 +175,9 @@ export async function renderGlassCard(options: GlassCardOptions): Promise<Buffer
     font-size="46"
     font-weight="bold"
   >\u201D</text>
+  `
+      : ""
+  }
 </svg>
 `;
 

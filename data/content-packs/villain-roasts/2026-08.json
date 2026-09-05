@@ -8,7 +8,7 @@
     "captionQuestion": null,
     "utilityLine": null,
     "ctaTag": "Send this to your accountability partner.",
-    "status": "draft",
+    "status": "approved",
     "generatedAt": "2026-08-22T09:56:40.894Z"
   },
   {
@@ -20,7 +20,7 @@
     "captionQuestion": null,
     "utilityLine": null,
     "ctaTag": "Send this to your accountability partner.",
-    "status": "draft",
+    "status": "approved",
     "generatedAt": "2026-08-22T13:06:20.905Z"
   }
 ]

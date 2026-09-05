@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  createCarouselContainer,
+  createCarouselItemContainer,
   createMediaContainer,
   fetchPermalink,
   getContainerStatus,
+  publishCarouselToFeed,
   publishContainer,
   publishToFeed,
   postFirstComment,
@@ -165,6 +168,70 @@ describe("publishToFeed", () => {
     ).rejects.toThrow(/ERROR/);
     // Only the create + one poll call should have happened -- publish must not have been attempted.
     expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("createCarouselItemContainer & createCarouselContainer", () => {
+  it("creates a carousel item container with is_carousel_item: true", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(200, { id: "item-1" }));
+    const result = await createCarouselItemContainer("https://example.com/slide1.jpg", creds, fetchImpl);
+    expect(result).toEqual({ creationId: "item-1" });
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain(`/${creds.igUserId}/media`);
+    expect(JSON.parse(init.body as string)).toEqual({
+      image_url: "https://example.com/slide1.jpg",
+      is_carousel_item: true,
+      access_token: "test-token",
+    });
+  });
+
+  it("creates parent carousel container with children IDs", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(200, { id: "carousel-parent-1" }));
+    const result = await createCarouselContainer(["item-1", "item-2"], "Deck caption", creds, fetchImpl);
+    expect(result).toEqual({ creationId: "carousel-parent-1" });
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({
+      media_type: "CAROUSEL",
+      children: ["item-1", "item-2"],
+      caption: "Deck caption",
+      access_token: "test-token",
+    });
+  });
+});
+
+describe("publishCarouselToFeed", () => {
+  it("orchestrates item container creation -> carousel container -> publish -> permalink", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, { id: "item-1" })) // create item 1
+      .mockResolvedValueOnce(jsonResponse(200, { status_code: "FINISHED" })) // poll item 1
+      .mockResolvedValueOnce(jsonResponse(200, { id: "item-2" })) // create item 2
+      .mockResolvedValueOnce(jsonResponse(200, { status_code: "FINISHED" })) // poll item 2
+      .mockResolvedValueOnce(jsonResponse(200, { id: "carousel-parent" })) // create carousel container
+      .mockResolvedValueOnce(jsonResponse(200, { status_code: "FINISHED" })) // poll carousel container
+      .mockResolvedValueOnce(jsonResponse(200, { id: "media-carousel-1" })) // publish
+      .mockResolvedValueOnce(jsonResponse(200, { permalink: "https://instagram.com/p/carousel123" })) // permalink
+      .mockResolvedValueOnce(jsonResponse(200, { id: "comment-1" })); // first comment
+
+    const result = await publishCarouselToFeed(
+      ["https://example.com/slide1.jpg", "https://example.com/slide2.jpg"],
+      "Carousel caption",
+      "#discipline #mindset",
+      creds,
+      fetchImpl,
+      noSleep,
+    );
+
+    expect(result).toEqual({ mediaId: "media-carousel-1", permalink: "https://instagram.com/p/carousel123" });
+    expect(fetchImpl).toHaveBeenCalledTimes(9);
+  });
+
+  it("throws if carousel has fewer than 2 images", async () => {
+    const fetchImpl = vi.fn();
+    await expect(
+      publishCarouselToFeed(["https://example.com/single.jpg"], "cap", undefined, creds, fetchImpl, noSleep),
+    ).rejects.toThrow(/between 2 and 10/);
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
 

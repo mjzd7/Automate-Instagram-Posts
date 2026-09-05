@@ -61,6 +61,7 @@ export async function renderTextAtSize(
   maxWidth: number,
   color: string,
   scale: number = 1,
+  align: "left" | "centre" | "right" = "centre",
 ): Promise<{ data: Buffer; info: { width: number; height: number } }> {
   if (!existsSync(face.file)) {
     throw new Error(`renderTextAtSize: font file does not exist: ${face.file}`);
@@ -71,7 +72,7 @@ export async function renderTextAtSize(
       fontfile: face.file,
       font: `${face.family} ${fontSize * scale}`,
       width: maxWidth * scale,
-      align: "centre",
+      align,
       rgba: true,
       wrap: "word",
     },
@@ -79,8 +80,6 @@ export async function renderTextAtSize(
     .png()
     .toBuffer({ resolveWithObject: true });
 }
-
-
 
 /**
  * Renders `text` at the largest font size (FONT_SIZE_MAX down to
@@ -95,6 +94,7 @@ export async function renderFittedText(
   maxHeight: number,
   color: string,
   scale: number = 1,
+  align: "left" | "centre" | "right" = "centre",
 ): Promise<TextRenderResult> {
   if (!text.trim()) {
     throw new Error("renderFittedText: text must not be empty");
@@ -106,7 +106,7 @@ export async function renderFittedText(
   const effectiveFontSizeMax = Math.min(FONT_SIZE_MAX, fontSizeMaxForWordCount(wordCount));
 
   for (let fontSize = effectiveFontSizeMax; fontSize >= FONT_SIZE_MIN; fontSize -= FONT_SIZE_STEP) {
-    const { data, info } = await renderTextAtSize(text, face, fontSize, maxWidth, color, scale);
+    const { data, info } = await renderTextAtSize(text, face, fontSize, maxWidth, color, scale, align);
     if (info.height <= maxHeight * scale) {
       return { buffer: data, width: info.width, height: info.height, fontSize, truncated: false };
     }

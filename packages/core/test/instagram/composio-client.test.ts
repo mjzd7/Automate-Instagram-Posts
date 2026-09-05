@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { publishViaComposio, publishViaComposioStories, publishViaComposioReels } from "../../src/instagram/composio-client.js";
+import {
+  publishViaComposio,
+  publishViaComposioCarousel,
+  publishViaComposioStories,
+  publishViaComposioReels,
+} from "../../src/instagram/composio-client.js";
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -156,4 +161,67 @@ describe("publishViaComposioReels", () => {
     expect(body1.arguments.cover_url).toBe("https://example.com/cover.jpg");
     expect(body1.arguments.audio_id).toBe("1784140000999");
   }, 20000);
+});
+
+describe("publishViaComposioCarousel", () => {
+  it("creates item containers, creates carousel container with children, and publishes", async () => {
+    const fetchImpl = vi
+      .fn()
+      // Step 1: create item 1
+      .mockResolvedValueOnce(jsonResponse(200, { data: { id: "item-1" } }))
+      // Step 1: create item 2
+      .mockResolvedValueOnce(jsonResponse(200, { data: { id: "item-2" } }))
+      // Step 2: create parent carousel container
+      .mockResolvedValueOnce(jsonResponse(200, { data: { id: "carousel-parent" } }))
+      // Step 3: publish
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          data: {
+            id: "comp-carousel-123",
+            permalink: "https://instagram.com/p/carousel999/",
+          },
+        }),
+      );
+
+    const result = await publishViaComposioCarousel({
+      imageUrls: ["https://example.com/slide1.jpg", "https://example.com/slide2.jpg"],
+      caption: "Multi-slide framework #mindset",
+      apiKey: "test-composio-key",
+      igUserId: "ig-user-999",
+      fetchImpl,
+    });
+
+    expect(result).toEqual({
+      mediaId: "comp-carousel-123",
+      permalink: "https://instagram.com/p/carousel999/",
+    });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
+
+    // Verify item 1 call
+    const [, init1] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const body1 = JSON.parse(init1.body as string);
+    expect(body1.arguments.image_url).toBe("https://example.com/slide1.jpg");
+    expect(body1.arguments.is_carousel_item).toBe(true);
+
+    // Verify parent carousel call
+    const [, init3] = fetchImpl.mock.calls[2] as [string, RequestInit];
+    const body3 = JSON.parse(init3.body as string);
+    expect(body3.arguments.media_type).toBe("CAROUSEL");
+    expect(body3.arguments.children).toEqual(["item-1", "item-2"]);
+    expect(body3.arguments.caption).toBe("Multi-slide framework #mindset");
+  }, 20000);
+
+  it("throws if fewer than 2 images are provided", async () => {
+    const fetchImpl = vi.fn();
+    await expect(
+      publishViaComposioCarousel({
+        imageUrls: ["https://example.com/slide1.jpg"],
+        caption: "Single",
+        apiKey: "key",
+        fetchImpl,
+      }),
+    ).rejects.toThrow(/between 2 and 10/);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
 });

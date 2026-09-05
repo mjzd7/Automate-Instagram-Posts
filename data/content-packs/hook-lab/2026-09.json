@@ -1,0 +1,62 @@
+[
+  {
+    "id": "hook-lab-2026-09-001",
+    "seriesId": "hook-lab",
+    "archetype": "controversy",
+    "text": "Your morning routine is just expensive procrastination.",
+    "framework": null,
+    "captionQuestion": null,
+    "utilityLine": null,
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:24:54.219Z"
+  },
+  {
+    "id": "hook-lab-2026-09-002",
+    "seriesId": "hook-lab",
+    "archetype": "stat",
+    "text": "99% of people quit right before this actually works.",
+    "framework": null,
+    "captionQuestion": null,
+    "utilityLine": null,
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:24:54.219Z"
+  },
+  {
+    "id": "hook-lab-2026-09-003",
+    "seriesId": "hook-lab",
+    "archetype": "callout",
+    "text": "You keep scrolling because you know you are wasting your potential.",
+    "framework": null,
+    "captionQuestion": null,
+    "utilityLine": null,
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:24:54.219Z"
+  },
+  {
+    "id": "hook-lab-2026-09-004",
+    "seriesId": "hook-lab",
+    "archetype": "negative",
+    "text": "Stop reading motivation. You already know what to do.",
+    "framework": null,
+    "captionQuestion": null,
+    "utilityLine": null,
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:24:54.219Z"
+  },
+  {
+    "id": "hook-lab-2026-09-005",
+    "seriesId": "hook-lab",
+    "archetype": "story-open",
+    "text": "I checked my bank account after six months of silence.",
+    "framework": null,
+    "captionQuestion": null,
+    "utilityLine": null,
+    "ctaTag": null,
+    "status": "approved",
+    "generatedAt": "2026-09-04T23:24:54.219Z"
+  }
+]

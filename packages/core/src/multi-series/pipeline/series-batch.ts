@@ -6,6 +6,7 @@ import type { Db } from "../../db/client.js";
 import { posts, series } from "../../db/schema.js";
 import { countPublishedSince } from "../../db/repositories/posts.repo.js";
 import { loadSeries, type SeriesConfig } from "../../config/series.js";
+import { composeCarouselDeck } from "../images/compose-carousel-deck.js";
 import { composeSeriesCard } from "../images/compose-series-card.js";
 import {
   parsePackItems,
@@ -190,7 +191,19 @@ export async function runSeriesBatch(options: SeriesBatchOptions): Promise<Serie
     }
 
     try {
-      const jpeg = await composeSeriesCard({ backgroundBuffer: await background(), templateId, item });
+      let jpegLength: number;
+      if (templateId === "framework-carousel") {
+        const deck = await composeCarouselDeck({
+          backgroundBuffer: await background(),
+          item,
+          mode: "dark",
+          seriesName: seriesConfig.name,
+        });
+        jpegLength = deck[0]?.length ?? 0;
+      } else {
+        const jpeg = await composeSeriesCard({ backgroundBuffer: await background(), templateId, item });
+        jpegLength = jpeg.length;
+      }
 
       if (liveGateActive) {
         const postId = (options.idGenerator ?? (() => crypto.randomUUID()))();
@@ -210,7 +223,7 @@ export async function runSeriesBatch(options: SeriesBatchOptions): Promise<Serie
         seriesId: slot.seriesId,
         action: "composed",
         itemId: item.id,
-        jpegLength: jpeg.length,
+        jpegLength,
       });
     } catch (cause) {
       consecutiveFailures++;

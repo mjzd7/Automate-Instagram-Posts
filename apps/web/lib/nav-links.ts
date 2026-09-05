@@ -11,6 +11,7 @@ export const NAV_LINKS: NavLinkDef[] = [
   { href: "/schedules", label: "Schedules" },
   { href: "/pipeline", label: "Pipeline" },
   { href: "/series", label: "Series" },
+  { href: "/formats", label: "Studio & Formats" },
   { href: "/config", label: "Config" },
   { href: "/analytics", label: "Analytics" },
   { href: "/history", label: "History" },

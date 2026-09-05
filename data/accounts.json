@@ -19,9 +19,7 @@
     ],
     "timezone": "Asia/Kolkata",
     "postingHoursLocal": [
-      9,
-      12,
-      16,
+      11,
       19
     ],
     "active": true

@@ -33,7 +33,10 @@ export async function GET(
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const filePath = join(repoRoot, "data", "posts", relativePath);
+    let filePath = join(repoRoot, "data", "posts", relativePath);
+    if (path[0] === "dry-run") {
+      filePath = join(repoRoot, "data", "dry-run", ...path.slice(1));
+    }
     const contentType = contentTypeFor(relativePath);
 
     try {

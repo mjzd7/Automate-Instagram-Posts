@@ -160,9 +160,9 @@ export async function composeSeriesCard(input: SeriesCardInput): Promise<Buffer>
     const cardWidth = Math.max(MIN_CARD_WIDTH, zone.width);
     const innerContentHeight =
       primary.height + (ctaBlock ? BLOCK_GAP + ctaBlock.height : 0);
-    const cardHeight = innerContentHeight + PAD_TOP + PAD_BOTTOM;
+    const cardHeight = Math.max(460, innerContentHeight + PAD_TOP + PAD_BOTTOM);
     const cardLeft = clamp(zone.left, CARD_HORIZONTAL_MARGIN_PX, W - cardWidth - CARD_HORIZONTAL_MARGIN_PX);
-    const cardTop = zone.top;
+    const cardTop = Math.round((H - cardHeight) / 2);
 
     layers.push({
       input: await renderGlassCard({
@@ -171,13 +171,14 @@ export async function composeSeriesCard(input: SeriesCardInput): Promise<Buffer>
         mode,
         categoryName: item.seriesId,
         scrimOpacity: SCRIM_PEAK_OPACITY_NORMAL,
+        showQuotes: template.layout === "confession-card" || template.layout === "hook-cover",
       }),
       left: cardLeft,
       top: cardTop,
     });
 
     const primaryLeft = cardLeft + Math.round((cardWidth - primary.width) / 2);
-    const primaryTop = cardTop + PAD_TOP;
+    const primaryTop = cardTop + Math.round((cardHeight - innerContentHeight) / 2);
     layers.push({
       input: await renderTextShadow(displayText, template.quoteFont, primary.fontSize, textMaxWidth, mode),
       left: primaryLeft,
@@ -221,9 +222,9 @@ export async function composeSeriesCard(input: SeriesCardInput): Promise<Buffer>
     const contentHeight =
       title.height + BLOCK_GAP + steps.height + (utilityBlock ? BLOCK_GAP + utilityBlock.height : 0);
     const cardWidth = Math.max(MIN_CARD_WIDTH, zone.width);
-    const cardHeight = contentHeight + PAD_TOP + PAD_BOTTOM;
+    const cardHeight = Math.max(680, contentHeight + PAD_TOP + PAD_BOTTOM);
     const cardLeft = clamp(zone.left, CARD_HORIZONTAL_MARGIN_PX, W - cardWidth - CARD_HORIZONTAL_MARGIN_PX);
-    const cardTop = clamp(zone.top, 0, H - cardHeight);
+    const cardTop = Math.round((H - cardHeight) / 2);
 
     layers.push({
       input: await renderGlassCard({
@@ -232,6 +233,7 @@ export async function composeSeriesCard(input: SeriesCardInput): Promise<Buffer>
         mode,
         categoryName: item.seriesId,
         scrimOpacity: SCRIM_PEAK_OPACITY_NORMAL,
+        showQuotes: false,
       }),
       left: cardLeft,
       top: cardTop,

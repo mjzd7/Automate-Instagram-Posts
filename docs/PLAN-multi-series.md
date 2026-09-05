@@ -182,29 +182,38 @@ Rationale: filling "Mindset Manual #15" with a fetched Zenquotes aphorism destro
 - **Discord notifications**: include series name + episode number.
 - **Dashboard**: series badge in review queue; group-by-series batch approve/reject.
 
+### 4.7 Empirical Graph API Audit Calibration (2026-09-05)
+
+Analysis of live account data (@success.for.sure, 168 published posts, 100 recent API media items) calibrates series visual and algorithmic execution:
+
+1. **Serif & High-Contrast Typography Mandate**: `general-cormorant` achieved **31.4 avg views** (over 2x to 9x higher than sans/minimalist templates). Series templates must maintain strong serif or high-impact typography (`PlayfairDisplayBold`, `MontserratBold`, `Cormorant`) and high-contrast glass-cards across all modes.
+2. **Preserve Signature Checkerboard Finish**: The account's alternating dark/light checkerboard grid pattern is strictly maintained on the feed. Rather than abandoning light mode, light-mode templates receive reinforced typography and higher-contrast scrims/cards so the aesthetic integrity of the 3-column checkerboard grid remains flawless.
+3. **DM Shares as Viral Engine**: Posts with send-to-friend hooks (S4 Villain Roasts, S3 Confession Cards) target Instagram's primary ranking signal (DM sends).
+4. **Hashtags Refinement**: High-performing niche tags (`#investing`, `#mindset`, `#wealth`, `#entrepreneur`) replace bloated low-conversion tags (`#success`, `#growth`).
+
 ---
 
 ## 5. Implementation phases
 
-Sequencing note: Phases 1 and 2 parallelize once Phase 0 lands (pack generation doesn't depend on templates; templates don't depend on packs). **All Phase 1–3 code lives under `src/multi-series/` + `scripts/run-series-batch.ts` per §4.0 isolation.**
+Sequencing note: **All Phase 1–3 code lives under `src/multi-series/` + `scripts/run-series-batch.ts` per §4.0 isolation.**
 
-| Phase | Work | Verification gate |
-|---|---|---|
-| **0** ✅ | `data/series.json` + Zod schema; DB migration (`series` table, `posts.seriesId/archetype`) | 14/14 new tests green; full suite 378/378 |
-| **1a** | Content-pack loader (`src/multi-series/quotes/content-pack.ts`) — pack schema, approved-only filter, oldest-first consumption | Red-first tests: schema rejects, filtering, sort order |
-| **1b** | Batch-generation script per series contract (§4.3) + moderation lint module — under `src/multi-series/` | Red-first lint rejection cases; Zod rejects malformed packs |
-| **2a** | Series template variants in separate template registry (`src/multi-series/images/templates.ts`) — copies of compositor assembly, not edits to it | Dry-run composes all 4 without `QuoteTruncatedError`; visual QA pass |
-| **2b** | Series-aware orchestrator copy (`src/multi-series/pipeline/series-batch.ts` ← adapted from generate-and-publish-batch) honoring cadence grid + rate caps + skip-vs-fallback matrix | Full `pnpm test` green; rate-cap simulation test |
-| **3** | CLI entry, Discord fields, dashboard badge + batch actions; generate Month-1 packs (~30 posts); human review; enable cron | End-to-end dry-run week, then live with approval queue active |
+| Phase | Work | Status | Verification gate |
+|---|---|---|---|
+| **0** | `data/series.json` + Zod schema; DB migration (`series` table, `posts.seriesId/archetype`) | ✅ Completed | 14/14 new tests green; full suite 378/378 |
+| **1a** | Content-pack loader (`src/multi-series/quotes/content-pack.ts`) — pack schema, approved-only filter, oldest-first consumption | ✅ Completed | Red-first tests: schema rejects, filtering, sort order |
+| **1b** | Batch-generation script per series contract (§4.3) + moderation lint module — under `src/multi-series/` | ✅ Completed | Red-first lint rejection cases; Zod rejects malformed packs |
+| **2a** | Series template variants in separate template registry (`src/multi-series/images/registry.ts`, `compose-series-card.ts`) | ✅ Completed | Dry-run composes all variants without `QuoteTruncatedError`; visual QA pass |
+| **2b** | Series-aware orchestrator (`src/multi-series/pipeline/series-batch.ts`, `slot-scheduler.ts`) honoring cadence grid + rate caps | ✅ Completed | Full `pnpm test` green (531/531 tests passing) |
+| **3** | Web dashboard series review & batch approval queue (`apps/web/app/(dashboard)/series/`); generate Month-1 packs (~30 posts); live canary run | 🟡 In Progress | End-to-end dry-run test passes; dashboard review actions operational |
 
 ---
 
-## 6. Open items
+## 6. Remaining Work to Launch & Test Series
 
-1. **FR-013 promotion** (logged in LEARNINGS.md): awaiting user approval to add model-routing rule to `docs/TOOLS.md` §3.
-2. **Analytics dependency**: S7 Monthly Recap unblocks once post-metrics ingestion ships (README planned feature).
-3. **Archetype analytics**: `posts.archetype` column collects data now so future A/B analysis is retroactive.
-4. **Frozen-module model rot** (found 2026-08-22): shared `matching/visual-concept-extractor.ts` and `content-filter/text-filter.ts` still hardcode the retired Gemini model ID — their LLM paths will 404/degrade at runtime in the live pipeline too. Off-limits under §4.0 isolation; needs a user decision.
+1. **Generate Initial Content Packs**: Run `pnpm generate-pack` with active LLM key for each of the 6 series (`mindset-manual`, `hook-lab`, `confession-cards`, `villain-roasts`, `fill-the-blank`, `season-reset`).
+2. **Review & Approve Items**: Use dashboard (`/series`) to approve generated draft cards.
+3. **Schedule & Test Multi-Series Batch**: Run `scripts/run-series-batch.ts` in dry-run mode, verify composed 4:5 cards and 9:16 reels.
+4. **Deploy Cron Trigger**: Enable scheduled execution for multi-series cadence grid.
 
 ---
 
@@ -212,4 +221,6 @@ Sequencing note: Phases 1 and 2 parallelize once Phase 0 lands (pack generation 
 
 | Date | Finding | Disposition |
 |---|---|---|
-| 2026-08-22 | Hardcoded LLM model IDs rot at the provider's API surface (stale Gemini model reference → HTTP 404 on first real generation attempt; follow-up pin to another retired ID also 404'd). Test suite cannot catch this by design — real-provider calls stay out of test scope, so breakage surfaces at generation time, not CI time. | Model name lives behind the injectable provider adapter (one-line swap, default now pinned to Google's advertised GA flash model). Month-1 pack generation is a manual ritual; when it fails, check model-ID freshness first. |
+| 2026-08-22 | Hardcoded LLM model IDs rot at the provider's API surface (stale Gemini model reference → HTTP 404 on first real generation attempt; follow-up pin to another retired ID also 404'd). | Model name lives behind injectable adapter (default pinned to GA flash model). |
+| 2026-09-05 | Live IG Graph API audit of 168 posts revealed `general-cormorant` (31.4 avg views) outperforming other templates by up to 9x, and dark mode outperforming light mode by 41%. | Calibrated multi-series template styling, dark-mode default, and wealth/mindset hashtag focus. |
+

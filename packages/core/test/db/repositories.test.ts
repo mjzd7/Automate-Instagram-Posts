@@ -404,4 +404,42 @@ describe("usage repository", () => {
     expect(recent.map((r) => r.text)).toContain("first");
     expect(recent.map((r) => r.text)).toContain("second");
   });
+
+  it("returns recent background source URLs for an account in recency order", async () => {
+    await backgroundsRepo.insertBackground(handle.db, {
+      id: "bg-vid-1",
+      source: "video-bg",
+      sourceUrl: "https://example.com/vid1.mp4",
+      categoryId: "motivational",
+    });
+    await backgroundsRepo.insertBackground(handle.db, {
+      id: "bg-vid-2",
+      source: "video-bg",
+      sourceUrl: "https://example.com/vid2.mp4",
+      categoryId: "motivational",
+    });
+    await postsRepo.insertPendingPost(handle.db, {
+      id: "p1",
+      accountId: "acct1",
+      templateId: "t",
+      captionTemplateId: "c",
+      mode: "dark",
+      scheduledFor: new Date(0).toISOString(),
+    });
+    await postsRepo.insertPendingPost(handle.db, {
+      id: "p2",
+      accountId: "acct1",
+      templateId: "t",
+      captionTemplateId: "c",
+      mode: "dark",
+      scheduledFor: new Date(1000).toISOString(),
+    });
+    await usageRepo.recordBackgroundUsage(handle.db, "acct1", "bg-vid-1", "p1");
+    await usageRepo.recordBackgroundUsage(handle.db, "acct1", "bg-vid-2", "p2");
+
+    const urls = await usageRepo.findRecentUsedBackgroundSourceUrls(handle.db, "acct1", 10);
+    expect(urls).toHaveLength(2);
+    expect(urls).toContain("https://example.com/vid1.mp4");
+    expect(urls).toContain("https://example.com/vid2.mp4");
+  });
 });

@@ -19,7 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   pages: { signIn: "/login" },
   // Vercel is an auto-trusted platform per Auth.js's own docs, but that
   // auto-detection didn't fire for a local `next start` (verified: without

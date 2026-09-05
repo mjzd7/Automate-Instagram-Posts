@@ -459,3 +459,192 @@ export async function publishViaComposioReels(
     permalink: publishData.data?.permalink,
   };
 }
+
+export interface PublishViaComposioCarouselOptions {
+  imageUrls: string[];
+  caption: string;
+  apiKey: string;
+  entityId?: string;
+  igUserId?: string;
+  fetchImpl?: typeof fetch;
+}
+
+/**
+ * Publishes a multi-slide carousel to Instagram feed via Composio's v3.1 tool execution.
+ * 1. Creates a container for each image item with is_carousel_item: true
+ * 2. Creates the parent CAROUSEL container referencing children item IDs
+ * 3. Publishes the carousel container
+ */
+export async function publishViaComposioCarousel(
+  options: PublishViaComposioCarouselOptions,
+): Promise<ComposioPublishResult> {
+  const { imageUrls, caption, apiKey, entityId = "default" } = options;
+  if (imageUrls.length < 2 || imageUrls.length > 10) {
+    throw new Error(`publishViaComposioCarousel: carousel must contain between 2 and 10 images (got ${imageUrls.length})`);
+  }
+
+  const fetchImpl = options.fetchImpl ?? fetch;
+
+  // Step 1: Create Item Containers
+  const childrenIds: string[] = [];
+  for (const url of imageUrls) {
+    const itemRes = await fetchImpl(
+      "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_CREATE_MEDIA_CONTAINER",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+        },
+        signal: AbortSignal.timeout(30000),
+        body: JSON.stringify({
+          entity_id: entityId,
+          user_id: entityId,
+          arguments: {
+            image_url: url,
+            is_carousel_item: true,
+          },
+        }),
+      },
+    );
+
+    if (!itemRes.ok) {
+      const errorText = await itemRes.text();
+      throw new Error(`Composio create carousel item error (${itemRes.status}): ${errorText}`);
+    }
+
+    const itemData = (await itemRes.json()) as {
+      data?: { id?: string; creation_id?: string };
+      error?: string | { message?: string };
+    };
+
+    if (itemData.error) {
+      const errMsg = typeof itemData.error === "object" ? itemData.error.message : itemData.error;
+      throw new Error(`Composio create carousel item failed: ${errMsg}`);
+    }
+
+    const childId = itemData.data?.id ?? itemData.data?.creation_id;
+    if (!childId) {
+      throw new Error("Composio response missing carousel item container ID");
+    }
+    childrenIds.push(childId);
+  }
+
+  // Brief delay for Meta container processing
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  // Step 2: Create Parent Carousel Container
+  const carouselRes = await fetchImpl(
+    "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_CREATE_MEDIA_CONTAINER",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      signal: AbortSignal.timeout(30000),
+      body: JSON.stringify({
+        entity_id: entityId,
+        user_id: entityId,
+        arguments: {
+          media_type: "CAROUSEL",
+          children: childrenIds,
+          caption,
+        },
+      }),
+    },
+  );
+
+  if (!carouselRes.ok) {
+    const errorText = await carouselRes.text();
+    throw new Error(`Composio create carousel container error (${carouselRes.status}): ${errorText}`);
+  }
+
+  const carouselData = (await carouselRes.json()) as {
+    data?: { id?: string; creation_id?: string };
+    error?: string | { message?: string };
+  };
+
+  if (carouselData.error) {
+    const errMsg = typeof carouselData.error === "object" ? carouselData.error.message : carouselData.error;
+    throw new Error(`Composio create carousel container failed: ${errMsg}`);
+  }
+
+  const carouselCreationId = carouselData.data?.id ?? carouselData.data?.creation_id;
+  if (!carouselCreationId) {
+    throw new Error("Composio response missing carousel container ID");
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  // Fetch ig_user_id if not provided
+  let targetIgUserId = options.igUserId;
+  if (!targetIgUserId) {
+    try {
+      const userRes = await fetchImpl(
+        "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_GET_USER_INFO",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+          },
+          signal: AbortSignal.timeout(10000),
+          body: JSON.stringify({
+            entity_id: entityId,
+            user_id: entityId,
+            arguments: {},
+          }),
+        },
+      );
+      if (userRes.ok) {
+        const userData = (await userRes.json()) as { data?: { id?: string } };
+        if (userData.data?.id) {
+          targetIgUserId = userData.data.id;
+        }
+      }
+    } catch {}
+  }
+
+  // Step 3: Publish Carousel
+  const publishRes = await fetchImpl(
+    "https://backend.composio.dev/api/v3.1/tools/execute/INSTAGRAM_POST_IG_USER_MEDIA_PUBLISH",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      signal: AbortSignal.timeout(30000),
+      body: JSON.stringify({
+        entity_id: entityId,
+        user_id: entityId,
+        arguments: {
+          ig_user_id: targetIgUserId,
+          creation_id: carouselCreationId,
+        },
+      }),
+    },
+  );
+
+  if (!publishRes.ok) {
+    const errorText = await publishRes.text();
+    throw new Error(`Composio publish carousel error (${publishRes.status}): ${errorText}`);
+  }
+
+  const publishData = (await publishRes.json()) as {
+    data?: { id?: string; media_id?: string; permalink?: string };
+    error?: string | { message?: string };
+  };
+
+  if (publishData.error) {
+    const errMsg = typeof publishData.error === "object" ? publishData.error.message : publishData.error;
+    throw new Error(`Composio publish carousel failed: ${errMsg}`);
+  }
+
+  const mediaId = publishData.data?.id ?? publishData.data?.media_id ?? `carousel-${Date.now()}`;
+  return {
+    mediaId,
+    permalink: publishData.data?.permalink,
+  };
+}

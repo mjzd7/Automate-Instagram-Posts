@@ -9,3 +9,12 @@ dist/
 .DS_Store
 .vercel
 .env*
+scratch/
+.omo/
+.dagr/
+test-*.ts
+prompt-results.md
+prompts.md
+kokanee/
+LearningsDAGR.md
+packages/core/test-pango.png

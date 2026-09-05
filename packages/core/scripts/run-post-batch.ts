@@ -116,7 +116,7 @@ async function main(): Promise<void> {
       githubRepoSlug,
       hashtagPools,
       dryRun,
-      ignorePostingHour: force,
+      ignorePostingHour: force || (pipelineDue !== null && pipelineDue.length > 0),
       ignoreRateCap: force,
       batchSize: effectiveBatchSize,
       noDelay: true,
